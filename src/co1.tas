@@ -181,8 +181,8 @@ a04F7 = $04F7
 a04F8 = $04F8
 a04F9 = $04F9
 a04FD = $04FD
-a04FF = $04FF
-a0500 = $0500
+GRENADES = $04FF
+LIVES = $0500
 a0501 = $0501
 a0502 = $0502
 a0503 = $0503
@@ -232,10 +232,7 @@ eF00A = $F00A
 ;
 ROM_OPEN = $FFC0
 
-        * = $0800
-
-        .BYTE $00,$0B,$08,$0A,$00,$9E,$32,$30
-        .BYTE $36,$31,$00,$00,$00
+        * = $080D
         LDA #$00     ;#%00000000
         TAY
         STA aA5
@@ -314,8 +311,8 @@ j0883   LDA #$A5     ;#%10100101
         STA $D01D    ;Sprites Expand 2x Horizontal (X)
         STA $D017    ;Sprites Expand 2x Vertical (Y)
         LDA #$05     ;#%00000101
-        STA a04FF
-        STA a0500
+        STA GRENADES
+        STA LIVES
 j08B8   LDA #$A5     ;#%10100101
         STA a0403
         LDA #$00     ;#%00000000
@@ -408,13 +405,14 @@ b098E   LDA #$DD     ;#%11011101
         STA a045D
         JMP j08CB
 
-b0996   DEC a0500
+b0996   DEC LIVES
         JSR s140F
-        LDA a0500
-        BEQ b09A4
+        LDA LIVES
+        BEQ GAME_OVER
         JMP j08C2
 
-b09A4   LDX #$06     ;#%00000110
+GAME_OVER
+        LDX #$06     ;#%00000110
 b09A6   TXA
         ASL A
         TAY
@@ -1032,7 +1030,7 @@ s0F48   JSR s3DD3
         STA $D01D    ;Sprites Expand 2x Horizontal (X)
         STA $D017    ;Sprites Expand 2x Vertical (Y)
         LDX #$00     ;#%00000000
-b0F62   LDA #$48     ;#%01001000
+_L00    LDA #$48     ;#%01001000
         STA a0432,X
         LDA f0FEC,X
         STA a0422,X
@@ -1051,7 +1049,7 @@ b0F62   LDA #$48     ;#%01001000
         STA a0442,X
         INX
         CPX #$07     ;#%00000111
-        BNE b0F62
+        BNE _L00
         JSR s3D48
         JSR s3F24
         LDA #$00     ;#%00000000
@@ -1061,14 +1059,15 @@ b0F62   LDA #$48     ;#%01001000
         JSR s10FC
         LDA #$00     ;#%00000000
         STA a049D
-b0FAD   LDA #$FF     ;#%11111111
+_L01    LDA #$FF     ;#%11111111
         STA a04E6
-b0FB2   LDA $DC00    ;CIA1: Data Port Register A
+_WAIT_FIRE
+        LDA $DC00    ;CIA1: Data Port Register A
         CMP #$6F     ;#%01101111
         BEQ b0FEB
         JSR s402A
         DEC a04E6
-        BNE b0FB2
+        BNE _WAIT_FIRE
         LDA #$09     ;#%00001001
         STA a04E2
         LDX a049D
@@ -1082,7 +1081,7 @@ b0FB2   LDA $DC00    ;CIA1: Data Port Register A
         INC a049D
         LDA a049D
         CMP #$08     ;#%00001000
-        BNE b0FAD
+        BNE _L01
         JMP s0F48
 
 b0FEB   RTS
@@ -1382,7 +1381,7 @@ s136D   SED
         ADC #$01     ;#%00000001
         STA a04F9
         CLD
-        INC a0500
+        INC LIVES
         JSR s140F
         LDA #$0C     ;#%00001100
         JSR s500F
@@ -1445,7 +1444,7 @@ s13C1   LDA f0F36
         STA aE36D
         RTS
 
-s13F5   LDA a04FF
+s13F5   LDA GRENADES
         AND #$F0     ;#%11110000
         LSR A
         LSR A
@@ -1453,14 +1452,14 @@ s13F5   LDA a04FF
         LSR A
         ADC #$21     ;#%00100001
         STA aE359
-        LDA a04FF
+        LDA GRENADES
         AND #$0F     ;#%00001111
         CLC
         ADC #$21     ;#%00100001
         STA aE35A
         RTS
 
-s140F   LDA a0500
+s140F   LDA LIVES
         AND #$F0     ;#%11110000
         LSR A
         LSR A
@@ -1468,7 +1467,7 @@ s140F   LDA a0500
         LSR A
         ADC #$21     ;#%00100001
         STA aE361
-        LDA a0500
+        LDA LIVES
         AND #$0F     ;#%00001111
         CLC
         ADC #$21     ;#%00100001
@@ -3369,8 +3368,8 @@ b2A65   LDA #$08     ;#%00001000
         LDA #$03     ;#%00000011
         SED
         CLC
-        ADC a04FF
-        STA a04FF
+        ADC GRENADES
+        STA GRENADES
         CLD
         JSR s13F5
         LDA #$0A     ;#%00001010
@@ -4991,7 +4990,7 @@ s38C3   LDA a0503
         BEQ b3934
 b38D2   LDA a0491
         BNE b3934
-        LDA a04FF
+        LDA GRENADES
         BEQ b3934
         LDA $DC01    ;CIA1: Data Port Register B
         CMP #$EF     ;#%11101111
@@ -5020,10 +5019,10 @@ b38D2   LDA a0491
         LDA #$A4     ;#%10100100
         STA a045D
         SED
-        LDA a04FF
+        LDA GRENADES
         SEC
         SBC #$01     ;#%00000001
-        STA a04FF
+        STA GRENADES
         CLD
         JSR s13F5
         LDA #$01     ;#%00000001
@@ -5665,11 +5664,11 @@ b3EB1   LDA #$00     ;#%00000000
         BNE b3EB1
         JSR s3F24
         JSR s109B
-        LDA a04FF
+        LDA GRENADES
         CMP #$05     ;#%00000101
         BCS b3ECD
         LDA #$05     ;#%00000101
-        STA a04FF
+        STA GRENADES
 b3ECD   RTS
 
 f3ECE   RTS
