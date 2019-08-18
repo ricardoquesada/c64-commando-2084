@@ -11,8 +11,7 @@ bin:
 
 d64:
 	$(C1541) -format "commando 2048,rq" d64 $(D64_IMAGE)
-	$(C1541) $(D64_IMAGE) -write orig/commando\ boot.prg "commando boot"
-	$(C1541) $(D64_IMAGE) -write orig/cmdo\ boot976.prg "cmdo boot976"
+	$(C1541) $(D64_IMAGE) -write orig/commando.prg "commando"
 	$(C1541) $(D64_IMAGE) -write bin/co1.prg co1
 	$(C1541) $(D64_IMAGE) -write orig/co2.prg co2
 	$(C1541) $(D64_IMAGE) -write orig/co3.prg co3

@@ -7,4 +7,4 @@ $e400 - $ffff: sprites
 
 
 
-41fc: the one that doesn't get converted to ~ in Regenerator
+41FC: the one that doesn't get converted to ~ in Regenerator

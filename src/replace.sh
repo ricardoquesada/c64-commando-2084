@@ -17,6 +17,7 @@ strings=(
         a003D
         a003F
         a0041
+        a004B
         a004E
         a0053
         a0054
@@ -39,6 +40,7 @@ strings=(
         f0000
         f004B
         f004C
+        f00A2
         )
 
 for val in "${strings[@]}"; do
