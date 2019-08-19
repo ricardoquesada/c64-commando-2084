@@ -4,7 +4,7 @@ D64_IMAGE = "bin/commando-2048.d64"
 X64 = x64
 C1541 = c1541
 
-all: bin d64 run
+all: clean bin d64 run
 
 bin:
 	64tass -Wall --cbm-prg -o bin/co1.prg -l bin/labels.txt --vice-labels src/co1.tas

@@ -488,7 +488,7 @@ j0A2B   JSR s3DD3
         JSR s1366
         LDA #$FF     ;#%11111111
         STA a04E6
-b0A3B   LDA $DC00    ;CIA1: Data Port Register A
+b0A3B   LDA $DC00    ;CIA1: Data Port Register A  (riq: unk)
         CMP #$6F     ;#%01101111
         BEQ b0A4A
         JSR s402A
@@ -688,7 +688,7 @@ b0BE3   STA f0506,X
         JSR s3F24
         RTS
 
-s0C0A   LDA $DC00    ;CIA1: Data Port Register A
+s0C0A   LDA $DC00    ;CIA1: Data Port Register A  (riq: enter high score)
         AND #$01     ;#%00000001
         BNE b0C1D
         LDA a0432
@@ -696,7 +696,7 @@ s0C0A   LDA $DC00    ;CIA1: Data Port Register A
         BCC b0C1D
         LDA #$FE     ;#%11111110
         STA a0482
-b0C1D   LDA $DC00    ;CIA1: Data Port Register A
+b0C1D   LDA $DC00    ;CIA1: Data Port Register A (riq: enter high score)
         AND #$02     ;#%00000010
         BNE b0C30
         LDA a0432
@@ -704,7 +704,7 @@ b0C1D   LDA $DC00    ;CIA1: Data Port Register A
         BCS b0C30
         LDA #$02     ;#%00000010
         STA a0482
-b0C30   LDA $DC00    ;CIA1: Data Port Register A
+b0C30   LDA $DC00    ;CIA1: Data Port Register A (riq: enter high score)
         AND #$04     ;#%00000100
         BNE b0C43
         LDA a0422
@@ -712,7 +712,7 @@ b0C30   LDA $DC00    ;CIA1: Data Port Register A
         BCC b0C43
         LDA #$FE     ;#%11111110
         STA a0472
-b0C43   LDA $DC00    ;CIA1: Data Port Register A
+b0C43   LDA $DC00    ;CIA1: Data Port Register A (riq: enter high score)
         AND #$08     ;#%00001000
         BNE b0C56
         LDA a0422
@@ -830,7 +830,7 @@ b0D67   LDA #$00     ;#%00000000
         STA a0511
 b0D80   RTS
 
-b0D81   LDA $DC00    ;CIA1: Data Port Register A
+b0D81   LDA $DC00    ;CIA1: Data Port Register A (riq: enter high score - fire)
         AND #$10     ;#%00010000
         BEQ b0D89
         RTS
@@ -925,7 +925,7 @@ b0E1E   JSR s0E68
 b0E5B   INX
         CPX #$08     ;#%00001000
         BNE b0E1E
-b0E60   LDA $DC00    ;CIA1: Data Port Register A
+b0E60   LDA $DC00    ;CIA1: Data Port Register A (riq: display high scores - fire)
         CMP #$6F     ;#%01101111
         BNE b0E60
         RTS
@@ -1062,7 +1062,7 @@ _L00    LDA #$48     ;#%01001000
 _L01    LDA #$FF     ;#%11111111
         STA a04E6
 _WAIT_FIRE
-        LDA $DC00    ;CIA1: Data Port Register A
+        LDA $DC00    ;CIA1: Data Port Register A (riq: main screen - fire)
         CMP #$6F     ;#%01101111
         BEQ b0FEB
         JSR s402A
@@ -5114,7 +5114,7 @@ j39C9   LDA #$03     ;#%00000011
         BNE b39F0
         LDA a04F4
         BEQ b3A46
-b39F0   LDA $DC00    ;CIA1: Data Port Register A
+b39F0   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game fire)
         AND #$10     ;#%00010000
         BNE b3A46
         LDA a04DF
@@ -5206,7 +5206,7 @@ b3ABC   LDA #$00     ;#%00000000
         STA a046D
         STA a047D
         STA a0404
-        LDA $DC00    ;CIA1: Data Port Register A
+        LDA $DC00    ;CIA1: Data Port Register A (riq: in-game up)
         AND #$01     ;#%00000001
         BNE b3B00
         LDA #$00     ;#%00000000
@@ -5231,7 +5231,7 @@ b3AEC   LDA a042D
 
 b3AFB   LDA #$FF     ;#%11111111
         STA a0404
-b3B00   LDA $DC00    ;CIA1: Data Port Register A
+b3B00   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game down)
         AND #$02     ;#%00000010
         BNE b3B18
         LDA #$08     ;#%00001000
@@ -5241,7 +5241,7 @@ b3B00   LDA $DC00    ;CIA1: Data Port Register A
         BCS b3B18
         LDA #$01     ;#%00000001
         STA a047D
-b3B18   LDA $DC00    ;CIA1: Data Port Register A
+b3B18   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game left)
         AND #$04     ;#%00000100
         BNE b3B35
         LDA #$0C     ;#%00001100
@@ -5253,7 +5253,7 @@ b3B18   LDA $DC00    ;CIA1: Data Port Register A
         BCC b3B35
 b3B30   LDA #$FE     ;#%11111110
         STA a046D
-b3B35   LDA $DC00    ;CIA1: Data Port Register A
+b3B35   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game right)
         AND #$08     ;#%00001000
         BNE b3B52
         LDA #$04     ;#%00000100
