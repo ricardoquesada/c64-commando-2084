@@ -6,5 +6,8 @@ $e000 - $e3e7: main screen (copied from somewhere else?)
 $e400 - $ffff: sprites
 
 
-
 41FC: the one that doesn't get converted to ~ in Regenerator
+
+co1.prg: main code, sound, maps, etc.
+co2.prg: ($e000-$efff) 2 charsets + code to move it to correct place ($f000)
+co3.prg: screen? ($e000-$e3ff) - sprites ($e400-$ffff)

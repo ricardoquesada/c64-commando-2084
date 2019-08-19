@@ -105,9 +105,6 @@ a00FB = $00FB
 a00FC = $00FC
 a00FD = $00FD
 a00FE = $00FE
-a0314 = $0314
-a0315 = $0315
-a0319 = $0319
 a0400 = $0400
 a0401 = $0401
 a0402 = $0402
@@ -232,7 +229,10 @@ eF00A = $F00A
 ;
 ROM_OPEN = $FFC0
 
-        * = $080D
+        * = $0800
+
+        .BYTE $00,$0B,$08,$0A,$00,$9E,$32,$30
+        .BYTE $36,$31,$00,$00,$00
         LDA #$00     ;#%00000000
         TAY
         STA aA5
@@ -240,7 +240,7 @@ ROM_OPEN = $FFC0
         LDA #$09     ;#%00001001
         JSR s0828
         JSR s083D
-        JSR eF00A
+        JSR eF00A   ; set charset: copy from e000-efff to d000-dfff
         JSR s083D
         JSR s0828
         JMP j0850
@@ -270,12 +270,12 @@ b083E   LDA a01
         BNE b083E
         JSR s35AD
         JSR s0A57
-j0850   =*+$01
-        JSR sA978
-        EOR a188D
-        .BYTE $03,$A9
-        ASL A
-        STA a0319    ;NMI
+        .BYTE $20
+j0850   SEI
+        LDA #<p0A4D  ;#%01001101
+        STA $0318    ;NMI
+        LDA #>p0A4D  ;#%00001010
+        STA $0319    ;NMI
         CLI
         LDX #$00     ;#%00000000
 b085E   LDA f0A4E,X
@@ -496,7 +496,7 @@ b0A3B   LDA $DC00    ;CIA1: Data Port Register A  (riq: unk)
         BNE b0A3B
 b0A4A   JMP j0883
 
-        RTI
+p0A4D   RTI 
 
 f0A4E   BVC b0A58
         BVC b0A5A
@@ -4992,7 +4992,7 @@ b38D2   LDA a0491
         BNE b3934
         LDA GRENADES
         BEQ b3934
-        LDA $DC01    ;CIA1: Data Port Register B
+        LDA $DC01    ;CIA1: Data Port Register B (riq: in-game grenades)
         CMP #$EF     ;#%11101111
         BNE b3934
         LDA a041D
@@ -5111,10 +5111,11 @@ j39C9   LDA #$03     ;#%00000011
         LDA a0503
         BNE b3A46
         LDA a04EF
-        BNE b39F0
+        BNE _CHECK_FIRE
         LDA a04F4
         BEQ b3A46
-b39F0   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game fire)
+_CHECK_FIRE
+        LDA $DC00    ;CIA1: Data Port Register A (riq: in-game fire)
         AND #$10     ;#%00010000
         BNE b3A46
         LDA a04DF
@@ -5265,7 +5266,7 @@ b3B35   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game right)
         BCS b3B52
 b3B4D   LDA #$02     ;#%00000010
         STA a046D
-b3B52   LDA $DC00    ;CIA1: Data Port Register A
+b3B52   LDA $DC00    ;CIA1: Data Port Register A (riq: unk)
         ORA #$10     ;#%00010000
         CMP #$76     ;#%01110110
         BNE b3B6A
@@ -5299,7 +5300,7 @@ b3B90   CMP #$7A     ;#%01111010
         STA a0019,b
         LDA #>p3CBC  ;#%00111100
         STA a001A,b
-b3BA3   LDA $DC00    ;CIA1: Data Port Register A
+b3BA3   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game direction changed)
         AND #$0F     ;#%00001111
         CMP #$0F     ;#%00001111
         BEQ b3BCC
@@ -5415,33 +5416,17 @@ b3C8F   LDA a04F7
         STA a0404
 b3C9F   RTS
 
-f3CA0   TYA
-        STA f999A,Y
-        .BYTE $9B,$9C,$9D
-        .BYTE $9C,$D5,$D6
-        .BYTE $D7,$D8
-        CMP fDBDA,Y
-p3CB0   =*+$01
-        .BYTE $DC,$9E,$9F
-p3CB4   =*+$02
-        .BYTE $DF,$A0,$A1
-        LDX #$E0     ;#%11100000
-p3CB8   =*+$01
-        .BYTE $A3,$A6
-        .BYTE $A7,$A8
-p3CBC   =*+$01
-        SBC (pA9,X)
-        TAX
-        .BYTE $AB,$E2
-f3CC1   =*+$01
-f3CC0   LDY #$3C     ;#%00111100
-        CLV
-        .BYTE $3C,$AC,$3C
-        BCS b3D04
-        LDY a3C
-        LDY f3C,X
-        TAY
+f3CA0   .BYTE $98,$99,$9A,$99,$9B,$9C,$9D,$9C
+        .BYTE $D5,$D6,$D7,$D8,$D9,$DA,$DB,$DC
+p3CB0   .BYTE $9E,$9F,$DF,$A0
+p3CB4   .BYTE $A1,$A2,$E0,$A3
+p3CB8   .BYTE $A6,$A7,$A8,$E1
+p3CBC   .BYTE $A9,$AA,$AB,$E2
+f3CC0   .BYTE $A0
+f3CC1   .BYTE $3C,$B8,$3C,$AC,$3C,$B0,$3C,$A4
+        .BYTE $3C,$B4,$3C,$A8
         .BYTE $3C,$BC,$3C
+
 s3CD0   JSR s3DD3
         LDX #$00     ;#%00000000
 b3CD5   LDA f3D27,X
@@ -5480,33 +5465,15 @@ b3D19   INX
         BNE b3D06
         RTS
 
-f3D27   ROR a9682
-        TAX
-        LDX fE6DC,Y
-        PHA
-        .BYTE $52
-f3D32   =*+$02
-        ORA a0023,Y
-        BRK
-        .BYTE $00
-        BRK
-        .BYTE $00
-        BRK
-        .BYTE $00
-        BRK
-        .BYTE $00
-f3D3D   =*+$02
-        .BYTE $FF,$FF,$32
-        .BYTE $32
-        .BYTE $32
-        .BYTE $32
-        .BYTE $32
-        .BYTE $32
-        .BYTE $32
-        ROR a6E6E
-s3D48   =*+$01
-        ROR a1DAD
-        .BYTE $04,$18
+f3D27   .BYTE $6E,$82,$96,$AA,$BE,$DC,$E6,$48
+        .BYTE $52,$19,$23
+f3D32   .BYTE $00,$00,$00,$00,$00,$00,$00,$00
+        .BYTE $00,$FF,$FF
+f3D3D   .BYTE $32,$32,$32,$32,$32,$32,$32,$6E
+        .BYTE $6E,$6E,$6E
+
+s3D48   LDA a041D
+        CLC
         ADC a046D
         PHA
         BVS b3D61
@@ -5671,29 +5638,16 @@ b3EB1   LDA #$00     ;#%00000000
         STA GRENADES
 b3ECD   RTS
 
-f3ECE   RTS
-
-        .BYTE $80,$80
-f3ED2   =*+$01
-        LDY #$3F     ;#%00111111
-        .BYTE $1F,$0F,$0F
-        .BYTE $0F,$0F,$0F
-        .BYTE $0F,$13,$3D
-        ADC (p83,X)
-f3EDF   =*+$01
-        .BYTE $AF,$13,$3D
-        ADC (p83,X)
-        LDX a13
-        AND f8361,X
-        .BYTE $B2
-        .BYTE $13,$3D
-        ADC (p83,X)
-f3EEE   =*+$01
-        LDX aDA
-f3EEF   ROL f3EDF,X
+f3ECE   .BYTE $60,$80,$80,$A0
+f3ED2   .BYTE $3F,$1F,$0F,$0F,$0F,$0F,$0F,$0F
+        .BYTE $13,$3D,$61,$83,$AF,$13,$3D,$61
+        .BYTE $83,$A6,$13,$3D,$61,$83,$B2,$13
+        .BYTE $3D,$61,$83,$A6
+f3EEE   .BYTE $DA
+f3EEF   .BYTE $3E,$DF,$3E
         .BYTE $DF,$3E,$E9
-b3EF6   =*+$01
-        ROL f00A2,b,X
+        .BYTE $3E
+b3EF6   LDX #$00     ;#%00000000
         STX a00D7,b
 b3EFB   LDY f004C,b,X
         LDA a042D,Y
@@ -5924,9 +5878,9 @@ s4106   LDA #$DF     ;#%11011111
         STA $DC0E    ;CIA1: CIA Control Register A
         SEI
         LDA #<p4134  ;#%00110100
-        STA a0314    ;IRQ
+        STA $0314    ;IRQ
         LDA #>p4134  ;#%01000001
-        STA a0315    ;IRQ
+        STA $0315    ;IRQ
         LDA #$F1     ;#%11110001
         STA $D01A    ;VIC Interrupt Mask Register (IMR)
         CLI
@@ -7590,9 +7544,9 @@ b5F5F   ORA #$40     ;#%01000000
 
         SEI
         LDA #<p5F81  ;#%10000001
-        STA a0314    ;IRQ
+        STA $0314    ;IRQ
         LDA #>p5F81  ;#%01011111
-        STA a0315    ;IRQ
+        STA $0315    ;IRQ
         LDA #$00     ;#%00000000
         STA $DC0E    ;CIA1: CIA Control Register A
         LDA #$F1     ;#%11110001
@@ -7611,9 +7565,9 @@ p5F81   LDA #$01     ;#%00000001
 
         SEI
         LDA #<eEA31  ;#%00110001
-        STA a0314    ;IRQ
+        STA $0314    ;IRQ
         LDA #>eEA31  ;#%11101010
-        STA a0315    ;IRQ
+        STA $0315    ;IRQ
         LDA #$00     ;#%00000000
         STA $D418    ;Select Filter Mode and Volume
         LDA #$01     ;#%00000001
