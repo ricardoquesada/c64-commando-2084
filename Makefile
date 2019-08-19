@@ -8,6 +8,7 @@ all: clean bin d64 run
 
 bin:
 	64tass -Wall --cbm-prg -o bin/co1.prg -L bin/list.txt -l bin/labels.txt --vice-labels src/co1.tas
+	md5sum bin/co1.prg orig/co1.prg
 
 d64:
 	$(C1541) -format "commando 2048,rq" d64 $(D64_IMAGE)

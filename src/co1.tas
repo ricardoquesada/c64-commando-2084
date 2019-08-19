@@ -266,11 +266,10 @@ b083E   LDA a01
         STA a01
         RTS
 
-        CPX #$09     ;#%00001001
-        BNE b083E
-        JSR s35AD
-        JSR s0A57
-        .BYTE $20
+        ; riq: unused
+        .BYTE $E0,$09,$D0,$F5,$20,$AD,$35,$20
+        .BYTE $57,$0A,$20
+
 j0850   SEI
         LDA #<p0A4D  ;#%01001101
         STA $0318    ;NMI
@@ -5935,7 +5934,7 @@ p4188   NOP
         STA $D022    ;Background Color 1, Multi-Color Register 0
         LDA #$02     ;#%00000010
         STA $D023    ;Background Color 2, Multi-Color Register 1
-        JSR s5012
+        JSR PLAY_MUSIC
         LDA #$1E     ;#%00011110
         STA $D012    ;Raster Position
         LDA $D011    ;VIC Control Register 1
@@ -6609,6 +6608,11 @@ a448E   .BYTE $80,$FE
         .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
         .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
         .BYTE $FF,$82
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Music routine
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+        * = $5000
 s5000   JMP j5F0C
 
 s5003   JMP j5F42
@@ -6621,7 +6625,8 @@ s5006   JMP j5F48
 
 s500F   JMP j5F56
 
-s5012   INC a5525
+PLAY_MUSIC
+        INC a5525
         BIT a5519
         BMI b5038
         BVC b5052
@@ -6723,9 +6728,9 @@ b50ED   INY
         TAY
         LDA a5528
         BPL b511B
-        LDA f5428,Y
+        LDA FREQ_LO,Y
         STA a5503
-        LDA f5429,Y
+        LDA FREQ_HI,Y
         LDY a54EB
         STA $D401,Y  ;Voice 1: Frequency Control - High-Byte
         STA f551A,X
@@ -6814,18 +6819,18 @@ b51CC   STA a550C
         TAY
         SEC
         LDA f542A,Y
-        SBC f5428,Y
+        SBC FREQ_LO,Y
         STA a5508
         LDA f542B,Y
-        SBC f5429,Y
+        SBC FREQ_HI,Y
 b51E4   LSR A
         ROR a5508
         DEC a5506
         BPL b51E4
         STA a5509
-        LDA f5428,Y
+        LDA FREQ_LO,Y
         STA a550A
-        LDA f5429,Y
+        LDA FREQ_HI,Y
         STA a550B
         LDA f54F5,X
         AND #$1F     ;#%00011111
@@ -6986,9 +6991,9 @@ b535E   LDA a5523
 b5375   LDA f54FB,X
 j5378   ASL A
         TAY
-        LDA f5428,Y
+        LDA FREQ_LO,Y
         STA a5503
-        LDA f5429,Y
+        LDA FREQ_HI,Y
         LDY a54EB
         STA $D401,Y  ;Voice 1: Frequency Control - High-Byte
         LDA a5503
@@ -7035,17 +7040,17 @@ b53DE   DEC a5529
         BIT a5530
         BMI b5408
         BVS b53F6
-        LDA f5428,Y
+        LDA FREQ_LO,Y
         STA $D400    ;Voice 1: Frequency Control - Low-Byte
-        LDA f5429,Y
+        LDA FREQ_HI,Y
         STA $D401    ;Voice 1: Frequency Control - High-Byte
 b53F6   TYA
         SEC
         SBC a552C
         TAY
-        LDA f5428,Y
+        LDA FREQ_LO,Y
         STA $D407    ;Voice 2: Frequency Control - Low-Byte
-        LDA f5429,Y
+        LDA FREQ_HI,Y
         STA $D408    ;Voice 2: Frequency Control - High-Byte
 b5408   BIT a552D
         BPL b5418
@@ -7060,8 +7065,12 @@ b5418   BVC b5425
         STA a552F
 b5425   JMP b53B4
 
-f5428   .BYTE $16
-f5429   .BYTE $01
+; Frequency data
+; Taken from: http://www.1xn.org/text/C64/rob_hubbards_music.txt
+FREQ_LO
+        .BYTE $16
+FREQ_HI
+        .BYTE $01
 f542A   .BYTE $27
 f542B   .BYTE $01,$38,$01,$4B,$01,$5F,$01,$73
         .BYTE $01,$8A,$01,$A1,$01,$BA,$01,$D4
@@ -7560,7 +7569,7 @@ p5F81   LDA #$01     ;#%00000001
         STA $D012    ;Raster Position
         LDA #$1B     ;#%00011011
         STA $D011    ;VIC Control Register 1
-        JSR s5012
+        JSR PLAY_MUSIC
         JMP eEA31
 
         SEI
@@ -7586,7 +7595,14 @@ p5F81   LDA #$01     ;#%00000001
         .BYTE $00,$FF,$00,$FF,$00,$FF,$FF,$00
         .BYTE $FF,$00,$FF,$00,$FF,$00,$00,$FF
         .BYTE $00,$FF,$00,$FF,$00,$FF,$FF,$00
-        .BYTE $FF,$00,$FF,$00,$FF,$82,$CC,$CC
+        .BYTE $FF,$00,$FF,$00,$FF,$82
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Level data
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+        *= $6000
+
+        .BYTE $CC,$CC
         .BYTE $CC,$CC,$CC,$CC,$CC,$CC,$CC,$CC
         .BYTE $CC,$CC,$CC,$CC,$CC,$30,$30,$30
         .BYTE $30,$30,$30,$30,$30,$30,$30,$30
