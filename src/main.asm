@@ -111,8 +111,8 @@ a0402 = $0402
 a0403 = $0403
 a0404 = $0404
 a0405 = $0405
-a0406 = $0406
-a0407 = $0407
+IRQ_ADDR_LO = $0406
+IRQ_ADDR_HI = $0407
 a040A = $040A
 a040B = $040B
 a040D = $040D
@@ -270,9 +270,9 @@ b083E   LDA a01
         .BYTE $57,$0A,$20
 
 j0850   SEI
-        LDA #<p0A4D  ;#%01001101
+        LDA #<NMI_HANDLER
         STA $0318    ;NMI
-        LDA #>p0A4D  ;#%00001010
+        LDA #>NMI_HANDLER
         STA $0319    ;NMI
         CLI
         LDX #$00     ;#%00000000
@@ -498,7 +498,8 @@ b0A3B   LDA $DC00    ;CIA1: Data Port Register A  (riq: unk)
         BNE b0A3B
 b0A4A   JMP j0883
 
-p0A4D   RTI
+NMI_HANDLER
+        RTI
 
 f0A4E   .BYTE $50,$08,$50,$08,$C3,$C2,$CD,$38
         .BYTE $30
@@ -530,39 +531,40 @@ f0A7F   .BYTE $00,$00,$00,$02,$AA,$00,$0A,$AA
         .BYTE $20,$08,$80,$00,$08,$A0,$00,$28
         .BYTE $20,$00,$20,$20,$20,$20,$28,$20
         .BYTE $A0,$0A,$AA,$80,$02,$AA,$00
+
 s0ABE   LDA a0511
-        BEQ b0AF9
+        BEQ _SKIP
         LDY #$00     ;#%00000000
         INC a0512
         LDA a0512
         CMP #$32     ;#%00110010
-        BEQ b0AEF
+        BEQ _L02
         AND #$0F     ;#%00001111
         LSR A
         LSR A
         AND #$03     ;#%00000011
-        BEQ b0AE4
+        BEQ _L00
         AND #$01     ;#%00000001
-        BNE b0AEA
+        BNE _L01
         LDA a0510
         CLC
         ADC #$20     ;#%00100000
         STA (pF7),Y
         RTS
 
-b0AE4   LDA a0510
+_L00    LDA a0510
         STA (pF7),Y
         RTS
 
-b0AEA   LDA #$79     ;#%01111001
+_L01    LDA #$79     ;#%01111001
         STA (pF7),Y
         RTS
 
-b0AEF   LDA #$00     ;#%00000000
+_L02    LDA #$00     ;#%00000000
         STA a0511
         LDA a0510
         STA (pF7),Y
-b0AF9   RTS
+_SKIP   RTS
 
 s0AFA   LDA SPRITES_X_LO
         AND #$F0     ;#%11110000
@@ -898,7 +900,7 @@ s0E0F   JSR s1334
         LDA #>pE082  ;#%11100000
         STA a00FC,b
         LDX #$00     ;#%00000000
-b0E1E   JSR s0E68
+_L00    JSR s0E68
         LDA a00FB,b
         CLC
         ADC #$05     ;#%00000101
@@ -923,14 +925,14 @@ b0E1E   JSR s0E68
         CLC
         ADC #$3D     ;#%00111101
         STA a00FB,b
-        BCC b0E5B
+        BCC _L01
         INC a00FC,b
-b0E5B   INX
+_L01    INX
         CPX #$08     ;#%00001000
-        BNE b0E1E
-b0E60   LDA $DC00    ;CIA1: Data Port Register A (riq: display high scores - fire)
+        BNE _L00
+_L02    LDA $DC00    ;CIA1: Data Port Register A (riq: display high scores - fire)
         CMP #$6F     ;#%01101111
-        BNE b0E60
+        BNE _L02
         RTS
 
 s0E68   TXA
@@ -5674,13 +5676,18 @@ b3ECD   RTS
 
 f3ECE   .BYTE $60,$80,$80,$A0
 f3ED2   .BYTE $3F,$1F,$0F,$0F,$0F,$0F,$0F,$0F
-        .BYTE $13,$3D,$61,$83,$AF,$13,$3D,$61
-        .BYTE $83,$A6,$13,$3D,$61,$83,$B2,$13
-        .BYTE $3D,$61,$83,$A6
-f3EEE   .BYTE $DA
-f3EEF   .BYTE $3E,$DF,$3E
-        .BYTE $DF,$3E,$E9
-        .BYTE $3E
+f3EDA   .BYTE $13,$3D,$61,$83,$AF
+f3EDF   .BYTE $13,$3D,$61
+        .BYTE $83,$A6,$13,$3D,$61,$83,$B2
+f3EE9   .BYTE $13,$3D,$61,$83,$A6
+f3EEE   .BYTE <f3EDA
+f3EEF   .BYTE >f3EDA
+        .BYTE <f3EDF
+        .BYTE >f3EDF
+        .BYTE <f3EDF
+        .BYTE >f3EDF
+        .BYTE <f3EE9
+        .BYTE >f3EE9
 
 b3EF6   LDX #$00     ;#%00000000
         STX a00D7,b
@@ -5912,23 +5919,23 @@ SETUP_IRQ           ;s4106
         AND #$7F     ;#%01111111
         STA $D011    ;VIC Control Register 1
         LDA #<IRQ_A
-        STA a0406
+        STA IRQ_ADDR_LO
         LDA #>IRQ_A
-        STA a0407
+        STA IRQ_ADDR_HI
         LDA #$00     ;#%00000000
         STA $DC0E    ;CIA1: CIA Control Register A
         SEI
-        LDA #<IRQ_VECTOR
+        LDA #<IRQ_HANDLER
         STA $0314    ;IRQ
-        LDA #>IRQ_VECTOR
+        LDA #>IRQ_HANDLER
         STA $0315    ;IRQ
         LDA #$F1     ;#%11110001
         STA $D01A    ;VIC Interrupt Mask Register (IMR)
         CLI
         RTS
 
-IRQ_VECTOR
-        JMP (a0406)
+IRQ_HANDLER
+        JMP (IRQ_ADDR_LO)
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; raster = $d5
@@ -5958,9 +5965,9 @@ _L0     LDA #$FF     ;#%11111111
         AND #$7F     ;#%01111111
         STA $D011    ;VIC Control Register 1
         LDA #<IRQ_B
-        STA a0406
+        STA IRQ_ADDR_LO
         LDA #>IRQ_B
-        STA a0407
+        STA IRQ_ADDR_HI
         LDA #$01     ;#%00000001
         STA $D019    ;VIC Interrupt Request Register (IRR)
         PLA
@@ -5988,9 +5995,9 @@ IRQ_B   NOP
         AND #$7F     ;#%01111111
         STA $D011    ;VIC Control Register 1
         LDA #<IRQ_C
-        STA a0406
+        STA IRQ_ADDR_LO
         LDA #>IRQ_C
-        STA a0407
+        STA IRQ_ADDR_HI
         LDA #$01     ;#%00000001
         STA $D019    ;VIC Interrupt Request Register (IRR)
         PLA
@@ -6071,9 +6078,9 @@ _L0     LDX f004B,b,Y
         AND #$7F     ;#%01111111
         STA $D011    ;VIC Control Register 1
         LDA #<IRQ_D
-        STA a0406
+        STA IRQ_ADDR_LO
         LDA #>IRQ_D
-        STA a0407
+        STA IRQ_ADDR_HI
         LDA #$01     ;#%00000001
         STA $D019    ;VIC Interrupt Request Register (IRR)
         PLA
@@ -6169,9 +6176,9 @@ IRQ_D   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND #$7F     ;#%01111111
         STA $D011    ;VIC Control Register 1
         LDA #<IRQ_E
-        STA a0406
+        STA IRQ_ADDR_LO
         LDA #>IRQ_E
-        STA a0407
+        STA IRQ_ADDR_HI
         LDA #$01     ;#%00000001
         STA $D019    ;VIC Interrupt Request Register (IRR)
         PLA
@@ -6264,9 +6271,9 @@ IRQ_E   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND #$7F     ;#%01111111
         STA $D011    ;VIC Control Register 1
         LDA #<IRQ_A
-        STA a0406
+        STA IRQ_ADDR_LO
         LDA #>IRQ_A
-        STA a0407
+        STA IRQ_ADDR_HI
         LDA #$01     ;#%00000001
         STA $D019    ;VIC Interrupt Request Register (IRR)
         PLA
