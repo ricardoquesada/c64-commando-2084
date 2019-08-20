@@ -175,8 +175,8 @@ a04F3 = $04F3
 a04F4 = $04F4
 a04F5 = $04F5
 a04F7 = $04F7
-a04F8 = $04F8
-a04F9 = $04F9
+SCORE_LSB = $04F8
+SCORE_MSB = $04F9
 a04FD = $04FD
 GRENADES = $04FF
 LIVES = $0500
@@ -297,13 +297,16 @@ j0883   LDA #$A5     ;#%10100101
         JSR s3DFE
         JSR s4067
         JSR s4106
-        LDA #$00     ;Song to play
+
+        ; Display main title screen
+        LDA #$00     ;Song to play (main theme)
         JSR MUSIC_INIT
-        JSR MAIN_SCREEN_INIT
+        JSR MAIN_SCREEN_MAIN
+
         JSR s5006
         LDA #$00     ;#%00000000
-        STA a04F8
-        STA a04F9
+        STA SCORE_LSB
+        STA SCORE_MSB
         STA a0402
         STA a04F3
         STA $D01D    ;Sprites Expand 2x Horizontal (X)
@@ -311,9 +314,10 @@ j0883   LDA #$A5     ;#%10100101
         LDA #$05     ;#%00000101
         STA GRENADES
         STA LIVES
+
 j08B8   LDA #$A5     ;#%10100101
         STA a0403
-        LDA #$00     ;Song to play
+        LDA #$00     ;Song to play (main theme)
         JSR MUSIC_INIT
 j08C2   JSR s3DFE
         JSR s4067
@@ -339,13 +343,13 @@ j08CB   JSR s402A
 b08F7   INC a040A
         JSR s3D48
         JSR s3F24
-        JSR s38C3
+        JSR TRY_THROW_GRENADE
         JSR s24B3
         JSR s1BA9
         JSR s3641
         LDA a0503
         BNE b0953
-        JSR s3AAA
+        JSR HANDLE_JOY2
         LDA a04F7
         BNE b091C
         JSR s100F
@@ -353,7 +357,7 @@ b091C   LDA a042D
         CMP #$5A     ;#%01011010
         BNE j08CB
         LDA #$14     ;#%00010100
-        JSR s136D
+        JSR SCORE_ADD
         LDA a04F3
         AND #$03     ;#%00000011
         CMP #$03     ;#%00000011
@@ -361,7 +365,7 @@ b091C   LDA a042D
         LDA #$09     ;#%00001001
         JSR s500F
         JSR s3CD0
-b0939   LDA #$02     ;Song to play
+b0939   LDA #$02     ;Song to play (Level complete)
         JSR MUSIC_INIT
         JSR s1240
         INC a04F3
@@ -404,7 +408,7 @@ b098E   LDA #$DD     ;#%11011101
         JMP j08CB
 
 b0996   DEC LIVES
-        JSR s140F
+        JSR SCREEN_REFRESH_LIVES
         LDA LIVES
         BEQ GAME_OVER
         JMP j08C2
@@ -414,19 +418,19 @@ GAME_OVER
 b09A6   TXA
         ASL A
         TAY
-        LDA a04F9
-        CMP f0F36,Y
+        LDA SCORE_MSB
+        CMP HISCORE_MSB,Y
         BCC b09FD
         BNE b09BB
-        LDA a04F8
-        CMP f0F37,Y
+        LDA SCORE_LSB
+        CMP HISCORE_LSB,Y
         BCC b09FD
 b09BB   TXA
         ASL A
         TAY
-        LDA f0F36,Y
+        LDA HISCORE_MSB,Y
         STA f0F38,Y
-        LDA f0F37,Y
+        LDA HISCORE_LSB,Y
         STA f0F39,Y
         TXA
         ASL A
@@ -441,10 +445,10 @@ b09CF   LDA f0EEE,Y
         BNE b09CF
         DEX
         BPL b09A6
-        LDA a04F9
-        STA f0F36
-        LDA a04F8
-        STA f0F37
+        LDA SCORE_MSB
+        STA HISCORE_MSB
+        LDA SCORE_LSB
+        STA HISCORE_LSB
         JSR s0C88
         LDY #$00     ;#%00000000
 b09EF   LDA f0506,Y
@@ -457,9 +461,9 @@ b09EF   LDA f0506,Y
 b09FD   TXA
         ASL A
         TAY
-        LDA a04F9
+        LDA SCORE_MSB
         STA f0F38,Y
-        LDA a04F8
+        LDA SCORE_LSB
         STA f0F39,Y
         CPX #$06     ;#%00000110
         BNE b0A13
@@ -684,7 +688,9 @@ b0BE3   STA f0506,X
         JSR s3F24
         RTS
 
-s0C0A   LDA $DC00    ;CIA1: Data Port Register A  (riq: enter high score)
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+HISCORE_READ_JOY
+        LDA $DC00    ;CIA1: Data Port Register A  (riq: enter high score)
         AND #$01     ;#%00000001
         BNE b0C1D
         LDA SPRITES_Y
@@ -741,7 +747,7 @@ b0C7B   LDA SPRITES_Y
         STA a0482
 b0C87   RTS
 
-s0C88   LDA #$01     ;Song to play
+s0C88   LDA #$01     ;Song to play (high scores)
         JSR MUSIC_INIT
         JSR s1334
         JSR s3DD3
@@ -786,7 +792,7 @@ b0CE6   JMP j0CB9
 
 b0CE9   JSR s0B94
 b0CEC   JSR s402A
-        JSR s0C0A
+        JSR HISCORE_READ_JOY
         JSR s0D59
         JSR s0ABE
         JSR s3D48
@@ -807,6 +813,7 @@ f0D09   .BYTE $20,$20,$20,$20,$20,$75,$75,$75
         .BYTE $6E,$FF,$FF,$6F,$20,$70,$20,$71
         .BYTE $20,$72,$20,$73,$20,$74,$20,$75
         .BYTE $20,$76,$20,$77,$20,$78,$FF,$FE
+
 s0D59   LDA a0505
         BEQ b0D81
         LDA a042E
@@ -964,7 +971,7 @@ s0E93   TXA
         ASL A
         TAX
         LDY #$00     ;#%00000000
-        LDA f0F36,X
+        LDA HISCORE_MSB,X
         AND #$F0     ;#%11110000
         LSR A
         LSR A
@@ -973,13 +980,13 @@ s0E93   TXA
         ADC #$21     ;#%00100001
         STA (pFB),Y
         INY
-        LDA f0F36,X
+        LDA HISCORE_MSB,X
         AND #$0F     ;#%00001111
         CLC
         ADC #$21     ;#%00100001
         STA (pFB),Y
         INY
-        LDA f0F37,X
+        LDA HISCORE_LSB,X
         AND #$F0     ;#%11110000
         LSR A
         LSR A
@@ -989,7 +996,7 @@ s0E93   TXA
         ADC #$21     ;#%00100001
         STA (pFB),Y
         INY
-        LDA f0F37,X
+        LDA HISCORE_LSB,X
         AND #$0F     ;#%00001111
         CLC
         ADC #$21     ;#%00100001
@@ -1011,14 +1018,14 @@ f0EF6   .BYTE $6C,$69,$6C,$73,$20,$20,$20,$20
         .BYTE $5B,$5E,$69,$66,$60,$20,$20,$20
         .BYTE $5E,$63,$66,$65,$20,$20,$20,$20
         .BYTE $20,$20,$20,$20,$20,$20,$20,$20
-f0F36   .BYTE $00
-f0F37   .BYTE $90
+HISCORE_MSB   .BYTE $00
+HISCORE_LSB   .BYTE $90
 f0F38   .BYTE $00
 f0F39   .BYTE $80,$00,$70,$00,$60,$00,$50,$00
         .BYTE $40,$00,$30,$00,$20,$00,$00
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-MAIN_SCREEN_INIT
+MAIN_SCREEN_MAIN
         JSR s3DD3
         JSR s1334
         LDA #$00     ;#%00000000
@@ -1081,7 +1088,7 @@ _WAIT_FIRE
         LDA a049D
         CMP #$08     ;#%00001000
         BNE _L01
-        JMP MAIN_SCREEN_INIT
+        JMP MAIN_SCREEN_MAIN
 
 _END    RTS
 
@@ -1376,22 +1383,28 @@ s1366   JSR s402A
         BPL s1366
         RTS
 
-s136D   SED
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; A=Score to add
+SCORE_ADD   SED
         CLC
-        ADC a04F8
-        STA a04F8
-        BCC b138C
-        LDA a04F9
+        ADC SCORE_LSB
+        STA SCORE_LSB
+        BCC _L00
+        LDA SCORE_MSB
         CLC
         ADC #$01     ;#%00000001
-        STA a04F9
+        STA SCORE_MSB
         CLD
         INC LIVES
-        JSR s140F
+        JSR SCREEN_REFRESH_LIVES
         LDA #$0C     ;#%00001100
         JSR s500F
-b138C   CLD
-s138D   LDA a04F9
+_L00    CLD
+        ; fall-through
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+SCREEN_REFRESH_SCORE
+        LDA SCORE_MSB
         AND #$F0     ;#%11110000
         LSR A
         LSR A
@@ -1399,12 +1412,12 @@ s138D   LDA a04F9
         LSR A
         ADC #$21     ;#%00100001
         STA aE34E
-        LDA a04F9
+        LDA SCORE_MSB
         AND #$0F     ;#%00001111
         CLC
         ADC #$21     ;#%00100001
         STA aE34F
-        LDA a04F8
+        LDA SCORE_LSB
         AND #$F0     ;#%11110000
         LSR A
         LSR A
@@ -1413,14 +1426,16 @@ s138D   LDA a04F9
         CLC
         ADC #$21     ;#%00100001
         STA aE350
-        LDA a04F8
+        LDA SCORE_LSB
         AND #$0F     ;#%00001111
         CLC
         ADC #$21     ;#%00100001
         STA aE351
         RTS
 
-s13C1   LDA f0F36
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+SCREEN_REFRESH_HISCORE
+        LDA HISCORE_MSB
         AND #$F0     ;#%11110000
         LSR A
         LSR A
@@ -1428,12 +1443,12 @@ s13C1   LDA f0F36
         LSR A
         ADC #$21     ;#%00100001
         STA aE36A
-        LDA f0F36
+        LDA HISCORE_MSB
         AND #$0F     ;#%00001111
         CLC
         ADC #$21     ;#%00100001
         STA aE36B
-        LDA f0F37
+        LDA HISCORE_LSB
         AND #$F0     ;#%11110000
         LSR A
         LSR A
@@ -1442,14 +1457,16 @@ s13C1   LDA f0F36
         CLC
         ADC #$21     ;#%00100001
         STA aE36C
-        LDA f0F37
+        LDA HISCORE_LSB
         AND #$0F     ;#%00001111
         CLC
         ADC #$21     ;#%00100001
         STA aE36D
         RTS
 
-s13F5   LDA GRENADES
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+SCREEN_REFRESH_GRENADES
+        LDA GRENADES
         AND #$F0     ;#%11110000
         LSR A
         LSR A
@@ -1464,7 +1481,9 @@ s13F5   LDA GRENADES
         STA aE35A
         RTS
 
-s140F   LDA LIVES
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+SCREEN_REFRESH_LIVES
+        LDA LIVES
         AND #$F0     ;#%11110000
         LSR A
         LSR A
@@ -2619,7 +2638,7 @@ s2405   TYA
         LDA a0492,Y
         TAY
         LDA f256D,Y
-        JSR s136D
+        JSR SCORE_ADD
         PLA
         TAY
         LDA a0492,Y
@@ -3376,9 +3395,9 @@ b2A65   LDA #$08     ;#%00001000
         ADC GRENADES
         STA GRENADES
         CLD
-        JSR s13F5
+        JSR SCREEN_REFRESH_GRENADES
         LDA #$0A     ;#%00001010
-        JSR s136D
+        JSR SCORE_ADD
         JSR s358E
         LDA #$00     ;#%00000000
         JSR s500F
@@ -4697,6 +4716,7 @@ f3627   .BYTE $00,$00,$02,$02,$00,$00,$02,$02
 f3637   .BYTE $E1
 f3638   .BYTE $39,$35,$39,$7A,$36,$FE,$36,$3C
         .BYTE $37
+
 s3641   LDX #$00     ;#%00000000
 b3643   LDA a042E,X
         CMP #$1E     ;#%00011110
@@ -4884,7 +4904,7 @@ j37CF   TXA
         TYA
         PHA
         LDA #$0A     ;#%00001010
-        JSR s136D
+        JSR SCORE_ADD
         LDA #$02     ;#%00000010
         JSR s500F
         LDA f04AC,Y
@@ -4987,19 +5007,21 @@ b389F   LDA #$00     ;#%00000000
         STA SPRITES_PTR,X
         RTS
 
-s38C3   LDA a0503
-        BNE b3934
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+TRY_THROW_GRENADE
+        LDA a0503
+        BNE _SKIP
         LDA a04EF
-        BNE b38D2
+        BNE _L00
         LDA a04F4
-        BEQ b3934
-b38D2   LDA a0491
-        BNE b3934
+        BEQ _SKIP
+_L00    LDA a0491
+        BNE _SKIP
         LDA GRENADES
-        BEQ b3934
+        BEQ _SKIP
         LDA $DC01    ;CIA1: Data Port Register B (riq: in-game grenades)
         CMP #$EF     ;#%11101111
-        BNE b3934
+        BNE _SKIP
         LDA a041D
         STA a0421
         LDA a042D
@@ -5029,10 +5051,10 @@ b38D2   LDA a0491
         SBC #$01     ;#%00000001
         STA GRENADES
         CLD
-        JSR s13F5
+        JSR SCREEN_REFRESH_GRENADES
         LDA #$01     ;#%00000001
         JSR s500F
-b3934   RTS
+_SKIP   RTS
 
         INC a049D,X
         LDA a049D,X
@@ -5125,11 +5147,11 @@ _CHECK_FIRE
         BNE b3A46
         LDA a04DF
         CMP #$08     ;#%00001000
-        BEQ b3A45
+        BEQ _SKIP
         INC a04DF
         LDA a04DF
         AND #$07     ;#%00000111
-        BNE b3A45
+        BNE _SKIP
         LDY a04E1
         LDA f35F7,Y
         STA a046E,X
@@ -5153,7 +5175,7 @@ _CHECK_FIRE
         STA a049D,X
         LDA #$01     ;#%00000001
         STA a044E,X
-b3A45   RTS
+_SKIP   RTS
 
 b3A46   LDA #$FF     ;#%11111111
         STA a04DF
@@ -5200,7 +5222,9 @@ b3AA2   LDA #$01     ;#%00000001
         STA a04F5
         JMP j3BAC
 
-s3AAA   LDA a04F7
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+HANDLE_JOY2         ;s3AAA
+        LDA a04F7
         BNE b3A59
         LDA a04EF
         BNE b3ABC
@@ -5212,6 +5236,7 @@ b3ABC   LDA #$00     ;#%00000000
         STA a046D
         STA a047D
         STA a0404
+
         LDA $DC00    ;CIA1: Data Port Register A (riq: in-game up)
         AND #$01     ;#%00000001
         BNE b3B00
@@ -5237,6 +5262,7 @@ b3AEC   LDA a042D
 
 b3AFB   LDA #$FF     ;#%11111111
         STA a0404
+
 b3B00   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game down)
         AND #$02     ;#%00000010
         BNE b3B18
@@ -5247,6 +5273,7 @@ b3B00   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game down)
         BCS b3B18
         LDA #$01     ;#%00000001
         STA a047D
+
 b3B18   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game left)
         AND #$04     ;#%00000100
         BNE b3B35
@@ -5259,6 +5286,7 @@ b3B18   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game left)
         BCC b3B35
 b3B30   LDA #$FE     ;#%11111110
         STA a046D
+
 b3B35   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game right)
         AND #$08     ;#%00001000
         BNE b3B52
@@ -5271,7 +5299,8 @@ b3B35   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game right)
         BCS b3B52
 b3B4D   LDA #$02     ;#%00000010
         STA a046D
-b3B52   LDA $DC00    ;CIA1: Data Port Register A (riq: unk)
+
+b3B52   LDA $DC00    ;CIA1: Data Port Register A (riq: multiple directions)
         ORA #$10     ;#%00010000
         CMP #$76     ;#%01110110
         BNE b3B6A
@@ -5652,6 +5681,7 @@ f3EEE   .BYTE $DA
 f3EEF   .BYTE $3E,$DF,$3E
         .BYTE $DF,$3E,$E9
         .BYTE $3E
+
 b3EF6   LDX #$00     ;#%00000000
         STX a00D7,b
 b3EFB   LDY f004C,b,X
@@ -5838,8 +5868,9 @@ s4067   LDA $D011    ;VIC Control Register 1
         STA $D023    ;Background Color 2, Multi-Color Register 1
         JSR s4033
         JSR s3F93
+
         LDX #$00     ;#%00000000
-b409F   LDA f40DE,X
+_L00    LDA f40DE,X
         STA fE348,X
         LDA #$01     ;#%00000001
         STA fDB48,X
@@ -5849,11 +5880,13 @@ b409F   LDA f40DE,X
         STA fDB98,X
         INX
         CPX #$28     ;#%00101000
-        BNE b409F
-        JSR s138D
-        JSR s13F5
-        JSR s140F
-        JSR s13C1
+        BNE _L00
+
+        JSR SCREEN_REFRESH_SCORE
+        JSR SCREEN_REFRESH_GRENADES
+        JSR SCREEN_REFRESH_LIVES
+        JSR SCREEN_REFRESH_HISCORE
+
         LDA #$FF     ;#%11111111
         STA $D015    ;Sprite display Enable
         LDA #$FF     ;#%11111111
@@ -5895,15 +5928,17 @@ s4106   LDA #$DF     ;#%11011111
 IRQ_VECTOR
         JMP (a0406)
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; raster = $d5
 IRQ_A   NOP
         LDA $D011    ;VIC Control Register 1
         ORA #$60     ;#%01100000
         STA $D011    ;VIC Control Register 1
         LDX #$03     ;#%00000011
-b4142   LDA #$FF     ;#%11111111
+_L0     LDA #$FF     ;#%11111111
         STA fE3F8,X
         DEX
-        BPL b4142
+        BPL _L0
         LDA $D011    ;VIC Control Register 1
         AND #$F8     ;#%11111000
         ORA #$07     ;#%00000111
@@ -5933,6 +5968,8 @@ b4142   LDA #$FF     ;#%11111111
         PLA
         RTI
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; raster = $de
 IRQ_B   NOP
         NOP
         LDA $D011    ;VIC Control Register 1
@@ -5964,6 +6001,8 @@ IRQ_B   NOP
         .BYTE $1E,$2A,$3B
         .BYTE $52
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; raster = $1e
 IRQ_C   LDA a0402
         EOR #$07     ;#%00000111
         STA a00A7,b
@@ -5984,7 +6023,8 @@ IRQ_C   LDA a0402
         STA a00A8,b
         LDY #<p0E00  ;#%00000000
         STY a00A7,b
-b41FC   LDX f004B,b,Y
+
+_L0     LDX f004B,b,Y
         LDY a00A8,b
         LDA f04C2,X
         STA $D001,Y  ;Sprite 0 Y Pos
@@ -6010,7 +6050,8 @@ b41FC   LDX f004B,b,Y
         INC a00A7,b
         LDY a00A7,b
         CPY #$08     ;#%00001000
-        BNE b41FC
+        BNE _L0
+
         LDA a04F3
         AND #$03     ;#%00000011
         ASL A
@@ -6040,6 +6081,9 @@ b41FC   LDX f004B,b,Y
         PLA
         RTI
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; sprite multiplexor: sprites 4-7
+; raster = $??
 IRQ_D   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND #$0F     ;#%00001111
         STA $D010    ;Sprites 0-7 MSB of X coordinate
@@ -6135,6 +6179,9 @@ IRQ_D   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         PLA
         RTI
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; sprite multiplexor: sprites 0-3
+; raster = $??
 IRQ_E   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND #$F0     ;#%11110000
         STA $D010    ;Sprites 0-7 MSB of X coordinate
