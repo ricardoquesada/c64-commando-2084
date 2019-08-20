@@ -7,7 +7,7 @@ C1541 = c1541
 all: clean bin d64 run
 
 bin:
-	64tass -Wall --cbm-prg -o bin/co1.prg -L bin/list.txt -l bin/labels.txt --vice-labels src/co1.tas
+	64tass -Wall --cbm-prg -o bin/co1.prg -L bin/list.txt -l bin/labels.txt --vice-labels src/main.asm
 	md5sum bin/co1.prg orig/co1.prg
 
 d64:
