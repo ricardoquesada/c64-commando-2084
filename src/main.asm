@@ -282,7 +282,7 @@ b085E   LDA f0A4E,X
         CPX #$09     ;#%00001001
         BNE b085E
         JSR s35AD
-        JSR s0A57
+        JSR SET_SIGHT_SPRITE
         JSR s401D
         LDX #$10     ;#%00010000
 b0874   TXA
@@ -505,15 +505,17 @@ f0A4E   .BYTE $50,$08,$50,$08,$C3,$C2,$CD,$38
         .BYTE $30
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s0A57   LDA $DC0E    ;CIA1: CIA Control Register A
+; Sets the sight "()" sprite for high scores as sprite $41
+SET_SIGHT_SPRITE    ;s0A57
+        LDA $DC0E    ;CIA1: CIA Control Register A
         AND #$FE     ;#%11111110
-        STA $DC0E    ;CIA1: CIA Control Register A
+        STA $DC0E    ;Stop timer
         LDA a01
         AND #$FB     ;#%11111011
         STA a01
-        LDX #$3F     ;#%00111111
-_L00    LDA f0A7F,X
-        STA fD040,X
+        LDX #$3F     ;size of sprite
+_L00    LDA SIGHT_SPR_DATA,X
+        STA fD040,X  ;It will be sprite $41
         DEX
         BPL _L00
         LDA a01
@@ -521,10 +523,11 @@ _L00    LDA f0A7F,X
         STA a01
         LDA $DC0E    ;CIA1: CIA Control Register A
         ORA #$01     ;#%00000001
-        STA $DC0E    ;CIA1: CIA Control Register A
+        STA $DC0E    ;Start Timer
         RTS
 
-f0A7F   .BYTE $00,$00,$00,$02,$AA,$00,$0A,$AA
+SIGHT_SPR_DATA      ;f0A7F
+        .BYTE $00,$00,$00,$02,$AA,$00,$0A,$AA
         .BYTE $80,$28,$20,$A0,$20,$20,$20,$20
         .BYTE $00,$20,$A0,$00,$28,$80,$00,$08
         .BYTE $80,$20,$08,$80,$20,$08,$A0,$A8
@@ -682,9 +685,9 @@ b0BE3   STA f0506,X
         STA a0505
         STA a050F
         STA a0511
-        LDA #<pE000  ;#%00000000
+        LDA #<pE000  ;Screen RAM lo
         STA a00F7,b
-        LDA #>pE000  ;#%11100000
+        LDA #>pE000  ;Screen RAM hi
         STA a00F8,b
         LDA #$20     ;#%00100000
         STA a0510
@@ -821,6 +824,7 @@ f0D09   .BYTE $20,$20,$20,$20,$20,$75,$75,$75
         .BYTE $20,$72,$20,$73,$20,$74,$20,$75
         .BYTE $20,$76,$20,$77,$20,$78,$FF,$FE
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s0D59   LDA a0505
         BEQ b0D81
         LDA a042E
