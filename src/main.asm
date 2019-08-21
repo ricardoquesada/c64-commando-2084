@@ -171,7 +171,7 @@ a04EF = $04EF
 a04F0 = $04F0
 a04F1 = $04F1
 a04F2 = $04F2
-a04F3 = $04F3
+LEVEL_NR = $04F3
 a04F4 = $04F4
 a04F5 = $04F5
 a04F7 = $04F7
@@ -303,26 +303,32 @@ j0883   LDA #$A5     ;#%10100101
         JSR MUSIC_INIT
         JSR SCREEN_MAIN_TITLE
 
-        JSR s5006
+        JSR s5006    ;Music stop?
         LDA #$00     ;#%00000000
         STA SCORE_LSB
         STA SCORE_MSB
         STA a0402
-        STA a04F3
+        STA LEVEL_NR
         STA $D01D    ;Sprites Expand 2x Horizontal (X)
         STA $D017    ;Sprites Expand 2x Vertical (Y)
         LDA #$05     ;#%00000101
         STA GRENADES
         STA LIVES
 
-j08B8   LDA #$A5     ;#%10100101
+START_LEVEL          ;j08B8
+        LDA #$A5     ;#%10100101
         STA a0403
         LDA #$00     ;Song to play (main theme)
         JSR MUSIC_INIT
+
+        ; Restart after life lost
 j08C2   JSR s3DFE
         JSR s4067
         JSR SETUP_IRQ
-j08CB   JSR s402A
+
+        ; Main loop
+GAME_LOOP            ;j08CB
+        JSR s402A
         LDA a0404
         BEQ b08F7
         CLC
@@ -338,7 +344,7 @@ j08CB   JSR s402A
         INC a04E9
         JSR s3F93
         INC a04E9
-        JMP j08CB
+        JMP GAME_LOOP
 
 b08F7   INC a040A
         JSR s3D48
@@ -355,26 +361,29 @@ b08F7   INC a040A
         JSR s100F
 b091C   LDA a042D
         CMP #$5A     ;#%01011010
-        BNE j08CB
+        BNE GAME_LOOP
         LDA #$14     ;#%00010100
         JSR SCORE_ADD
-        LDA a04F3
+        LDA LEVEL_NR
         AND #$03     ;#%00000011
         CMP #$03     ;#%00000011
         BNE b0939
+
+        ;Play animation at end of Level 3
         LDA #$09     ;#%00001001
-        JSR s500F
+        JSR s500F    ;SFX?
         JSR SET_CASTLE_ON_FIRE
+
 b0939   LDA #$02     ;Song to play (Level complete)
         JSR MUSIC_INIT
         JSR s1240
-        INC a04F3
-        LDA a04F3
+        INC LEVEL_NR
+        LDA LEVEL_NR
         AND #$03     ;#%00000011
         CMP #$02     ;#%00000010
-        BNE b0950
-        INC a04F3
-b0950   JMP j08B8
+        BNE _SKIP
+        INC LEVEL_NR
+_SKIP   JMP START_LEVEL
 
 b0953   LDA a0503
         CMP #$02     ;#%00000010
@@ -387,11 +396,11 @@ b0953   LDA a0503
         BCS b0996
         LDA #$CC     ;#%11001100
         STA a045D
-        JMP j08CB
+        JMP GAME_LOOP
 
 b0970   LDA #$CB     ;#%11001011
         STA a045D
-        JMP j08CB
+        JMP GAME_LOOP
 
 b0978   INC a04E6
         LDA a04E6
@@ -401,11 +410,11 @@ b0978   INC a04E6
         BCS b0996
         LDA #$B8     ;#%10111000
         STA a045D
-        JMP j08CB
+        JMP GAME_LOOP
 
 b098E   LDA #$DD     ;#%11011101
         STA a045D
-        JMP j08CB
+        JMP GAME_LOOP
 
 b0996   DEC LIVES
         JSR SCREEN_REFRESH_LIVES
@@ -765,7 +774,7 @@ SCREEN_ENTER_HI_SCORE   ;s0C88
         STA a0402
         STA a04E2
         LDA #$02     ;#%00000010
-        STA a04F3
+        STA LEVEL_NR
         LDA #<pE082  ;Screen RAM Lo
         STA a00FB,b
         LDA #>pE082  ;Screen RAM Hi
@@ -1042,7 +1051,7 @@ SCREEN_MAIN_TITLE
         LDA #$00     ;#%00000000
         STA a04E2
         LDA #$02     ;#%00000010
-        STA a04F3
+        STA LEVEL_NR
         LDA #$FF     ;#%11111111
         STA $D01D    ;Sprites Expand 2x Horizontal (X)
         STA $D017    ;Sprites Expand 2x Vertical (Y)
@@ -1091,7 +1100,7 @@ _WAIT_FIRE
         LDA f1008,X
         STA a0403
         LDA f1001,X
-        STA a04F3
+        STA LEVEL_NR
         JSR s1445
         JSR s4033
         JSR s3F93
@@ -1285,7 +1294,7 @@ f1143   .BYTE $20,$20,$20,$20,$20,$20,$20,$20
         .BYTE $6C,$5F,$20,$6E,$69,$20,$6D,$6E
         .BYTE $5B,$6C,$6E,$FF,$FE
 
-s1240   LDA a04F3
+s1240   LDA LEVEL_NR
         PHA
         AND #$03     ;#%00000011
         ASL A
@@ -1308,7 +1317,7 @@ b124B   LDA f1324,Y
         STA a12B8
         LDA #>p12E8  ;#%00010010
         STA a12B9
-        LDA a04F3
+        LDA LEVEL_NR
         AND #$03     ;#%00000011
         CMP #$03     ;#%00000011
         BNE b128E
@@ -1321,7 +1330,7 @@ b124B   LDA f1324,Y
         LDA #>p130F  ;#%00010011
         STA a12B9
 b128E   LDA #$02     ;#%00000010
-        STA a04F3
+        STA LEVEL_NR
         JSR s3DD3
         JSR s1334
         LDA #$00     ;#%00000000
@@ -1353,7 +1362,7 @@ b12B7   LDA f2596,X
         LDY #$78     ;#%01111000
         JSR s1366
         PLA
-        STA a04F3
+        STA LEVEL_NR
         RTS
 
 p12D6   .BYTE $5C,$6C,$69,$65,$5F,$20,$6E,$62
@@ -1526,12 +1535,12 @@ f1436   .BYTE $C2,$C2,$C2,$28
 f143A   .BYTE $28,$28,$28,$1E,$1E,$1E,$1E,$1E
         .BYTE $1E,$1E,$1E
 
-s1445   LDA a04F3
+s1445   LDA LEVEL_NR
         AND #$03     ;#%00000011
         TAY
         LDA f3ECE,Y
         STA a0405
-        LDA a04F3
+        LDA LEVEL_NR
         AND #$03     ;#%00000011
         ASL A
         TAY
@@ -1633,7 +1642,7 @@ j15DA   TAX
         STA a1600
         LDA f161E,X
         STA a1601
-        LDA a04F3
+        LDA LEVEL_NR
         AND #$03     ;#%00000011
         CMP #$03     ;#%00000011
         BEQ b161C
@@ -3681,7 +3690,7 @@ f2CD5   .BYTE $00,$00,$FF,$FF,$AD,$03,$04,$F0
         STA a0504
         DEC a04EF
         BNE b2CF7
-b2CF7   LDA a04F3
+b2CF7   LDA LEVEL_NR
         AND #$03     ;#%00000011
         CMP #$03     ;#%00000011
         BEQ b2D66
@@ -5637,7 +5646,7 @@ s3DFE   JSR s3DD3
         STA a04E0
         STA a043D
         STA a0503
-        LDA a04F3
+        LDA LEVEL_NR
         AND #$03     ;#%00000011
         ASL A
         TAX
@@ -5684,7 +5693,7 @@ b3E4C   STA a0403
         JSR s14D3
         LDA #$00     ;#%00000000
         STA a04F5
-        LDA a04F3
+        LDA LEVEL_NR
         AND #$07     ;#%00000111
         TAX
         LDA f3ED2,X
@@ -5863,7 +5872,7 @@ _L00    CMP a040B
         BEQ _L00
         RTS
 
-s4033   LDA a04F3
+s4033   LDA LEVEL_NR
         AND #$03     ;#%00000011
         TAX
         LDA #<pD800  ;#%00000000
@@ -6093,7 +6102,7 @@ _L0     LDX f004B,b,Y
         CPY #$08     ;#%00001000
         BNE _L0
 
-        LDA a04F3
+        LDA LEVEL_NR
         AND #$03     ;#%00000011
         ASL A
         STA a00A7,b
