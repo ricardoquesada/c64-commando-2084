@@ -496,7 +496,7 @@ b0A1F   LDA f0506,Y
 j0A2B   JSR s3DD3
         JSR s0E0F
         LDY #$64     ;#%01100100
-        JSR s1366
+        JSR DELAY
         LDA #$FF     ;#%11111111
         STA a04E6
 b0A3B   LDA $DC00    ;CIA1: Data Port Register A  (riq: unk)
@@ -1343,7 +1343,7 @@ b12A0   LDA f2596,X
         LDA #$01     ;#%00000001
         STA fD99A,X
         LDY #$05     ;#%00000101
-        JSR s1366
+        JSR DELAY
         INX
         CPX #$12     ;#%00010010
         BNE b12A0
@@ -1355,12 +1355,12 @@ b12B7   LDA f2596,X
         LDA #$01     ;#%00000001
         STA fD9E9,X
         LDY #$05     ;#%00000101
-        JSR s1366
+        JSR DELAY
         INX
         CPX #$15     ;#%00010101
         BNE b12B7
         LDY #$78     ;#%01111000
-        JSR s1366
+        JSR DELAY
         PLA
         STA LEVEL_NR
         RTS
@@ -1403,9 +1403,12 @@ b1348   LDA #$20     ;#%00100000
         BNE b1348
         RTS
 
-s1366   JSR WAIT_RASTER_AT_BOTTOM
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Y = number of frames to wait
+DELAY   ; s1366
+        JSR WAIT_RASTER_AT_BOTTOM
         DEY
-        BPL s1366
+        BPL DELAY
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
