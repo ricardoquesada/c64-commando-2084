@@ -364,7 +364,7 @@ b091C   LDA a042D
         BNE b0939
         LDA #$09     ;#%00001001
         JSR s500F
-        JSR s3CD0
+        JSR SET_CASTLE_ON_FIRE
 b0939   LDA #$02     ;Song to play (Level complete)
         JSR MUSIC_INIT
         JSR s1240
@@ -504,17 +504,18 @@ NMI_HANDLER
 f0A4E   .BYTE $50,$08,$50,$08,$C3,$C2,$CD,$38
         .BYTE $30
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s0A57   LDA $DC0E    ;CIA1: CIA Control Register A
-b0A5A   AND #$FE     ;#%11111110
+        AND #$FE     ;#%11111110
         STA $DC0E    ;CIA1: CIA Control Register A
         LDA a01
         AND #$FB     ;#%11111011
         STA a01
         LDX #$3F     ;#%00111111
-b0A67   LDA f0A7F,X
+_L00    LDA f0A7F,X
         STA fD040,X
         DEX
-        BPL b0A67
+        BPL _L00
         LDA a01
         ORA #$04     ;#%00000100
         STA a01
@@ -532,6 +533,7 @@ f0A7F   .BYTE $00,$00,$00,$02,$AA,$00,$0A,$AA
         .BYTE $20,$00,$20,$20,$20,$20,$28,$20
         .BYTE $A0,$0A,$AA,$80,$02,$AA,$00
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s0ABE   LDA a0511
         BEQ _SKIP
         LDY #$00     ;#%00000000
@@ -1155,6 +1157,7 @@ f1074   .BYTE $00,$00,$00,$00,$00,$01,$00,$00
         .BYTE $00,$00,$00,$00,$00,$01,$00,$01
         .BYTE $01,$01,$01,$01,$00,$00,$00,$01
         .BYTE $01,$01,$01,$01,$01,$01,$00
+
 s109B   LDY #$00     ;#%00000000
 j109D   LDA (p24),Y
         CMP #$FF     ;#%11111111
@@ -1272,6 +1275,7 @@ f1143   .BYTE $20,$20,$20,$20,$20,$20,$20,$20
         .BYTE $6A,$6C,$5F,$6D,$6D,$20,$60,$63
         .BYTE $6C,$5F,$20,$6E,$69,$20,$6D,$6E
         .BYTE $5B,$6C,$6E,$FF,$FE
+
 s1240   LDA a04F3
         PHA
         AND #$03     ;#%00000011
@@ -1358,6 +1362,7 @@ p130F   .BYTE $20,$20,$20,$67,$63,$6D,$6D,$63
 f1324   .BYTE $22,$6D,$6E,$20
 f1328   .BYTE $23,$68,$5E,$20,$24,$6C,$5E,$20
         .BYTE $24,$6C,$5E,$20
+
 s1334   LDA #$00     ;#%00000000
         STA a00FB,b
         STA a00FD,b
@@ -1507,18 +1512,12 @@ b142B   LDA a042D,X
         BPL b142B
         RTS
 
-f1436   =*+$01
-f1435   .BYTE $C2,$C2
-        .BYTE $C2,$C2
-        PLP
-f143A   PLP
-        PLP
-        PLP
-        ASL f1E1E,X
-        ASL f1E1E,X
-s1445   =*+$02
-        ASL fAD1E,X
-        .BYTE $F3,$04
+f1435   .BYTE $C2
+f1436   .BYTE $C2,$C2,$C2,$28
+f143A   .BYTE $28,$28,$28,$1E,$1E,$1E,$1E,$1E
+        .BYTE $1E,$1E,$1E
+
+s1445   LDA a04F3
         AND #$03     ;#%00000011
         TAY
         LDA f3ECE,Y
@@ -1566,6 +1565,7 @@ f14C3   .BYTE $A9
 f14C4   .BYTE $17,$A9,$18,$A9,$1A,$A9,$1A
 f14CB   .BYTE $02
 f14CC   .BYTE $15,$38,$15,$6E,$15,$A4,$15
+
 s14D3   TAX
         LDA f14CB,X
         STA a14E5
@@ -1618,6 +1618,7 @@ b14FD   CPX #$36     ;#%00110110
         .BYTE $77,$14,$30,$33,$EE,$32,$30,$77
         .BYTE $EB,$E2,$F1,$EC,$30,$30,$77,$8E
         .BYTE $74,$78,$30,$30,$30,$77,$78,$30
+
 j15DA   TAX
         LDA f161D,X
         STA a1600
@@ -1687,6 +1688,7 @@ f161E   .BYTE $16,$A8,$16,$CC,$CC,$D8,$D8,$D8
         .BYTE $E7,$8F,$49,$30,$00,$00,$00,$00
         .BYTE $00,$00,$00,$00,$00,$00,$00,$30
         .BYTE $90
+
 j172F   LDA a04F0
         SEC
         SBC #$10     ;#%00010000
@@ -1876,6 +1878,7 @@ a188D   .BYTE $02,$03,$01,$01,$01,$01,$01,$01
         .BYTE $01,$01,$01,$01,$00,$01,$01,$01
         .BYTE $01,$01,$01,$01,$01,$01,$01,$01
         .BYTE $00,$01,$02,$00
+
 s1BA9   LDY a04E8
         LDA (p24),Y
         CMP a0403
@@ -1999,6 +2002,7 @@ f1E1E   .BYTE $00,$00,$00,$00,$00,$00,$FF,$00
         .BYTE $07,$19,$11,$12,$11,$12,$12,$12
         .BYTE $07,$11,$11,$00,$00,$00,$00,$1B
         .BYTE $60
+
         JSR s223C
         LDA #$28     ;#%00101000
         STA a0492,X
@@ -2042,8 +2046,8 @@ j1E7D   LDY a00FD,b
         STA a0492,X
         RTS
 
-f1EAD   SEI
-        .BYTE $D2
+f1EAD   .BYTE $78,$D2
+
         JSR s4006
         AND #$01     ;#%00000001
         TAY
@@ -2769,10 +2773,12 @@ f256D   .BYTE $00,$00,$00,$00,$00,$03,$00,$03
         .BYTE $00,$00,$03,$00,$00,$05,$00,$00
         .BYTE $00,$0A,$00,$00,$00,$03,$00,$03
         .BYTE $03,$03,$14,$03,$02,$00,$0A,$00
-        .BYTE $05,$00,$00,$0A,$0A,$00,$00
-        ORA a05
-f2596   RTS
+        .BYTE $05,$00,$00,$0A,$0A,$00,$00,$05
+        .BYTE $05
+f2596   .BYTE $60
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Unused ?
         INC f04B7,X
         LDA a04EA
         BEQ b25C4
@@ -2956,7 +2962,7 @@ b270C   LDA #$0C     ;#%00001100
         STA a0472,X
         STA a0482,X
         TAY
-        LDA f3714,Y
+        LDA FRAME_BULLET_END,Y
         STA SPRITES_PTR,X
         RTS
 
@@ -2970,7 +2976,7 @@ b270C   LDA #$0C     ;#%00001100
         LSR A
         LSR A
         TAY
-        LDA f27E0,Y
+        LDA FRAME_BAZOOKA_GUY,Y
         STA SPRITES_PTR,X
         LDY f04AC,X
         LDA f32CD,Y
@@ -2996,7 +3002,7 @@ b275E   LDA a0492,Y
 b2769   LDA #$00     ;#%00000000
         STA a0472,X
         STA a0472,X
-        LDA #$E8     ;#%11101000
+        LDA #$E8     ;Frame Bazooka guy #3
         STA SPRITES_PTR,X
         LDA SPRITES_X_LO,X
         STA SPRITES_X_LO,Y
@@ -3006,7 +3012,7 @@ b2769   LDA #$00     ;#%00000000
         STA a0492,Y
         LDA #$01     ;#%00000001
         STA a0452,Y
-        LDA #$EA     ;#%11101010
+        LDA #$EA     ;Frame bazooka left-down
         STA SPRITES_PTR,Y
         LDA SPRITES_X_HI,X
         STA SPRITES_X_HI,Y
@@ -3029,24 +3035,25 @@ b2769   LDA #$00     ;#%00000000
         BCC b27D5
         LDA #$00     ;#%00000000
         STA a0472,Y
-        LDA #$E9     ;#%11101001
+        LDA #$E9     ;Frame bazooka down
         STA SPRITES_PTR,Y
         RTS
 
 b27CA   LDA #$FE     ;#%11111110
         STA a0472,Y
-        LDA #$EA     ;#%11101010
+        LDA #$EA     ;Frame bazooka left-down
         STA SPRITES_PTR,Y
         RTS
 
 b27D5   LDA #$02     ;#%00000010
         STA a0472,Y
-        LDA #$EB     ;#%11101011
+        LDA #$EB     ;Frame bazook right-down
         STA SPRITES_PTR,Y
         RTS
 
-f27E0   SBC aE6
-        .BYTE $E7,$E6
+FRAME_BAZOOKA_GUY       ;f27E0
+        .BYTE $E5,$E6,$E7,$E6
+
         INC f04B7,X
         LDA f04B7,X
         AND #$1F     ;#%00011111
@@ -3215,7 +3222,7 @@ b2923   RTS
         LSR A
         LSR A
         TAY
-        LDA f2954,Y
+        LDA FRAME_BOSS1_LEFT,Y
         STA SPRITES_PTR,X
         RTS
 
@@ -3225,14 +3232,16 @@ b2942   LDA a040A
         LSR A
         LSR A
         TAY
-        LDA f2952,Y
+        LDA FRAME_BOSS1_RIGHT,Y
         STA SPRITES_PTR,X
         RTS
 
-f2954   =*+$02
-f2952   LDA fEFBA,Y
-b2955   BEQ b2955
+FRAME_BOSS1_RIGHT       ;f2952
+        .BYTE $B9,$BA
+FRAME_BOSS1_LEFT        ;f2954
+        .BYTE $EF,$F0,$FE
         .BYTE $B7,$04
+
         LDA a0472,X
         ORA a0482,X
         BEQ b2968
@@ -3287,7 +3296,7 @@ b299B   LDA f04AC,X
         LDA #$00     ;#%00000000
         STA a0472,X
         STA a0482,X
-        LDA #$E3     ;#%11100011
+        LDA #$E3     ;Frame enemy throw grenade
         STA SPRITES_PTR,X
         RTS
 
@@ -3424,13 +3433,15 @@ b2AD4   LDA #$08     ;#%00001000
         LSR A
         LSR A
         TAY
-        LDA f2AF7,Y
+        LDA FRAME_POW_RESCUE,Y
         STA SPRITES_PTR,X
         RTS
 
 b2AF4   JMP s358E
 
-f2AF7   CPY aC5
+FRAME_POW_RESCUE    ;f2AF7 (Pow == Prisoner of War)
+        .BYTE $C4,$C5
+
         INC f04B7,X
         LDA f04B7,X
         CMP #$41     ;#%01000001
@@ -3445,7 +3456,7 @@ b2B04   JMP s358E
         LSR A
         LSR A
         TAY
-        LDA f2B28,Y
+        LDA FRAME_POW_RUN,Y
         STA SPRITES_PTR,X
         LDA a0403
         CMP #$71     ;#%01110001
@@ -3456,14 +3467,16 @@ b2B04   JMP s358E
         STA a0482,X
 b2B27   RTS
 
-f2B28   .BYTE $C2,$C3
+FRAME_POW_RUN       ;f2B28 (POW == Prisoner of War)
+        .BYTE $C2,$C3
+
         LDA a040A
         AND #$08     ;#%00001000
         LSR A
         LSR A
         LSR A
         TAY
-        LDA f2B4B,Y
+        LDA FRAME_POW_GUARD,Y
         STA SPRITES_PTR,X
         LDA a0403
         CMP #$71     ;#%01110001
@@ -3474,7 +3487,9 @@ f2B28   .BYTE $C2,$C3
         STA a0482,X
 b2B4A   RTS
 
-f2B4B   CPY #$C1     ;#%11000001
+FRAME_POW_GUARD     ;f2B4B
+        .BYTE $C0,$C1
+
         INC f04B7,X
         LDY f04A1,X
         LDA SPRITES_X_LO,X
@@ -3483,16 +3498,16 @@ f2B4B   CPY #$C1     ;#%11000001
         LDA #$00     ;#%00000000
         STA a0472,X
         STA a0472,Y
-        LDA #$B2     ;#%10110010
+        LDA #$B2     ;Bike Front (throw grenade #0)
         STA SPRITES_PTR,X
-        LDA #$B3     ;#%10110011
+        LDA #$B3     ;Bike Back (throw grenade #0)
         STA SPRITES_PTR,Y
         LDA f04B7,X
         AND #$10     ;#%00010000
         BEQ b2B7D
-        LDA #$B4     ;#%10110100
+        LDA #$B4     ;Bike Front (throw grenade #1)
         STA SPRITES_PTR,X
-        LDA #$B5     ;#%10110101
+        LDA #$B5     ;Bike Back (throw grenade #1)
         STA SPRITES_PTR,Y
 b2B7D   LDA f04B7,X
         AND #$1F     ;#%00011111
@@ -3506,9 +3521,9 @@ b2B88   LDA SPRITES_Y,X
         LDA #$FF     ;#%11111111
         STA a0472,X
         STA a0472,Y
-        LDA #$B0     ;#%10110000
+        LDA #$B0     ;Bike Front (ride)
         STA SPRITES_PTR,X
-        LDA #$B1     ;#%10110001
+        LDA #$B1     ;Bike Back (ride)
         STA SPRITES_PTR,Y
 b2BA1   RTS
 
@@ -3546,22 +3561,22 @@ b2BDE   RTS
         AND #$1F     ;#%00011111
         CMP #$03     ;#%00000011
         BNE b2BF5
-        LDA #$CF     ;#%11001111
+        LDA #$CF     ;Frame falling in hole #2?
         STA SPRITES_PTR,X
 b2BF5   CMP #$0F     ;#%00001111
         BNE b2BFE
-        LDA #$CE     ;#%11001110
+        LDA #$CE     ;Frame falling in hole #1?
         STA SPRITES_PTR,X
 b2BFE   CMP #$14     ;#%00010100
         BNE b2C0C
-        LDA #$CD     ;#%11001101
+        LDA #$CD     ;Frame falling in hole #0?
         STA SPRITES_PTR,X
         LDA #$00     ;#%00000000
         STA a04EA
 b2C0C   LDA SPRITES_Y,X
         CMP #$82     ;#%10000010
         BCC b2C31
-        LDA #$98     ;#%10011000
+        LDA #$98     ;Frame Hero/Enemy heading up
         STA SPRITES_PTR,X
         LDA #$00     ;#%00000000
         STA a0472,X
@@ -3600,7 +3615,7 @@ b2C46   LDA a040D
         SEC
         SBC SPRITES_Y,X
         STA a00FC,b
-        LDA #$CE     ;#%11001110
+        LDA #$CE     ;Frame falling in hole #1?
         STA SPRITES_PTR,X
         LDA #$01     ;#%00000001
         STA a04EA
@@ -3627,7 +3642,7 @@ b2C97   STA a0472,Y
         SEC
         SBC #$02     ;#%00000010
         STA a0482,Y
-        LDA #$D0     ;#%11010000
+        LDA #$D0     ;Big grenade #0
         STA SPRITES_PTR,Y
         LDA #$00     ;#%00000000
         STA a0452,Y
@@ -3645,6 +3660,7 @@ f2CCD   .BYTE $04,$04,$0C,$0C
 f2CD1   .BYTE $9B,$9B,$9B,$9B
 f2CD5   .BYTE $00,$00,$FF,$FF,$AD,$03,$04,$F0
         .BYTE $03
+
         JMP j2D81
 
         LDA a04EF
@@ -3866,7 +3882,7 @@ b2ECD   LDA f04B7,X
         LSR A
         LSR A
         TAY
-        LDA f2EE6,Y
+        LDA FRAME_GRENADE0,Y
         STA SPRITES_PTR,X
         LDA f04B7,X
         AND #$0F     ;#%00001111
@@ -3874,7 +3890,9 @@ b2ECD   LDA f04B7,X
         INC a0482,X
 b2EE5   RTS
 
-f2EE6   .BYTE $92,$91,$91,$92,$93
+FRAME_GRENADE0       ;f2EE6
+        .BYTE $92,$91,$91,$92,$93
+
 s2EEB   LDA #$0C     ;#%00001100
         STA a0492,X
         LDA #$00     ;#%00000000
@@ -3910,9 +3928,8 @@ b2F19   LDA f04B7,X
         INC a0482,X
 b2F31   RTS
 
-f2F32   .BYTE $D2
-        CMP (pD0),Y
-        CMP (pD2),Y
+f2F32   .BYTE $D2,$D1,$D0,$D1,$D2
+
         INC f04B7,X
         LDA f04B7,X
         CMP #$46     ;#%01000110
@@ -3943,7 +3960,7 @@ b2F67   LDA #$09     ;#%00001001
         STA a0472,X
         STA a0482,X
         TAY
-        LDA f3714,Y
+        LDA FRAME_BULLET_END,Y
         STA SPRITES_PTR,X
         RTS
 
@@ -3960,7 +3977,7 @@ b2F8A   JMP s2EEB
         CMP #$09     ;#%00001001
         BEQ b2F9F
         TAY
-        LDA f3714,Y
+        LDA FRAME_BULLET_END,Y
         STA SPRITES_PTR,X
         RTS
 
@@ -4032,7 +4049,6 @@ j3029   LDA #$0A     ;#%00001010
         STA SPRITES_PTR,X
         JMP j305A
 
-a3038   =*+$02
 b3036   LDA a041D
         SEC
         SBC #$32     ;#%00110010
@@ -4358,6 +4374,7 @@ f32CD   .BYTE $00,$01,$01,$01,$01,$01,$01,$01
         .BYTE $00,$FF,$FF,$FF,$FF,$FF,$FF,$FF
 f32DD   .BYTE $FF,$FF,$FF,$00,$00,$00,$01,$01
         .BYTE $01,$01,$01,$00,$00,$00,$FF,$FF
+
 s32ED   LDA SPRITES_X_HI,X
         CMP a040D
         BNE b3301
@@ -4639,6 +4656,7 @@ f3535   .BYTE $00,$01,$01,$02,$02,$02,$01,$01
         .BYTE $00,$FF,$FF,$FE,$FE,$FE,$FF,$FF
 f3545   .BYTE $FE,$FE,$FF,$FF,$00,$01,$01,$02
         .BYTE $02,$02,$01,$01,$00,$FF,$FF,$FE
+
 s3555   LDX #$05     ;#%00000101
 b3557   LSR a00FB,b
         LSR a00FC,b
@@ -4661,6 +4679,7 @@ f3576   .BYTE $BE,$FF,$BE,$FF,$BE,$FF,$BF,$FF
         .BYTE $BF,$FF,$BF,$FF,$BE,$FF,$BE,$FF
         .BYTE $BE,$FF,$BF,$FF,$BF
         .BYTE $FF,$BF,$FF
+
 s358E   LDA #$00     ;#%00000000
         STA a0492,X
         STA a0472,X
@@ -4763,7 +4782,7 @@ b368D   LDA a049D,X
         LSR A
         LSR A
         TAY
-        LDA f36F3,Y
+        LDA FRAME_GRENADE1,Y
         STA a045E,X
         LDA a049D,X
 b36A4   CMP #$28     ;#%00101000
@@ -4795,34 +4814,33 @@ b36D3   LDA #$04     ;#%00000100
         STA a047E,X
         STA a043E,X
         TAY
-        LDA f37CA,Y
+        LDA FRAME_EXPLOSION,Y
         STA a045E,X
         LDA #$08     ;#%00001000
         STA a044E,X
         RTS
 
-f36F3   .BYTE $92,$91,$91,$92
-        .BYTE $93,$93
-f36F9   LDY aA5
-        DEC f9898,X
+FRAME_GRENADE1      ;f36F3
+        .BYTE $92,$91,$91,$92,$93,$93
+f36F9   .BYTE $A4,$A5,$DE,$98,$98
+
         INC a049D,X
         LDA a049D,X
-        CMP #$09     ;#%00001001
+        CMP #$09     ;Frames for anim(?)
         BEQ b3710
         TAY
-        LDA f3714,Y
+        LDA FRAME_BULLET_END,Y
         STA a045E,X
         RTS
 
 b3710   JSR s371D
         RTS
 
-f3714   STY f95,X
-        STX f97,Y
-        STX f96,Y
-        STY fFF,X
-s371D   =*+$01
-        .BYTE $FF,$A9,$00
+FRAME_BULLET_END             ;f3714
+        .BYTE $94,$95,$96,$97,$96,$96,$94,$FF
+        .BYTE $FF
+
+s371D   LDA #$00
         STA a048E,X
         STA a046E,X
         STA a047E,X
@@ -4882,7 +4900,7 @@ b3793   INY
         LSR A
         LSR A
         TAY
-        LDA f37CA,Y
+        LDA FRAME_EXPLOSION,Y
         STA a045E,X
         RTS
 
@@ -4900,7 +4918,9 @@ b37A9   LDA #$00     ;#%00000000
         STA a045E,X
         RTS
 
-f37CA   .BYTE $AF,$AE,$AD,$AF,$FF
+FRAME_EXPLOSION     ;f37CA
+        .BYTE $AF,$AE,$AD,$AF,$FF
+
 j37CF   TXA
         PHA
         TYA
@@ -4923,7 +4943,7 @@ j37CF   TXA
         LDA #$00     ;#%00000000
         STA f04B7,Y
         TAX
-        LDA f37CA,X
+        LDA FRAME_EXPLOSION,X
         STA SPRITES_PTR,Y
         LDA #$08     ;#%00001000
         STA a0452,Y
@@ -4966,7 +4986,7 @@ b3848   LDA SPRITES_X_LO,Y
         LDA #$00     ;#%00000000
         STA f04B7,Y
         TAX
-        LDA f37CA,X
+        LDA FRAME_EXPLOSION,X
         STA SPRITES_PTR,Y
         LDA #$08     ;#%00001000
         STA a0452,Y
@@ -4990,7 +5010,7 @@ b3848   LDA SPRITES_X_LO,Y
         LSR A
         LSR A
         TAY
-        LDA f37CA,Y
+        LDA FRAME_EXPLOSION,Y
         STA SPRITES_PTR,X
         RTS
 
@@ -5133,7 +5153,7 @@ j39C9   LDA #$03     ;#%00000011
         STA a046E,X
         STA a047E,X
         TAY
-        LDA f3714,Y
+        LDA FRAME_BULLET_END,Y
         STA a045E,X
         RTS
 
@@ -5463,9 +5483,12 @@ f3CC1   .BYTE $3C,$B8,$3C,$AC,$3C,$B0,$3C,$A4
         .BYTE $3C,$B4,$3C,$A8
         .BYTE $3C,$BC,$3C
 
-s3CD0   JSR s3DD3
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Set castle on fire animation (when you beat the game)
+SET_CASTLE_ON_FIRE      ;s3CD0
+JSR s3DD3
         LDX #$00     ;#%00000000
-b3CD5   LDA f3D27,X
+_L00    LDA f3D27,X
         STA SPRITES_X_LO,X
         LDA f3D3D,X
         STA SPRITES_Y,X
@@ -5478,27 +5501,27 @@ b3CD5   LDA f3D27,X
         LDA #$00     ;#%00000000
         STA a0442,X
         INX
-        CPX #$0B     ;#%00001011
-        BNE b3CD5
+        CPX #$0B     ;Number of sprites to set
+        BNE _L00
+
         JSR s3D48
         JSR s3F24
         LDA #$FF     ;#%11111111
-b3D04   =*+$01
         STA a04E6
-b3D06   LDX #$00     ;#%00000000
-b3D08   LDA #$EE     ;#%11101110
+_L01    LDX #$00     ;#%00000000
+_L02    LDA #$EE     ;Fire frame
         STA SPRITES_PTR,X
         JSR s4006
         AND #$03     ;#%00000011
-        BNE b3D19
-        LDA #$FF     ;#%11111111
+        BNE _L03
+        LDA #$FF     ;Empty frame
         STA SPRITES_PTR,X
-b3D19   INX
+_L03    INX
         CPX #$0B     ;#%00001011
-        BNE b3D08
+        BNE _L02
         JSR s402A
         DEC a04E6
-        BNE b3D06
+        BNE _L01
         RTS
 
 f3D27   .BYTE $6E,$82,$96,$AA,$BE,$DC,$E6,$48
