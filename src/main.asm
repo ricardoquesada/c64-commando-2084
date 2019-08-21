@@ -301,7 +301,7 @@ j0883   LDA #$A5     ;#%10100101
         ; Display main title screen
         LDA #$00     ;Song to play (main theme)
         JSR MUSIC_INIT
-        JSR MAIN_SCREEN_MAIN
+        JSR SCREEN_MAIN_TITLE
 
         JSR s5006
         LDA #$00     ;#%00000000
@@ -449,7 +449,7 @@ b09CF   LDA f0EEE,Y
         STA HISCORE_MSB
         LDA SCORE_LSB
         STA HISCORE_LSB
-        JSR s0C88
+        JSR SCREEN_ENTER_HI_SCORE
         LDY #$00     ;#%00000000
 b09EF   LDA f0506,Y
         STA f0EEE,Y
@@ -471,7 +471,7 @@ b09FD   TXA
 
 b0A13   TXA
         PHA
-        JSR s0C88
+        JSR SCREEN_ENTER_HI_SCORE
         PLA
         ASL A
         ASL A
@@ -751,7 +751,9 @@ b0C7B   LDA SPRITES_Y
         STA a0482
 b0C87   RTS
 
-s0C88   LDA #$01     ;Song to play (high scores)
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+SCREEN_ENTER_HI_SCORE   ;s0C88
+        LDA #$01     ;Song to play (high scores)
         JSR MUSIC_INIT
         JSR s1334
         JSR s3DD3
@@ -761,20 +763,20 @@ s0C88   LDA #$01     ;Song to play (high scores)
         STA a04E2
         LDA #$02     ;#%00000010
         STA a04F3
-        LDA #<pE082  ;#%10000010
+        LDA #<pE082  ;Screen RAM Lo
         STA a00FB,b
-        LDA #>pE082  ;#%11100000
+        LDA #>pE082  ;Screen RAM Hi
         STA a00FC,b
-        LDA #<pD882  ;#%10000010
+        LDA #<pD882  ;Color RAM Lo
         STA a00FD,b
-        LDA #>pD882  ;#%11011000
+        LDA #>pD882  ;Color RAM Hi
         STA a00FE,b
         LDX #$00     ;#%00000000
 j0CB9   LDY #$00     ;#%00000000
 j0CBB   LDA f0D09,X
-        CMP #$FF     ;#%11111111
+        CMP #$FF     ;End of line?
         BEQ b0CD1
-        CMP #$FE     ;#%11111110
+        CMP #$FE     ;Finish printing?
         BEQ b0CE9
         STA (pFB),Y
         LDA #$01     ;#%00000001
@@ -786,7 +788,7 @@ j0CBB   LDA f0D09,X
 b0CD1   INX
         LDA a00FB,b
         CLC
-        ADC #$28     ;#%00101000
+        ADC #$28     ;Put "cursor" in next line
         STA a00FB,b
         STA a00FD,b
         BCC b0CE6
@@ -807,6 +809,7 @@ b0CEC   JSR s402A
         BNE b0CEC
         RTS
 
+        ;Alphabet for hiscore
 f0D09   .BYTE $20,$20,$20,$20,$20,$75,$75,$75
         .BYTE $75,$75,$75,$75,$75,$78,$FF,$FF
         .BYTE $FF,$5B,$20,$5C,$20,$5D,$20,$5E
@@ -1029,7 +1032,7 @@ f0F39   .BYTE $80,$00,$70,$00,$60,$00,$50,$00
         .BYTE $40,$00,$30,$00,$20,$00,$00
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-MAIN_SCREEN_MAIN
+SCREEN_MAIN_TITLE
         JSR s3DD3
         JSR s1334
         LDA #$00     ;#%00000000
@@ -1092,7 +1095,7 @@ _WAIT_FIRE
         LDA a049D
         CMP #$08     ;#%00001000
         BNE _L01
-        JMP MAIN_SCREEN_MAIN
+        JMP SCREEN_MAIN_TITLE
 
 _END    RTS
 
@@ -2778,7 +2781,7 @@ f256D   .BYTE $00,$00,$00,$00,$00,$03,$00,$03
 f2596   .BYTE $60
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Unused ?
+
         INC f04B7,X
         LDA a04EA
         BEQ b25C4
@@ -2786,7 +2789,7 @@ f2596   .BYTE $60
         AND #$1F     ;#%00011111
         CMP #$03     ;#%00000011
         BNE b25AD
-        LDA #$CF     ;#%11001111
+        LDA #$CF     ;Frame: guy falling in hole?
         STA SPRITES_PTR,X
 b25AD   CMP #$0F     ;#%00001111
         BNE b25B6
@@ -5486,7 +5489,7 @@ f3CC1   .BYTE $3C,$B8,$3C,$AC,$3C,$B0,$3C,$A4
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Set castle on fire animation (when you beat the game)
 SET_CASTLE_ON_FIRE      ;s3CD0
-JSR s3DD3
+        JSR s3DD3
         LDX #$00     ;#%00000000
 _L00    LDA f3D27,X
         STA SPRITES_X_LO,X
