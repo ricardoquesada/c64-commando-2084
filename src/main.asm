@@ -1069,7 +1069,7 @@ _L00    LDA #$48     ;Sprite Y position
         STA $D025    ;Sprite Multi-Color Register 0
         LDA #$07     ;#%00000111
         STA $D026    ;Sprite Multi-Color Register 1
-        JSR s10FC
+        JSR PRINT_CREDITS
         LDA #$00     ;#%00000000
         STA a049D
 _L01    LDA #$FF     ;#%11111111
@@ -1211,23 +1211,25 @@ b10F4   INY
 b10F8   STY a04E8
         RTS
 
-s10FC   LDA #<pE029  ;#%00101001
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+PRINT_CREDITS       ;s10FC
+        LDA #<pE029  ;Screen RAM lo
         STA a00FB,b
-        LDA #>pE029  ;#%11100000
+        LDA #>pE029  ;Screen RAM hi
         STA a00FC,b
-        LDA #<pD829  ;#%00101001
+        LDA #<pD829  ;Color RAM lo
         STA a00FD,b
-        LDA #>pD829  ;#%11011000
+        LDA #>pD829  ;Color RAM hi
         STA a00FE,b
         LDX #$00     ;#%00000000
 j1112   LDY #$00     ;#%00000000
 j1114   LDA f1143,X
-        CMP #$FF     ;#%11111111
+        CMP #$FF     ;End of line?
         BEQ b112A
-        CMP #$FE     ;#%11111110
+        CMP #$FE     ;End of message
         BEQ b1142
         STA (pFB),Y
-        LDA #$01     ;#%00000001
+        LDA #$01     ;Color
         STA (pFD),Y
         INX
         INY
