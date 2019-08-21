@@ -328,7 +328,7 @@ j08C2   JSR s3DFE
 
         ; Main loop
 GAME_LOOP            ;j08CB
-        JSR s402A
+        JSR WAIT_RASTER_AT_BOTTOM
         LDA a0404
         BEQ b08F7
         CLC
@@ -502,7 +502,7 @@ j0A2B   JSR s3DD3
 b0A3B   LDA $DC00    ;CIA1: Data Port Register A  (riq: unk)
         CMP #$6F     ;#%01101111
         BEQ b0A4A
-        JSR s402A
+        JSR WAIT_RASTER_AT_BOTTOM
         DEC a04E6
         BNE b0A3B
 b0A4A   JMP j0883
@@ -809,7 +809,7 @@ b0CD1   INX
 b0CE6   JMP j0CB9
 
 b0CE9   JSR s0B94
-b0CEC   JSR s402A
+b0CEC   JSR WAIT_RASTER_AT_BOTTOM
         JSR HISCORE_READ_JOY
         JSR s0D59
         JSR s0ABE
@@ -1091,7 +1091,7 @@ _WAIT_FIRE
         LDA $DC00    ;CIA1: Data Port Register A (riq: main screen - fire)
         CMP #$6F     ;#%01101111
         BEQ _END
-        JSR s402A
+        JSR WAIT_RASTER_AT_BOTTOM
         DEC a04E6
         BNE _WAIT_FIRE
         LDA #$09     ;#%00001001
@@ -1403,7 +1403,7 @@ b1348   LDA #$20     ;#%00100000
         BNE b1348
         RTS
 
-s1366   JSR s402A
+s1366   JSR WAIT_RASTER_AT_BOTTOM
         DEY
         BPL s1366
         RTS
@@ -5537,7 +5537,7 @@ _L02    LDA #$EE     ;Fire frame
 _L03    INX
         CPX #$0B     ;#%00001011
         BNE _L02
-        JSR s402A
+        JSR WAIT_RASTER_AT_BOTTOM
         DEC a04E6
         BNE _L01
         RTS
@@ -5867,11 +5867,16 @@ s401D   LDA $D012    ;Raster Position
         BEQ s401D
         RTS
 
-s402A   LDA a040B
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Waits until raster reaches $d5 vertical position
+; triggered by IRQ_A
+WAIT_RASTER_AT_BOTTOM   ;s402A
+        LDA a040B
 _L00    CMP a040B
         BEQ _L00
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s4033   LDA LEVEL_NR
         AND #$03     ;#%00000011
         TAX
