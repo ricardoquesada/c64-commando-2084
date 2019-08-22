@@ -1951,7 +1951,6 @@ b1BF0   STY a00FD,b
         STA a00FC,b
         JMP (a00FB)
 
-; FIXME: these are hardcoded addresses
 f1C07   =*+1
 f1C06   .ADDR s2271,s22E4,s2329,s223C
         .ADDR s21C1,s2190,s215F,s212F
@@ -2784,35 +2783,37 @@ b24D2   LDA a0492,X
 s24EF   JMP (a00FB)
 
 ; FIXME: these are hardcoded addresses
-f24F2   .BYTE $D9
-f24F3   .BYTE $2C,$35,$39,$7A,$36,$FE,$36,$3C
-        .BYTE $37,$05,$32,$61,$35,$C2,$2F,$37
-        .BYTE $2F,$8D,$2F,$5B,$30,$BF,$2E,$8B
-        .BYTE $38,$DF,$2B,$0B,$2F,$4D,$2B,$96
-        .BYTE $25,$2A,$2B,$07,$2B,$F9,$2A,$DA
-        .BYTE $2A,$DD,$30,$78,$2A,$34,$2A,$BB
-        .BYTE $29,$56,$29,$24,$29,$F0,$31,$76
-        .BYTE $28,$60,$28,$E4,$27,$7F,$2F,$24
-        .BYTE $27,$7F,$2F,$DD,$26,$96,$26,$97
-        .BYTE $26,$75,$26,$F9,$25,$F0,$25,$97
-        .BYTE $25
+f24F3   =*+1
+f24F2   .ADDR s2CD9,s3935,s367A,s36FE
+        .ADDR s373C,s3205,s3561,s2FC2
+        .ADDR s2F37,s2F8D,s305B,s2EBF
+        .ADDR s388B,s2BDF,s2F0B,s2B4D
+        .ADDR s2596,s2B2A,s2B07,s2AF9
+        .ADDR s2ADA,s30DD,s2A78,s2A34
+        .ADDR s29BB,s2956,s2924,s31F0
+        .ADDR s2876,s2860,s27E4,s2F7F
+        .ADDR s2724,s2F7F,s26DD,s2696
+        .ADDR s2697,s2675,s25F9,s25F0
+        .ADDR s2597
+
 f2544   .BYTE $00,$00,$00,$00,$00,$03,$00,$02
         .BYTE $00,$00,$03,$00,$00,$02,$00,$00
         .BYTE $00,$01,$00,$00,$00,$03,$00,$03
         .BYTE $03,$03,$03,$03,$02,$00,$02,$00
         .BYTE $03,$00,$00,$02,$02,$00,$00,$02
         .BYTE $02
+
 f256D   .BYTE $00,$00,$00,$00,$00,$03,$00,$03
         .BYTE $00,$00,$03,$00,$00,$05,$00,$00
         .BYTE $00,$0A,$00,$00,$00,$03,$00,$03
         .BYTE $03,$03,$14,$03,$02,$00,$0A,$00
         .BYTE $05,$00,$00,$0A,$0A,$00,$00,$05
         .BYTE $05
-f2596   .BYTE $60
-
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+f2596
+s2596   RTS
 
-        INC f04B7,X
+s2597   INC f04B7,X
         LDA a04EA
         BEQ b25C4
         LDA f04B7,X
@@ -2852,11 +2853,11 @@ b25CC   JSR s32ED
         STA a0492,Y
 b25EF   RTS
 
-        INC f04B7,X
+s25F0   INC f04B7,X
         JSR s300C
         JMP j33D0
 
-        INC f04B7,X
+s25F9   INC f04B7,X
         LDA f04B7,X
         AND #$7F     ;#%01111111
         BNE b2608
@@ -2915,7 +2916,7 @@ b2633   LDA SPRITES_X_LO,X
         TAX
         RTS
 
-        INC f04B7,X
+s2675   INC f04B7,X
         JSR s3128
         JSR j33D0
         LDA f04B7,X
@@ -2933,12 +2934,12 @@ b2690   LDA #$FE     ;#%11111110
         STA a0482,X
         RTS
 
-b2696   RTS
+s2696   RTS
 
-        INC f04B7,X
+s2697   INC f04B7,X
         LDA f04B7,X
         AND #$3F     ;#%00111111
-        BNE b2696
+        BNE s2696
         LDY #$00     ;#%00000000
 b26A3   LDA a0492,Y
         BEQ b26AE
@@ -2967,7 +2968,7 @@ b26AE   LDA SPRITES_X_LO,X
         STA a0472,Y
         RTS
 
-        INC f04B7,X
+s26DD   INC f04B7,X
         LDY f04A1,X
         LDA f04B7,X
         AND #$0F     ;#%00001111
@@ -2999,7 +3000,7 @@ b270C   LDA #$0C     ;#%00001100
         STA SPRITES_PTR,X
         RTS
 
-        INC f04B7,X
+s2724   INC f04B7,X
         LDA f04B7,X
         AND #$07     ;#%00000111
         BNE b274C
@@ -3087,7 +3088,7 @@ b27D5   LDA #$02     ;#%00000010
 FRAME_BAZOOKA_GUY       ;f27E0
         .BYTE $E5,$E6,$E7,$E6
 
-        INC f04B7,X
+s27E4   INC f04B7,X
         LDA f04B7,X
         AND #$1F     ;#%00011111
         BEQ b27EF
@@ -3144,7 +3145,7 @@ b2851   LDA #$02     ;#%00000010
         STA SPRITES_X_LO,Y
         RTS
 
-        INC f04B7,X
+s2860   INC f04B7,X
         LDA f04B7,X
         CMP #$0A     ;#%00001010
         BEQ b286F
@@ -3157,7 +3158,7 @@ b286F   INC SPRITES_PTR,X
 
 b2873   JMP s358E
 
-        INC f04B7,X
+s2876   INC f04B7,X
         LDA f04B7,X
         AND #$70     ;#%01110000
         LSR A
@@ -3244,7 +3245,7 @@ s290E   LDY #$00     ;#%00000000
         STA a0442,X
 b2923   RTS
 
-        JSR s28A3
+s2924   JSR s28A3
         JSR s28D8
         JSR s290E
         LDA a0472,X
@@ -3272,9 +3273,9 @@ b2942   LDA a040A
 FRAME_BOSS1_RIGHT       ;f2952
         .BYTE $B9,$BA
 FRAME_BOSS1_LEFT        ;f2954
-        .BYTE $EF,$F0,$FE
-        .BYTE $B7,$04
+        .BYTE $EF,$F0
 
+s2956   INC f04B7,X
         LDA a0472,X
         ORA a0482,X
         BEQ b2968
@@ -3322,7 +3323,7 @@ b299B   LDA f04AC,X
         STA SPRITES_PTR,X
         RTS
 
-        INC f04B7,X
+s29BB   INC f04B7,X
         LDA f04B7,X
         AND #$3F     ;#%00111111
         BNE b29D3
@@ -3379,7 +3380,7 @@ b2A27   JSR s28A3
         JSR j33D0
         RTS
 
-        INC f04B7,X
+s2A34   INC f04B7,X
         LDA f04AC,X
         AND #$FE     ;#%11111110
         TAY
@@ -3410,7 +3411,7 @@ b2A65   LDA #$08     ;#%00001000
         STA a0482,X
         RTS
 
-        LDA a040D
+s2A78   LDA a040D
         CMP SPRITES_X_HI,X
         BNE b2AC7
         LDA a041D
@@ -3456,7 +3457,7 @@ b2AD4   LDA #$08     ;#%00001000
         STA a0452,X
         RTS
 
-        INC f04B7,X
+s2ADA   INC f04B7,X
         LDA f04B7,X
         CMP #$64     ;#%01100100
         BEQ b2AF4
@@ -3475,7 +3476,7 @@ b2AF4   JMP s358E
 FRAME_POW_RESCUE    ;f2AF7 (Pow == Prisoner of War)
         .BYTE $C4,$C5
 
-        INC f04B7,X
+s2AF9   INC f04B7,X
         LDA f04B7,X
         CMP #$41     ;#%01000001
         BEQ b2B04
@@ -3483,7 +3484,7 @@ FRAME_POW_RESCUE    ;f2AF7 (Pow == Prisoner of War)
 
 b2B04   JMP s358E
 
-        LDA a040A
+s2B07   LDA a040A
         AND #$08     ;#%00001000
         LSR A
         LSR A
@@ -3503,7 +3504,7 @@ b2B27   RTS
 FRAME_POW_RUN       ;f2B28 (POW == Prisoner of War)
         .BYTE $C2,$C3
 
-        LDA a040A
+s2B2A   LDA a040A
         AND #$08     ;#%00001000
         LSR A
         LSR A
@@ -3523,7 +3524,7 @@ b2B4A   RTS
 FRAME_POW_GUARD     ;f2B4B
         .BYTE $C0,$C1
 
-        INC f04B7,X
+s2B4D   INC f04B7,X
         LDY f04A1,X
         LDA SPRITES_X_LO,X
         CMP #$A5     ;#%10100101
@@ -3587,7 +3588,7 @@ b2BCF   LDA SPRITES_X_LO,X
         STA a0472,Y
 b2BDE   RTS
 
-        INC f04B7,X
+s2BDF   INC f04B7,X
         LDA a04EA
         BEQ b2C0C
         LDA f04B7,X
@@ -3691,12 +3692,13 @@ f2CC5   .BYTE $78,$A5,$78,$A5
 f2CC9   .BYTE $01,$01,$FF,$FF
 f2CCD   .BYTE $04,$04,$0C,$0C
 f2CD1   .BYTE $9B,$9B,$9B,$9B
-f2CD5   .BYTE $00,$00,$FF,$FF,$AD,$03,$04,$F0
-        .BYTE $03
+f2CD5   .BYTE $00,$00,$FF,$FF
 
+s2CD9   LDA a0403
+        BEQ b2CE1
         JMP j2D81
 
-        LDA a04EF
+b2CE1   LDA a04EF
         BEQ b2CC0
         JSR s4006
         AND #$7F     ;#%01111111
@@ -3902,7 +3904,7 @@ b2E5D   JSR s4006
 
 b2EBE   RTS
 
-        INC f04B7,X
+s2EBF   INC f04B7,X
         LDA f04B7,X
         CMP #$50     ;#%01010000
         BNE b2ECD
@@ -3940,7 +3942,7 @@ s2EEB   LDA #$0C     ;#%00001100
         BNE b2F0A
 b2F0A   RTS
 
-        INC f04B7,X
+s2F0B   INC f04B7,X
         LDA f04B7,X
         CMP #$50     ;#%01010000
         BNE b2F19
@@ -3963,7 +3965,7 @@ b2F31   RTS
 
 f2F32   .BYTE $D2,$D1,$D0,$D1,$D2
 
-        INC f04B7,X
+s2F37   INC f04B7,X
         LDA f04B7,X
         CMP #$46     ;#%01000110
         BEQ b2F67
@@ -3997,7 +3999,7 @@ b2F67   LDA #$09     ;#%00001001
         STA SPRITES_PTR,X
         RTS
 
-        INC f04B7,X
+s2F7F   INC f04B7,X
         LDA f04B7,X
         CMP #$5A     ;#%01011010
         BEQ b2F8A
@@ -4005,7 +4007,7 @@ b2F67   LDA #$09     ;#%00001001
 
 b2F8A   JMP s2EEB
 
-        INC f04B7,X
+s2F8D   INC f04B7,X
         LDA f04B7,X
         CMP #$09     ;#%00001001
         BEQ b2F9F
@@ -4030,7 +4032,7 @@ s2FA3   LDA #$00     ;#%00000000
         STA SPRITES_PTR,X
         RTS
 
-        INC f04B7,X
+s2FC2   INC f04B7,X
         LDA SPRITES_Y,X
         CMP #$82     ;#%10000010
         BCC b3002
@@ -4100,7 +4102,7 @@ b3050   LDA #$08     ;#%00001000
         STA SPRITES_PTR,X
 j305A   RTS
 
-        INC f04B7,X
+s305B   INC f04B7,X
         LDA f04B7,X
         CMP #$1E     ;#%00011110
         BNE b3084
@@ -4160,7 +4162,7 @@ b30BF   LDA #$98     ;#%10011000
         STA a0492,X
         RTS
 
-        INC f04B7,X
+s30DD   INC f04B7,X
         LDA f04AC,X
         AND #$FE     ;#%11111110
         TAY
@@ -4304,15 +4306,15 @@ b31EA   LDA #$0A     ;#%00001010
         STA f04AC,X
         RTS
 
-        INC a04F4
+s31F0   INC a04F4
         JSR s4006
         AND #$3F     ;#%00111111
-        BNE b3205
+        BNE s3205
         JSR s32ED
         LDA #$00     ;#%00000000
         STA a0472,X
         STA a0482,X
-b3205   INC f04B7,X
+s3205   INC f04B7,X
         LDA a0472,X
         ORA a0482,X
         BEQ b3232
@@ -4697,7 +4699,7 @@ b3557   LSR a00FB,b
         BPL b3557
         RTS
 
-        INC f04B7,X
+s3561   INC f04B7,X
         LDA f04B7,X
         CMP #$18     ;#%00011000
         BEQ b3573
@@ -4798,7 +4800,7 @@ b365D   LDA a048E,X
 
 s3677   JMP (a00FB)
 
-        INC a049D,X
+s367A   INC a049D,X
         LDA a049D,X
         CMP #$0F     ;#%00001111
         BCS b368D
@@ -4857,7 +4859,7 @@ FRAME_GRENADE1      ;f36F3
         .BYTE $92,$91,$91,$92,$93,$93
 f36F9   .BYTE $A4,$A5,$DE,$98,$98
 
-        INC a049D,X
+s36FE   INC a049D,X
         LDA a049D,X
         CMP #$09     ;Frames for anim(?)
         BEQ b3710
@@ -4886,7 +4888,7 @@ s371D   LDA #$00
         STA a045E,X
         RTS
 
-        INC a049D,X
+s373C   INC a049D,X
         LDY #$00     ;#%00000000
 b3741   LDA a0492,Y
         STY a00FB,b
@@ -5036,7 +5038,7 @@ b3848   LDA SPRITES_X_LO,Y
         JSR s3F93
         JMP j3841
 
-        INC f04B7,X
+s388B   INC f04B7,X
         LDA f04B7,X
         CMP #$14     ;#%00010100
         BEQ b389F
@@ -5111,7 +5113,7 @@ _L00    LDA a0491
         JSR s500F
 _SKIP   RTS
 
-        INC a049D,X
+s3935   INC a049D,X
         LDA a049D,X
         CMP #$0F     ;#%00001111
         BNE b3942
