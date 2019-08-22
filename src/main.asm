@@ -1580,17 +1580,17 @@ s1445   LDA LEVEL_NR
 
 ; FIXME: All of these look like addresses
 f14A4   =*+1
-f14A3   .ADDR $1C67, $1D00, $1DE8, $1DE8
+f14A3   .ADDR f1C67, f1D00, f1DE8, f1DE8
 f14AC   =*+1
-f14AB   .ADDR $1C3E, $1CDF, $1DC5, $1DC5
+f14AB   .ADDR f1C3E, f1CDF, f1DC5, f1DC5
 f14B4   =*+1
-f14B3   .ADDR $1C8F, $1D20, $1E0A, $1E0A
+f14B3   .ADDR f1C8F, f1D20, f1E0A, f1E0A
 f14BC   =*+1
-f14BB   .ADDR $1CB7, $1D40, $1E2C, $1E2C
+f14BB   .ADDR f1CB7, f1D40, f1E2C, f1E2C
 f14C4   =*+1
-f14C3   .ADDR $17A9, $18A9, $1AA9, $1AA9
+f14C3   .ADDR f17A9, f18A9, f1AA9, f1AA9
 f14CC   =*+1
-f14CB   .ADDR f1502, $1538, $156E, $15A4
+f14CB   .ADDR f1502, f1538, f156E, f15A4
 
 s14D3   TAX
         LDA f14CB,X
@@ -2026,11 +2026,12 @@ f1E0A   .BYTE $00,$00,$00,$00,$00,$00,$00,$00
         .BYTE $00,$00,$00,$00,$00,$00,$00,$00
         .BYTE $00,$00,$FF,$FF,$00,$00,$00,$00
         .BYTE $00,$00,$FF,$00,$00,$00,$FF,$00
-        .BYTE $00,$00,$12,$11,$12,$12,$11,$00
-        .BYTE $00,$07,$13,$11,$12,$13,$12,$14
-        .BYTE $14,$11,$12,$12,$07,$19,$11,$12
-        .BYTE $11,$12,$12,$12,$07,$11,$11,$00
-        .BYTE $00,$00,$00,$1B,$60
+        .BYTE $00,$00
+f1E2C   .BYTE $12,$11,$12,$12,$11,$00,$00,$07
+        .BYTE $13,$11,$12,$13,$12,$14,$14,$11
+        .BYTE $12,$12,$07,$19,$11,$12,$11,$12
+        .BYTE $12,$12,$07,$11,$11,$00,$00,$00
+        .BYTE $00,$1B,$60
 
         JSR s223C
         LDA #$28     ;#%00101000
