@@ -1578,19 +1578,18 @@ s1445   LDA LEVEL_NR
         STA $D018    ;VIC Memory Control Register
         RTS
 
-; FIXME: All of these look like addresses
 f14A4   =*+1
-f14A3   .ADDR f1C67, f1D00, f1DE8, f1DE8
+f14A3   .ADDR f1C67,f1D00,f1DE8,f1DE8
 f14AC   =*+1
-f14AB   .ADDR f1C3E, f1CDF, f1DC5, f1DC5
+f14AB   .ADDR f1C3E,f1CDF,f1DC5,f1DC5
 f14B4   =*+1
-f14B3   .ADDR f1C8F, f1D20, f1E0A, f1E0A
+f14B3   .ADDR f1C8F,f1D20,f1E0A,f1E0A
 f14BC   =*+1
-f14BB   .ADDR f1CB7, f1D40, f1E2C, f1E2C
+f14BB   .ADDR f1CB7,f1D40,f1E2C,f1E2C
 f14C4   =*+1
-f14C3   .ADDR f17A9, f18A9, f1AA9, f1AA9
+f14C3   .ADDR f17A9,f18A9,f1AA9,f1AA9
 f14CC   =*+1
-f14CB   .ADDR f1502, f1538, f156E, f15A4
+f14CB   .ADDR f1502,f1538,f156E,f15A4
 
 s14D3   TAX
         LDA f14CB,X
@@ -1952,15 +1951,16 @@ b1BF0   STY a00FD,b
         STA a00FC,b
         JMP (a00FB)
 
+; FIXME: these are hardcoded addresses
 f1C07   =*+1
-f1C06   .ADDR $2271, $22E4, $2329, $223C
-        .ADDR $21C1, $2190, $215F, $212F
-        .ADDR $236E, $2385, $20F6, $1E61
-        .BYTE $CC
-        .BYTE $23,$B1,$20,$A9,$22,$53,$20,$82
-        .BYTE $20,$01,$20,$1D,$20,$8F,$1F,$ED
-        .BYTE $1E,$AF,$1E,$5F,$1F,$73,$1E,$66
-        .BYTE $1E,$58,$1E,$4F,$1E,$4E,$1E
+f1C06   .ADDR s2271,s22E4,s2329,s223C
+        .ADDR s21C1,s2190,s215F,s212F
+        .ADDR s236E,s2385,s20F6,s1E61
+        .ADDR s23CC,s20B1,s22A9,s2053
+        .ADDR s2082,s2001,s201d,s1F8F
+        .ADDR s1EED,s1EAF,s1F5F,s1E73
+        .ADDR s1E66,s1E58,s1E4F,s1E4E
+
 f1C3E   .BYTE $9E,$9B,$98,$90,$8E,$84,$81,$7E
         .BYTE $7B,$7B,$7B,$66,$64,$5B,$5B,$57
         .BYTE $56,$54,$53,$50,$4D,$4A,$46,$3E
@@ -2031,28 +2031,30 @@ f1E2C   .BYTE $12,$11,$12,$12,$11,$00,$00,$07
         .BYTE $13,$11,$12,$13,$12,$14,$14,$11
         .BYTE $12,$12,$07,$19,$11,$12,$11,$12
         .BYTE $12,$12,$07,$11,$11,$00,$00,$00
-        .BYTE $00,$1B,$60
+        .BYTE $00,$1B
 
-        JSR s223C
+s1E4E   RTS
+
+s1E4F   JSR s223C
         LDA #$28     ;#%00101000
         STA a0492,X
         RTS
 
-        JSR s2271
+s1E58   JSR s2271
         LDA #$27     ;#%00100111
         STA a0492,X
         RTS
 
-        LDA #$02     ;#%00000010
+s1E61   LDA #$02     ;#%00000010
         JMP j15DA
 
-        LDA #$06     ;#%00000110
+s1E66   LDA #$06     ;#%00000110
         STA f04AC,X
         LDA #$F5     ;#%11110101
         STA SPRITES_PTR,X
         JMP j1E7D
 
-        LDA #$0A     ;#%00001010
+s1E73   LDA #$0A     ;#%00001010
         STA f04AC,X
         LDA #$F4     ;#%11110100
         STA SPRITES_PTR,X
@@ -2078,7 +2080,7 @@ j1E7D   LDY a00FD,b
 
 f1EAD   .BYTE $78,$D2
 
-        JSR s4006
+s1EAF   JSR s4006
         AND #$01     ;#%00000001
         TAY
         LDA f1EAD,Y
@@ -2104,7 +2106,7 @@ f1EAD   .BYTE $78,$D2
         JSR s500F
         RTS
 
-        LDA #$3E     ;#%00111110
+s1EED   LDA #$3E     ;#%00111110
         STA SPRITES_X_LO,X
         LDA #$64     ;#%01100100
         STA SPRITES_Y,X
@@ -2154,7 +2156,7 @@ b1F28   TYA
         STA f04A1,Y
         RTS
 
-        JSR s1F8F
+s1F5F   JSR s1F8F
         LDA #$1E     ;#%00011110
         STA SPRITES_X_LO,X
         LDA #$36     ;#%00110110
@@ -2224,7 +2226,7 @@ b1F9C   TYA
         STA a0492,Y
         RTS
 
-        LDA #$46     ;#%01000110
+s2001   LDA #$46     ;#%01000110
         STA SPRITES_X_LO,X
         LDA #$FF     ;#%11111111
         STA SPRITES_X_HI,X
@@ -2236,7 +2238,7 @@ b1F9C   TYA
         STA f04AC,X
         JMP j2036
 
-        LDA #$32     ;#%00110010
+s201D   LDA #$32     ;#%00110010
         STA SPRITES_X_LO,X
         LDA #$00     ;#%00000000
         STA SPRITES_X_HI,X
@@ -2259,7 +2261,7 @@ j2036   LDA #$00     ;#%00000000
         STA a0492,X
         RTS
 
-        LDA #$2C     ;#%00101100
+s2053   LDA #$2C     ;#%00101100
         STA SPRITES_X_LO,X
         LDA #$24     ;#%00100100
         STA SPRITES_Y,X
@@ -2279,7 +2281,7 @@ j2036   LDA #$00     ;#%00000000
         STA a0492,X
         RTS
 
-        LDA #$30     ;#%00110000
+s2082   LDA #$30     ;#%00110000
         STA SPRITES_X_LO,X
         LDA #$1E     ;#%00011110
         STA SPRITES_Y,X
@@ -2299,7 +2301,7 @@ j2036   LDA #$00     ;#%00000000
         STA a0492,X
         RTS
 
-        LDA #$A0     ;#%10100000
+s20B1   LDA #$A0     ;#%10100000
         STA SPRITES_X_LO,X
         LDA #$50     ;#%01010000
         STA SPRITES_Y,X
@@ -2329,7 +2331,7 @@ j2036   LDA #$00     ;#%00000000
         STA a0472,X
         RTS
 
-        LDA #$1E     ;#%00011110
+S20F6   LDA #$1E     ;#%00011110
         STA SPRITES_Y,X
         LDA #$5A     ;#%01011010
         STA SPRITES_X_LO,X
@@ -2353,7 +2355,7 @@ j2036   LDA #$00     ;#%00000000
         STA f04AC,X
         RTS
 
-        LDY a00FD,b
+s212F   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_X_LO,X
         LDA #$26     ;#%00100110
@@ -2373,7 +2375,7 @@ j2036   LDA #$00     ;#%00000000
         STA a0492,X
         RTS
 
-        LDY a00FD,b
+s215F   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_X_LO,X
         LDA #$21     ;#%00100001
@@ -2393,7 +2395,7 @@ j2036   LDA #$00     ;#%00000000
         STX a04ED
         RTS
 
-        LDY a00FD,b
+s2190   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_X_LO,X
         LDA #$21     ;#%00100001
@@ -2413,7 +2415,7 @@ j2036   LDA #$00     ;#%00000000
         STA a0492,X
         RTS
 
-        LDA #$20     ;#%00100000
+s21C1   LDA #$20     ;#%00100000
         STA SPRITES_X_LO,X
         LDA #$21     ;#%00100001
         STA SPRITES_Y,X
@@ -2514,7 +2516,7 @@ s2271   LDY a00FD,b
         STA a0492,X
         RTS
 
-        LDY a00FD,b
+s22A9   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_X_LO,X
         LDA #$2A     ;#%00101010
@@ -2538,7 +2540,7 @@ s2271   LDY a00FD,b
         STA a0492,X
         RTS
 
-        LDY a00FD,b
+s22E4   LDY a00FD,b
         LDA #$9F     ;#%10011111
         SEC
         SBC (p24),Y
@@ -2570,7 +2572,7 @@ s2271   LDY a00FD,b
         STA f04AC,X
         RTS
 
-        LDY a00FD,b
+s2329   LDY a00FD,b
         LDA #$86     ;#%10000110
         SEC
         SBC (p24),Y
@@ -2602,7 +2604,7 @@ s2271   LDY a00FD,b
         STA f04AC,X
         RTS
 
-        LDA #$01     ;#%00000001
+s236E   LDA #$01     ;#%00000001
         STA SPRITES_X_LO,X
         LDA #$00     ;#%00000000
         STA SPRITES_X_HI,X
@@ -2612,7 +2614,7 @@ s2271   LDY a00FD,b
         STA f04AC,X
         JMP j2399
 
-        LDA #$5A     ;#%01011010
+s2385   LDA #$5A     ;#%01011010
         STA SPRITES_X_LO,X
         LDA #$FF     ;#%11111111
         STA SPRITES_X_HI,X
@@ -2645,7 +2647,7 @@ j2399   LDA #$00     ;#%00000000
         STA f04A1,X
         RTS
 
-        LDA #$1E     ;#%00011110
+s23CC   LDA #$1E     ;#%00011110
         STA SPRITES_Y,X
         LDA #$5A     ;#%01011010
         STA SPRITES_X_LO,X
@@ -2781,6 +2783,7 @@ b24D2   LDA a0492,X
 
 s24EF   JMP (a00FB)
 
+; FIXME: these are hardcoded addresses
 f24F2   .BYTE $D9
 f24F3   .BYTE $2C,$35,$39,$7A,$36,$FE,$36,$3C
         .BYTE $37,$05,$32,$61,$35,$C2,$2F,$37
