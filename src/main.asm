@@ -1579,18 +1579,18 @@ s1445   LDA LEVEL_NR
         RTS
 
 ; FIXME: All of these look like addresses
-f14A3   .BYTE $67
-f14A4   .BYTE $1C,$00,$1D,$E8,$1D,$E8,$1D
-f14AB   .BYTE $3E
-f14AC   .BYTE $1C,$DF,$1C,$C5,$1D,$C5,$1D
-f14B3   .BYTE $8F
-f14B4   .BYTE $1C,$20,$1D,$0A,$1E,$0A,$1E
-f14BB   .BYTE $B7
-f14BC   .BYTE $1C,$40,$1D,$2C,$1E,$2C,$1E
-f14C3   .BYTE $A9
-f14C4   .BYTE $17,$A9,$18,$A9,$1A,$A9,$1A
-f14CB   .BYTE $02
-f14CC   .BYTE $15,$38,$15,$6E,$15,$A4,$15
+f14A4   =*+1
+f14A3   .ADDR $1C67, $1D00, $1DE8, $1DE8
+f14AC   =*+1
+f14AB   .ADDR $1C3E, $1CDF, $1DC5, $1DC5
+f14B4   =*+1
+f14B3   .ADDR $1C8F, $1D20, $1E0A, $1E0A
+f14BC   =*+1
+f14BB   .ADDR $1CB7, $1D40, $1E2C, $1E2C
+f14C4   =*+1
+f14C3   .ADDR $17A9, $18A9, $1AA9, $1AA9
+f14CC   =*+1
+f14CB   .ADDR $1502, $1538, $156E, $15A4
 
 s14D3   TAX
         LDA f14CB,X
