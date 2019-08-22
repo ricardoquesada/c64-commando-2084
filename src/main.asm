@@ -2053,13 +2053,13 @@ s1E61   LDA #$02     ;#%00000010
 
 s1E66   LDA #$06     ;#%00000110
         STA f04AC,X
-        LDA #$F5     ;#%11110101
+        LDA #$F5     ;Frame: Door right open
         STA SPRITES_PTR,X
         JMP j1E7D
 
 s1E73   LDA #$0A     ;#%00001010
         STA f04AC,X
-        LDA #$F4     ;#%11110100
+        LDA #$F4     ;Frame: Door left open
         STA SPRITES_PTR,X
 j1E7D   LDY a00FD,b
         LDA (p22),Y
@@ -2501,7 +2501,7 @@ s2271   LDY a00FD,b
         STA SPRITES_X_LO,X
         LDA #$26     ;#%00100110
         STA SPRITES_Y,X
-        LDA #$C8     ;#%11001000
+        LDA #$C8     ;Soldier in trench
         STA SPRITES_PTR,X
         LDA #$0B     ;#%00001011
         STA a0452,X
@@ -4084,7 +4084,7 @@ b301C   LDA a041D
         BCS b3036
 j3029   LDA #$0A     ;#%00001010
         STA f04AC,X
-        LDA #$CA     ;#%11001010
+        LDA #$CA     ;Soldier in trench: left
         STA SPRITES_PTR,X
         JMP j305A
 
@@ -4096,13 +4096,13 @@ b3036   LDA a041D
         BCC b3050
 b3043   LDA #$06     ;#%00000110
         STA f04AC,X
-        LDA #$C9     ;#%11001001
+        LDA #$C9     ;Soldier in trench: right
         STA SPRITES_PTR,X
         JMP j305A
 
 b3050   LDA #$08     ;#%00001000
         STA f04AC,X
-        LDA #$C8     ;#%11001000
+        LDA #$C8     ;Soldier in trench: down
         STA SPRITES_PTR,X
 j305A   RTS
 
