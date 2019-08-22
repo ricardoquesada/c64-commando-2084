@@ -156,9 +156,9 @@ a04A0 = $04A0
 a04DF = $04DF
 a04E0 = $04E0
 a04E1 = $04E1
-a04E2 = $04E2
-a04E3 = $04E3
-a04E4 = $04E4
+BKG_COLOR0 = $04E2
+BKG_COLOR1 = $04E3
+BKG_COLOR2 = $04E4
 a04E6 = $04E6
 a04E7 = $04E7
 a04E8 = $04E8
@@ -773,7 +773,7 @@ SCREEN_ENTER_HI_SCORE   ;s0C88
         LDA #$00     ;#%00000000
         STA a0404
         STA a0402
-        STA a04E2
+        STA BKG_COLOR0
         LDA #$02     ;#%00000010
         STA LEVEL_NR
         LDA #<pE082  ;Screen RAM Lo
@@ -905,7 +905,6 @@ b0D89   LDA #$00     ;#%00000000
 b0DF8   LDA a050F
         CMP #$08     ;#%00001000
         BEQ b0E0E
-p0E00   =*+$01
         LDA a0510
         LDX a050F
         STA f0506,X
@@ -1042,18 +1041,22 @@ f0EF6   .BYTE $6C,$69,$6C,$73,$20,$20,$20,$20
         .BYTE $5B,$5E,$69,$66,$60,$20,$20,$20
         .BYTE $5E,$63,$66,$65,$20,$20,$20,$20
         .BYTE $20,$20,$20,$20,$20,$20,$20,$20
+
+        ; High Scores
 HISCORE_MSB   .BYTE $00
-HISCORE_LSB   .BYTE $90
+HISCORE_LSB   .BYTE $90         ; 9000
 f0F38   .BYTE $00
-f0F39   .BYTE $80,$00,$70,$00,$60,$00,$50,$00
-        .BYTE $40,$00,$30,$00,$20,$00,$00
+f0F39   .BYTE $80               ; 8000
+        .BYTE $00,$70,$00,$60,$00,$50,$00,$40   ; 7000...4000
+        .BYTE $00,$30,$00,$20                   ; 3000,2000
+        .BYTE $00,$00           ; 0?
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 SCREEN_MAIN_TITLE
         JSR s3DD3
         JSR s1334
         LDA #$00     ;#%00000000
-        STA a04E2
+        STA BKG_COLOR0
         LDA #$02     ;#%00000010
         STA LEVEL_NR
         LDA #$FF     ;#%11111111
@@ -1078,8 +1081,9 @@ _L00    LDA #$48     ;Sprite Y position
         LDA #$00     ;#%00000000
         STA a0442,X
         INX
-        CPX #$07     ;riq: total number of sprites
+        CPX #$07     ;total number of sprites
         BNE _L00
+
         JSR s3D48
         JSR s3F24
         LDA #$00     ;#%00000000
@@ -1099,7 +1103,7 @@ _WAIT_FIRE
         DEC a04E6
         BNE _WAIT_FIRE
         LDA #$09     ;#%00001001
-        STA a04E2
+        STA BKG_COLOR0
         LDX a049D
         LDA f1008,X
         STA a0403
@@ -1338,7 +1342,7 @@ b128E   LDA #$02     ;#%00000010
         JSR s3DD3
         JSR s1334
         LDA #$00     ;#%00000000
-        STA a04E2
+        STA BKG_COLOR0
         LDX #$00     ;#%00000000
 a12A1   =*+$01
 a12A2   =*+$02
@@ -2782,7 +2786,6 @@ b24D2   LDA a0492,X
 
 s24EF   JMP (a00FB)
 
-; FIXME: these are hardcoded addresses
 f24F3   =*+1
 f24F2   .ADDR s2CD9,s3935,s367A,s36FE
         .ADDR s373C,s3205,s3561,s2FC2
@@ -2988,6 +2991,7 @@ b2700   RTS
         CMP #$3C     ;#%00111100
         BEQ b270C
         RTS
+
 
 b270C   LDA #$0C     ;#%00001100
         STA a0492,X
@@ -5935,14 +5939,14 @@ s4067   LDA $D011    ;VIC Control Register 1
         ORA #$10     ;#%00010000
         STA $D016    ;VIC Control Register 2
         LDA #$09     ;#%00001001
-        STA a04E2
+        STA BKG_COLOR0
         STA $D021    ;Background Color 0
         STA $D024    ;Background Color 3
         LDA #$00     ;#%00000000
-        STA a04E3
+        STA BKG_COLOR1
         STA $D022    ;Background Color 1, Multi-Color Register 0
         LDA #$0C     ;#%00001100
-        STA a04E4
+        STA BKG_COLOR2
         STA $D023    ;Background Color 2, Multi-Color Register 1
         JSR s4033
         JSR s3F93
@@ -6090,18 +6094,18 @@ IRQ_C   LDA a0402
         AND #$F8     ;#%11111000
         ORA a00A7,b
         STA $D011    ;VIC Control Register 1
-        LDA a04E2
+        LDA BKG_COLOR0
         STA $D021    ;Background Color 0
-        LDA a04E3
+        LDA BKG_COLOR1
         STA $D022    ;Background Color 1, Multi-Color Register 0
-        LDA a04E4
+        LDA BKG_COLOR2
         STA $D023    ;Background Color 2, Multi-Color Register 1
         LDA #$00     ;#%00000000
         STA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D01B    ;Sprite to Background Display Priority
-        LDA #>p0E00  ;#%00001110
+        LDA #$0E     ;#%00001110
         STA a00A8,b
-        LDY #<p0E00  ;#%00000000
+        LDY #$00    ;#%00000000
         STY a00A7,b
 
 _L0     LDX f004B,b,Y
@@ -6353,6 +6357,7 @@ IRQ_E   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         TAX
         PLA
         RTI
+
 
 f4487   .BYTE $01
 a4488   .BYTE $02
