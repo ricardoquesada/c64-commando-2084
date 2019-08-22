@@ -4769,9 +4769,10 @@ f3617   .BYTE $04,$04,$04,$04,$00,$00,$02,$02
         .BYTE $F9,$F9,$00,$00,$00,$00,$00,$00
 f3627   .BYTE $00,$00,$02,$02,$00,$00,$02,$02
         .BYTE $00,$00,$02,$02,$00,$00,$07,$07
-f3637   .BYTE $E1
-f3638   .BYTE $39,$35,$39,$7A,$36,$FE,$36,$3C
-        .BYTE $37
+
+f3638   =*+1
+f3637   .ADDR s39E1,s3935,s367A,s36FE
+        .ADDR s373C
 
 s3641   LDX #$00     ;#%00000000
 b3643   LDA a042E,X
@@ -5192,7 +5193,7 @@ j39C9   LDA #$03     ;#%00000011
         STA a045E,X
         RTS
 
-        LDA a0503
+s39E1   LDA a0503
         BNE b3A46
         LDA a04EF
         BNE _CHECK_FIRE
@@ -5507,16 +5508,18 @@ b3C8F   LDA a04F7
         STA a0404
 b3C9F   RTS
 
-f3CA0   .BYTE $98,$99,$9A,$99,$9B,$9C,$9D,$9C
-        .BYTE $D5,$D6,$D7,$D8,$D9,$DA,$DB,$DC
+f3CA0   .BYTE $98,$99,$9A,$99
+f3CA4   .BYTE $9B,$9C,$9D,$9C
+f3CA8   .BYTE $D5,$D6,$D7,$D8
+f3CAC   .BYTE $D9,$DA,$DB,$DC
 p3CB0   .BYTE $9E,$9F,$DF,$A0
 p3CB4   .BYTE $A1,$A2,$E0,$A3
 p3CB8   .BYTE $A6,$A7,$A8,$E1
 p3CBC   .BYTE $A9,$AA,$AB,$E2
-f3CC0   .BYTE $A0
-f3CC1   .BYTE $3C,$B8,$3C,$AC,$3C,$B0,$3C,$A4
-        .BYTE $3C,$B4,$3C,$A8
-        .BYTE $3C,$BC,$3C
+
+f3CC1   =*+1
+f3CC0   .ADDR f3CA0,p3CB8,f3CAC,p3CB0
+        .ADDR f3CA4,p3CB4,f3CA8,p3CBC
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Set castle on fire animation (when you beat the game)
