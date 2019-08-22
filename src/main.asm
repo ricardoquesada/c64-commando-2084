@@ -580,6 +580,7 @@ _L02    LDA #$00     ;#%00000000
         STA (pF7),Y
 _SKIP   RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s0AFA   LDA SPRITES_X_LO
         AND #$F0     ;#%11110000
         SEC
@@ -953,22 +954,24 @@ _L02    LDA $DC00    ;CIA1: Data Port Register A (riq: display high scores - fir
         BNE _L02
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s0E68   TXA
         PHA
         ASL A
         ASL A
         TAX
         LDY #$00     ;#%00000000
-b0E6F   LDA f0ECE,X
+_L00    LDA f0ECE,X
         STA (pFB),Y
         INX
         INY
         CPY #$04     ;#%00000100
-        BNE b0E6F
+        BNE _L00
         PLA
         TAX
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s0E7D   TXA
         PHA
         ASL A
@@ -976,16 +979,17 @@ s0E7D   TXA
         ASL A
         TAX
         LDY #$00     ;#%00000000
-b0E85   LDA f0EEE,X
+_L00    LDA f0EEE,X
         STA (pFB),Y
         INX
         INY
         CPY #$08     ;#%00001000
-        BNE b0E85
+        BNE _L00
         PLA
         TAX
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s0E93   TXA
         PHA
         ASL A
@@ -1574,6 +1578,7 @@ s1445   LDA LEVEL_NR
         STA $D018    ;VIC Memory Control Register
         RTS
 
+; FIXME: All of these look like addresses
 f14A3   .BYTE $67
 f14A4   .BYTE $1C,$00,$1D,$E8,$1D,$E8,$1D
 f14AB   .BYTE $3E
@@ -5552,6 +5557,7 @@ f3D32   .BYTE $00,$00,$00,$00,$00,$00,$00,$00
 f3D3D   .BYTE $32,$32,$32,$32,$32,$32,$32,$6E
         .BYTE $6E,$6E,$6E
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s3D48   LDA a041D
         CLC
         ADC a046D
@@ -5613,8 +5619,10 @@ b3DAA   INX
         STA a045D,X
         JMP b3DAA
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Something related to init the sprites
 s3DD3   LDX #$00     ;#%00000000
-b3DD5   LDA #$64     ;#%01100100
+_L00    LDA #$64     ;#%01100100
         STA a041D,X
         LDA f1435,X
         STA a042D,X
@@ -5629,9 +5637,10 @@ b3DD5   LDA #$64     ;#%01100100
         STA a048D,X
         INX
         CPX #$10     ;#%00010000
-        BNE b3DD5
+        BNE _L00
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s3DFE   JSR s3DD3
         LDA #$97     ;#%10010111
         STA a041D
@@ -5658,13 +5667,13 @@ s3DFE   JSR s3DD3
         LDA f3EEF,X
         STA a00FC,b
         LDY #$00     ;#%00000000
-j3E41   LDA (pFB),Y
+_L00    LDA (pFB),Y
         CMP a0403
-        BCS b3E4C
+        BCS _L01
         INY
-        JMP j3E41
+        JMP _L00
 
-b3E4C   STA a0403
+_L01    STA a0403
         LDA #$00     ;#%00000000
         STA a0402
         STA a04EE
@@ -5704,19 +5713,20 @@ b3E4C   STA a0403
         LDA #$00     ;#%00000000
         STA a04DF
         LDX #$00     ;#%00000000
-b3EB1   LDA #$00     ;#%00000000
+_L02    LDA #$00     ;#%00000000
         STA ROM_OPEN,X
         INX
         CPX #$40     ;#%01000000
-        BNE b3EB1
+        BNE _L02
+
         JSR s3F24
         JSR s109B
         LDA GRENADES
         CMP #$05     ;#%00000101
-        BCS b3ECD
+        BCS _L03
         LDA #$05     ;#%00000101
         STA GRENADES
-b3ECD   RTS
+_L03    RTS
 
 f3ECE   .BYTE $60,$80,$80,$A0
 f3ED2   .BYTE $3F,$1F,$0F,$0F,$0F,$0F,$0F,$0F
