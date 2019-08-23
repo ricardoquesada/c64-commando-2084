@@ -7,7 +7,7 @@ C1541 = c1541
 
 all: clean d64 run
 
-co1.prg: src/main.asm src/music.asm src/level_data.asm
+co1.prg: src/main.asm src/music.asm src/level1.bin src/level2.bin src/level3.bin src/charset3-charset.bin src/charset4-charset.bin
 	64tass -Wall --cbm-prg -o bin/co1.prg -L bin/list-co1.txt -l bin/labels.txt --vice-labels src/main.asm
 	md5sum bin/co1.prg orig/co1.prg
 
@@ -31,4 +31,4 @@ runsc: d64
 
 clean:
 	-rm $(D64_IMAGE)
-	-rm bin/co1.prg
+	-rm bin/co1.prg bin/co2.prg
