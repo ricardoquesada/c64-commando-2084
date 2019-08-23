@@ -209,6 +209,7 @@ aE3FD = $E3FD
 aE3FE = $E3FE
 aE3FF = $E3FF
 aECEC = $ECEC
+aFFC0 = $FFC0
 ;
 ; **** POINTERS ****
 ;
@@ -226,7 +227,6 @@ eF00A = $F00A
 ;
 ; **** PREDEFINED LABELS ****
 ;
-ROM_OPEN = $FFC0
 
         * = $0800
 
@@ -5730,7 +5730,7 @@ _L01    STA a0403
         STA a04DF
         LDX #$00     ;#%00000000
 _L02    LDA #$00     ;#%00000000
-        STA ROM_OPEN,X
+        STA aFFC0,X
         INX
         CPX #$40     ;#%01000000
         BNE _L02
