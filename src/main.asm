@@ -276,19 +276,19 @@ j0850   SEI
         STA $0319    ;NMI
         CLI
         LDX #$00     ;#%00000000
-b085E   LDA f0A4E,X
-        STA f8000,X
+_L00    LDA f0A4E,X
+        STA $8000,X     ;Remove CBM80 (or something like that)
         INX
         CPX #$09     ;#%00001001
-        BNE b085E
+        BNE _L00
         JSR s35AD
         JSR SET_SIGHT_SPRITE
         JSR s401D
         LDX #$10     ;#%00010000
-b0874   TXA
+_L01    TXA
         STA f004B,b,X
         DEX
-        BPL b0874
+        BPL _L01
         LDA #$00     ;#%00000000
         STA a0502
         STA a0501
@@ -3182,10 +3182,8 @@ b288E   LDA SPRITES_Y,X
         JSR s300C
 b2898   JMP j33D0
 
-f289B   CPX aC8ED
-        INY
-        INY
-        SBC aECEC
+f289B   .BYTE $EC,$ED,$C8,$C8,$C8,$ED,$EC,$EC
+
 s28A3   LDA SPRITES_X_LO,X
         CLC
         ADC a0472,X
@@ -5034,9 +5032,9 @@ b3848   LDA SPRITES_X_LO,Y
         SEC
         SBC #$0A     ;#%00001010
         STA SPRITES_Y,Y
-        LDA #<p859A  ;#%10011010
+        LDA #<$859A  ;#%10011010    ; FIXME
         STA a00FB,b
-        LDA #>p859A  ;#%10000101
+        LDA #>$859A  ;#%10000101
         STA a00FC,b
         LDA #$06     ;#%00000110
         JSR s14D3
@@ -5701,21 +5699,21 @@ _L01    STA a0403
         LDA #$00     ;#%00000000
         STA a04F7
         STA a04FD
-        LDA #<p88C0  ;#%11000000
+        LDA #<$88C0  ;FIXME: harcoded part of the map
         STA a00FB,b
-        LDA #>p88C0  ;#%10001000
+        LDA #>$88C0  ;FIXME: harcoded part of the map
         STA a00FC,b
         LDA #$00     ;#%00000000
         JSR s14D3
-        LDA #<p859A  ;#%10011010
+        LDA #<$859A  ;FIXME: harcoded part of the map
         STA a00FB,b
-        LDA #>p859A  ;#%10000101
+        LDA #>$859A  ;FIXME: harcoded part of the map
         STA a00FC,b
         LDA #$02     ;#%00000010
         JSR s14D3
-        LDA #<p8370  ;#%01110000
+        LDA #<$8370  ;FIXME: harcoded part of the map
         STA a00FB,b
-        LDA #>p8370  ;#%10000011
+        LDA #>$8370  ;FIXME: harcoded part of the map
         STA a00FC,b
         LDA #$00     ;#%00000000
         JSR s14D3
@@ -6762,4 +6760,9 @@ a448E   .BYTE $80,$FE
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
         *= $6000
-.include "level_data.asm"
+.binary "level1.bin"
+.binary "level2.bin"
+.binary "level3.bin"
+.binary "charset3-charset.bin"
+.binary "charset4-charset.bin"
+;        .include "level_data.asm"
