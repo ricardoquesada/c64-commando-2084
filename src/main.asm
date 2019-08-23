@@ -6760,9 +6760,9 @@ a448E   .BYTE $80,$FE
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
         *= $6000
-.binary "level1.bin"
-.binary "level2.bin"
-.binary "level3.bin"
-.binary "charset3-charset.bin"
-.binary "charset4-charset.bin"
+.binary "l1-map.bin"
+.binary "l2-map.bin"
+.binary "l3-map.bin"
+.binary "l1-charset.bin"
+.binary "l2-charset.bin"
 ;        .include "level_data.asm"

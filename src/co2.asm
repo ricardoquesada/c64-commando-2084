@@ -1,8 +1,8 @@
 
         * = $E000
 
-        .BINARY "charset1-charset.bin"
-        .BINARY "charset2-charset.bin"
+        .BINARY "main-charset.bin"
+        .BINARY "l3-charset.bin"
 
         * = $F000
 

@@ -7,11 +7,11 @@ C1541 = c1541
 
 all: clean d64 run
 
-co1.prg: src/main.asm src/music.asm src/level1.bin src/level2.bin src/level3.bin src/charset3-charset.bin src/charset4-charset.bin
+co1.prg: src/main.asm src/music.asm src/l1-map.bin src/l2-map.bin src/l3-map.bin src/l1-charset.bin src/l2-charset.bin
 	64tass -Wall --cbm-prg -o bin/co1.prg -L bin/list-co1.txt -l bin/labels.txt --vice-labels src/main.asm
 	md5sum bin/co1.prg orig/co1.prg
 
-co2.prg: src/co2.asm src/charset1-charset.bin src/charset2-charset.bin
+co2.prg: src/co2.asm src/main-charset.bin src/l3-charset.bin
 	64tass -Wall --cbm-prg -o bin/co2.prg -L bin/list-co2.txt src/co2.asm
 	md5sum bin/co2.prg orig/co2.prg
 
