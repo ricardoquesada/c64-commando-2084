@@ -5032,9 +5032,9 @@ b3848   LDA SPRITES_X_LO,Y
         SEC
         SBC #$0A     ;#%00001010
         STA SPRITES_Y,Y
-        LDA #<$859A  ;#%10011010    ; FIXME
+        LDA #<$859A  ;FIXME: harcoded part of the map
         STA a00FB,b
-        LDA #>$859A  ;#%10000101
+        LDA #>$859A  ;FIXME: harcoded part of the map
         STA a00FC,b
         LDA #$06     ;#%00000110
         JSR s14D3
@@ -5726,11 +5726,12 @@ _L01    STA a0403
         STA a0504
         LDA #$00     ;#%00000000
         STA a04DF
-        LDX #$00     ;#%00000000
-_L02    LDA #$00     ;#%00000000
+
+        LDX #$00     ;Sprite $ff is empty
+_L02    LDA #$00     ;
         STA aFFC0,X
         INX
-        CPX #$40     ;#%01000000
+        CPX #$40     ; lenght of the sprite
         BNE _L02
 
         JSR s3F24
@@ -6765,4 +6766,3 @@ a448E   .BYTE $80,$FE
 .binary "l3-map.bin"
 .binary "l1-charset.bin"
 .binary "l2-charset.bin"
-;        .include "level_data.asm"
