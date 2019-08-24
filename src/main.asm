@@ -6762,7 +6762,16 @@ a448E   .BYTE $80,$FE
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
         *= $6000
 .binary "l1-map.bin"
+.binary "l1-padding.bin"        ; only needed to make md5sum identical
+
+        *= $8000
 .binary "l2-map.bin"
+.binary "l2-padding.bin"        ; only needed to make md5sum identical
+
+        *= $a000
 .binary "l3-map.bin"
+.binary "l3-padding.bin"        ; only needed to make md5sum identical
+
+        *= $c000
 .binary "l1-charset.bin"
 .binary "l2-charset.bin"
