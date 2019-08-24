@@ -108,7 +108,7 @@ a00FE = $00FE
 a0400 = $0400
 a0401 = $0401
 a0402 = $0402
-a0403 = $0403
+V_SCROLL_IDX = $0403
 a0404 = $0404
 a0405 = $0405
 IRQ_ADDR_LO = $0406
@@ -151,7 +151,7 @@ a048D = $048D
 a048E = $048E
 a0491 = $0491
 a0492 = $0492
-a049D = $049D
+COUNTER = $049D
 a04A0 = $04A0
 a04DF = $04DF
 a04E0 = $04E0
@@ -293,7 +293,7 @@ _L01    TXA
         STA a0502
         STA a0501
 j0883   LDA #$A5     ;#%10100101
-        STA a0403
+        STA V_SCROLL_IDX
         JSR s3DFE
         JSR s4067
         JSR SETUP_IRQ
@@ -317,7 +317,7 @@ j0883   LDA #$A5     ;#%10100101
 
 START_LEVEL          ;j08B8
         LDA #$A5     ;#%10100101
-        STA a0403
+        STA V_SCROLL_IDX
         LDA #$00     ;Song to play (main theme)
         JSR MUSIC_INIT
 
@@ -337,7 +337,7 @@ GAME_LOOP            ;j08CB
         STA a0402
         CMP #$07     ;#%00000111
         BNE b08F7
-        DEC a0403
+        DEC V_SCROLL_IDX
         LDA #$00     ;#%00000000
         STA a04E9
         JSR s3D48
@@ -842,7 +842,7 @@ f0D09   .BYTE $20,$20,$20,$20,$20,$75,$75,$75
 s0D59   LDA a0505
         BEQ b0D81
         LDA a042E
-        CMP a049D
+        CMP COUNTER
         BCC b0D67
         RTS
 
@@ -882,7 +882,7 @@ b0D89   LDA #$00     ;#%00000000
         STA a044E
         STA a0505
         LDA SPRITES_Y
-        STA a049D
+        STA COUNTER
         LDA a0510
         LDY #$00     ;#%00000000
         STA (pF7),Y
@@ -1069,11 +1069,11 @@ SCREEN_MAIN_TITLE
         LDX #$00     ;#%00000000
 _L00    LDA #$48     ;Sprite Y position
         STA SPRITES_Y,X
-        LDA MS_SPRITES_X_LO,X
+        LDA _MS_SPRITES_X_LO,X
         STA SPRITES_X_LO,X
-        LDA MS_SPRITES_PTR,X
+        LDA _MS_SPRITES_PTR,X
         STA SPRITES_PTR,X
-        LDA MS_SPRITES_X_HI,X
+        LDA _MS_SPRITES_X_HI,X
         STA SPRITES_X_HI,X
         LDA #$00     ;#%00000000
         STA a0472,X
@@ -1096,7 +1096,8 @@ _L00    LDA #$48     ;Sprite Y position
         STA $D026    ;Sprite Multi-Color Register 1
         JSR PRINT_CREDITS
         LDA #$00     ;#%00000000
-        STA a049D
+        STA COUNTER
+
 _L01    LDA #$FF     ;#%11111111
         STA a04E6
 _WAIT_FIRE
@@ -1108,31 +1109,34 @@ _WAIT_FIRE
         BNE _WAIT_FIRE
         LDA #$09     ;#%00001001
         STA BKG_COLOR0
-        LDX a049D
-        LDA f1008,X
-        STA a0403
-        LDA f1001,X
+        LDX COUNTER
+        LDA _SCROLL_IDX,X
+        STA V_SCROLL_IDX
+        LDA _LEVEL_IDX,X
         STA LEVEL_NR
         JSR s1445
         JSR s4033
         JSR s3F93
-        INC a049D
-        LDA a049D
-        CMP #$08     ;#%00001000
+        INC COUNTER
+        LDA COUNTER
+        CMP #$08     ;Total number of screens to display
         BNE _L01
+
         JMP SCREEN_MAIN_TITLE
 
 _END    RTS
 
 ; Main Screen (MS) "Commando" 7-sprites data
-MS_SPRITES_X_LO
+_MS_SPRITES_X_LO
         .BYTE $1C,$4C,$7C,$AC,$DC,$0C,$3C
-MS_SPRITES_X_HI
+_MS_SPRITES_X_HI
         .BYTE $00,$00,$00,$00,$00,$FF,$FF
-MS_SPRITES_PTR
+_MS_SPRITES_PTR
         .BYTE $F6,$F7,$F8,$F9,$FA,$FB,$AC
-f1001   .BYTE $00,$00,$01,$01,$03,$03,$03
-f1008   .BYTE $53,$7C,$3A,$01,$A9,$6E,$36
+_LEVEL_IDX      ;f1001
+        .BYTE $00,$00,$01,$01,$03,$03,$03
+_SCROLL_IDX     ;f1008
+        .BYTE $53,$7C,$3A,$01,$A9,$6E,$36
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s100F   LDY #$00     ;#%00000000
@@ -1190,11 +1194,11 @@ s109B   LDY #$00     ;#%00000000
 j109D   LDA (p24),Y
         CMP #$FF     ;#%11111111
         BEQ b10F8
-        CMP a0403
+        CMP V_SCROLL_IDX
         BCC b10F8
         SEC
         SBC #$16     ;#%00010110
-        CMP a0403
+        CMP V_SCROLL_IDX
         BCS b10F4
         STY a00FD,b
         LDA (p28),Y
@@ -1220,7 +1224,7 @@ b10D2   TXA
         LDY a00FD,b
         LDA (p24),Y
         SEC
-        SBC a0403
+        SBC V_SCROLL_IDX
         ASL A
         ASL A
         ASL A
@@ -1247,33 +1251,33 @@ PRINT_CREDITS       ;s10FC
         LDA #>pD829  ;Color RAM hi
         STA a00FE,b
         LDX #$00     ;#%00000000
-j1112   LDY #$00     ;#%00000000
-j1114   LDA f1143,X
+_L00    LDY #$00     ;#%00000000
+_L01    LDA MSG_CREDITS,X
         CMP #$FF     ;End of line?
-        BEQ b112A
+        BEQ _L02
         CMP #$FE     ;End of message
-        BEQ b1142
+        BEQ _L04
         STA (pFB),Y
         LDA #$01     ;Color
         STA (pFD),Y
         INX
         INY
-        JMP j1114
+        JMP _L01
 
-b112A   INX
+_L02    INX
         LDA a00FB,b
         CLC
         ADC #$50     ;#%01010000
         STA a00FB,b
         STA a00FD,b
-        BCC b113F
+        BCC _L03
         INC a00FC,b
         INC a00FE,b
-b113F   JMP j1112
+_L03    JMP _L00
+_L04    RTS
 
-b1142   RTS
-
-f1143   .BYTE $20,$20,$20,$20,$20,$20,$20,$20
+MSG_CREDITS         ;f1143
+        .BYTE $20,$20,$20,$20,$20,$20,$20,$20
         .BYTE $20,$20,$20,$5F,$66,$63,$6E,$5F
         .BYTE $20,$6A,$6C,$5F,$6D,$5F,$68,$6E
         .BYTE $6D,$FF,$FF,$FF,$FF,$20,$20,$20
@@ -1306,6 +1310,7 @@ f1143   .BYTE $20,$20,$20,$20,$20,$20,$20,$20
         .BYTE $6C,$5F,$20,$6E,$69,$20,$6D,$6E
         .BYTE $5B,$6C,$6E,$FF,$FE
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s1240   LDA LEVEL_NR
         PHA
         AND #$03     ;#%00000011
@@ -1748,7 +1753,7 @@ b1744   STA a00FB,b
         LSR A
         LSR A
         CLC
-        ADC a0403
+        ADC V_SCROLL_IDX
         PHA
         LSR A
         ROR a00FC,b
@@ -1914,7 +1919,7 @@ f1AA9   .BYTE $00,$02,$02,$02,$02,$02,$02,$02
 
 s1BA9   LDY a04E8
         LDA (p24),Y
-        CMP a0403
+        CMP V_SCROLL_IDX
         BEQ b1BB4
         RTS
 
@@ -3498,7 +3503,7 @@ s2B07   LDA a040A
         TAY
         LDA FRAME_POW_RUN,Y
         STA SPRITES_PTR,X
-        LDA a0403
+        LDA V_SCROLL_IDX
         CMP #$71     ;#%01110001
         BCS b2B27
         LDA #$FF     ;#%11111111
@@ -3518,7 +3523,7 @@ s2B2A   LDA a040A
         TAY
         LDA FRAME_POW_GUARD,Y
         STA SPRITES_PTR,X
-        LDA a0403
+        LDA V_SCROLL_IDX
         CMP #$71     ;#%01110001
         BCS b2B4A
         LDA #$FF     ;#%11111111
@@ -3700,7 +3705,7 @@ f2CCD   .BYTE $04,$04,$0C,$0C
 f2CD1   .BYTE $9B,$9B,$9B,$9B
 f2CD5   .BYTE $00,$00,$FF,$FF
 
-s2CD9   LDA a0403
+s2CD9   LDA V_SCROLL_IDX
         BEQ b2CE1
         JMP j2D81
 
@@ -4807,8 +4812,8 @@ b365D   LDA a048E,X
 
 s3677   JMP (a00FB)
 
-s367A   INC a049D,X
-        LDA a049D,X
+s367A   INC COUNTER,X
+        LDA COUNTER,X
         CMP #$0F     ;#%00001111
         BCS b368D
         LSR A
@@ -4816,17 +4821,17 @@ s367A   INC a049D,X
         TAY
         LDA f36F9,Y
         STA a045D
-b368D   LDA a049D,X
+b368D   LDA COUNTER,X
         AND #$07     ;#%00000111
         BNE b36A4
-        LDA a049D,X
+        LDA COUNTER,X
         LSR A
         LSR A
         LSR A
         TAY
         LDA FRAME_GRENADE1,Y
         STA a045E,X
-        LDA a049D,X
+        LDA COUNTER,X
 b36A4   CMP #$28     ;#%00101000
         BEQ b36D3
         LDA a041E,X
@@ -4851,7 +4856,7 @@ b36D2   RTS
 b36D3   LDA #$04     ;#%00000100
         STA a048E,X
         LDA #$00     ;#%00000000
-        STA a049D,X
+        STA COUNTER,X
         STA a046E,X
         STA a047E,X
         STA a043E,X
@@ -4866,8 +4871,8 @@ FRAME_GRENADE1      ;f36F3
         .BYTE $92,$91,$91,$92,$93,$93
 f36F9   .BYTE $A4,$A5,$DE,$98,$98
 
-s36FE   INC a049D,X
-        LDA a049D,X
+s36FE   INC COUNTER,X
+        LDA COUNTER,X
         CMP #$09     ;Frames for anim(?)
         BEQ b3710
         TAY
@@ -4895,7 +4900,7 @@ s371D   LDA #$00
         STA a045E,X
         RTS
 
-s373C   INC a049D,X
+s373C   INC COUNTER,X
         LDY #$00     ;#%00000000
 b3741   LDA a0492,Y
         STY a00FB,b
@@ -4936,7 +4941,7 @@ b3790   JSR s2405
 b3793   INY
         CPY #$0B     ;#%00001011
         BNE b3741
-        LDA a049D,X
+        LDA COUNTER,X
         CMP #$14     ;#%00010100
         BEQ b37A9
         LSR A
@@ -5120,8 +5125,8 @@ _L00    LDA a0491
         JSR s500F
 _SKIP   RTS
 
-s3935   INC a049D,X
-        LDA a049D,X
+s3935   INC COUNTER,X
+        LDA COUNTER,X
         CMP #$0F     ;#%00001111
         BNE b3942
         JMP j39C9
@@ -5191,7 +5196,7 @@ b39C3   LDA #$00     ;#%00000000
 j39C9   LDA #$03     ;#%00000011
         STA a048E,X
         LDA #$00     ;#%00000000
-        STA a049D,X
+        STA COUNTER,X
         STA a046E,X
         STA a047E,X
         TAY
@@ -5236,7 +5241,7 @@ _CHECK_FIRE
         LDA #$90     ;#%10010000
         STA a045E,X
         LDA #$00     ;#%00000000
-        STA a049D,X
+        STA COUNTER,X
         LDA #$01     ;#%00000001
         STA a044E,X
 _SKIP   RTS
@@ -5306,7 +5311,7 @@ b3ABC   LDA #$00     ;#%00000000
         BNE b3B00
         LDA #$00     ;#%00000000
         STA a04E0
-        LDA a0403
+        LDA V_SCROLL_IDX
         BNE b3AEC
         LDA #$01     ;#%00000001
         STA a04EE
@@ -5686,12 +5691,12 @@ s3DFE   JSR s3DD3
         STA a00FC,b
         LDY #$00     ;#%00000000
 _L00    LDA (pFB),Y
-        CMP a0403
+        CMP V_SCROLL_IDX
         BCS _L01
         INY
         JMP _L00
 
-_L01    STA a0403
+_L01    STA V_SCROLL_IDX
         LDA #$00     ;#%00000000
         STA a0402
         STA a04EE
@@ -5834,7 +5839,7 @@ s3F93   LDA #<pE000  ;#%00000000
         LDA #$00     ;#%00000000
         STA a00FB,b
         STA a00FD,b
-        LDA a0403
+        LDA V_SCROLL_IDX
         LSR A
         ROR a00FB,b
         LSR A
@@ -5842,7 +5847,7 @@ s3F93   LDA #<pE000  ;#%00000000
         LSR A
         ROR a00FB,b
         STA a00FC,b
-        LDA a0403
+        LDA V_SCROLL_IDX
         ASL A
         ROL a00FD,b
         ASL A
