@@ -276,7 +276,7 @@ j0850   SEI
         STA $0319    ;NMI
         CLI
         LDX #$00     ;#%00000000
-_L00    LDA f0A4E,X
+_L00    LDA RESET_ROUTINE,X
         STA $8000,X  ;Sets the reset routine (CBM80)
         INX
         CPX #$09     ;#%00001001
@@ -510,7 +510,11 @@ b0A4A   JMP j0883
 NMI_HANDLER
         RTI
 
-f0A4E   .ADDR j0850, j0850
+        ;TODO: This generates small garbage in the top row of the map.
+        ;Can be safely removed once we don't care about the generating exaclty
+        ;the same binary.
+RESET_ROUTINE       ;f0A4E
+        .ADDR j0850, j0850
         .BYTE $C3,$C2,$CD,$38,$30
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
