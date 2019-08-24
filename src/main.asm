@@ -277,7 +277,7 @@ j0850   SEI
         CLI
         LDX #$00     ;#%00000000
 _L00    LDA f0A4E,X
-        STA $8000,X     ;Remove CBM80 (or something like that)
+        STA $8000,X  ;Sets the reset routine (CBM80)
         INX
         CPX #$09     ;#%00001001
         BNE _L00
@@ -510,8 +510,8 @@ b0A4A   JMP j0883
 NMI_HANDLER
         RTI
 
-f0A4E   .BYTE $50,$08,$50,$08,$C3,$C2,$CD,$38
-        .BYTE $30
+f0A4E   .ADDR j0850, j0850
+        .BYTE $C3,$C2,$CD,$38,$30
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Sets the sight "()" sprite for high scores as sprite $41
