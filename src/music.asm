@@ -954,7 +954,7 @@ b5F5F   ORA #$40     ;#%01000000
         STA $0314    ;IRQ
         LDA #>MUSIC_IRQ_TEST
         STA $0315    ;IRQ
-        LDA #$00     ;#%00000000
+        LDA #$00     ;Stop timer
         STA $DC0E    ;CIA1: CIA Control Register A
         LDA #$F1     ;#%11110001
         STA $D01A    ;VIC Interrupt Mask Register (IMR)
@@ -980,7 +980,7 @@ MUSIC_IRQ_TEST
         STA $0315    ;IRQ
         LDA #$00     ;#%00000000
         STA $D418    ;Select Filter Mode and Volume
-        LDA #$01     ;#%00000001
+        LDA #$01     ;Start timer
         STA $DC0E    ;CIA1: CIA Control Register A
         LDA #$F0     ;#%11110000
         STA $D01A    ;VIC Interrupt Mask Register (IMR)

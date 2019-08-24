@@ -107,8 +107,8 @@ a00FD = $00FD
 a00FE = $00FE
 a0400 = $0400
 a0401 = $0401
-a0402 = $0402
-V_SCROLL_IDX = $0403
+V_SCROLL_BIT_IDX = $0402
+V_SCROLL_ROW_IDX = $0403
 a0404 = $0404
 a0405 = $0405
 IRQ_ADDR_LO = $0406
@@ -293,7 +293,7 @@ _L01    TXA
         STA a0502
         STA a0501
 j0883   LDA #$A5     ;#%10100101
-        STA V_SCROLL_IDX
+        STA V_SCROLL_ROW_IDX
         JSR s3DFE
         JSR s4067
         JSR SETUP_IRQ
@@ -307,7 +307,7 @@ j0883   LDA #$A5     ;#%10100101
         LDA #$00     ;#%00000000
         STA SCORE_LSB
         STA SCORE_MSB
-        STA a0402
+        STA V_SCROLL_BIT_IDX
         STA LEVEL_NR
         STA $D01D    ;Sprites Expand 2x Horizontal (X)
         STA $D017    ;Sprites Expand 2x Vertical (Y)
@@ -317,7 +317,7 @@ j0883   LDA #$A5     ;#%10100101
 
 START_LEVEL          ;j08B8
         LDA #$A5     ;#%10100101
-        STA V_SCROLL_IDX
+        STA V_SCROLL_ROW_IDX
         LDA #$00     ;Song to play (main theme)
         JSR MUSIC_INIT
 
@@ -332,12 +332,12 @@ GAME_LOOP            ;j08CB
         LDA a0404
         BEQ b08F7
         CLC
-        ADC a0402
+        ADC V_SCROLL_BIT_IDX
         AND #$07     ;#%00000111
-        STA a0402
+        STA V_SCROLL_BIT_IDX
         CMP #$07     ;#%00000111
         BNE b08F7
-        DEC V_SCROLL_IDX
+        DEC V_SCROLL_ROW_IDX
         LDA #$00     ;#%00000000
         STA a04E9
         JSR s3D48
@@ -520,22 +520,26 @@ RESET_ROUTINE       ;f0A4E
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Sets the sight "()" sprite for high scores as sprite $41
 SET_SIGHT_SPRITE    ;s0A57
+        ;TODO: probably it is safe to remove the stop/start timer since
+        ;timer is not being used by code, and is already stop
         LDA $DC0E    ;CIA1: CIA Control Register A
-        AND #$FE     ;#%11111110
+        AND #$FE     ;#%11111110 Stop timer
         STA $DC0E    ;Stop timer
         LDA a01
-        AND #$FB     ;#%11111011
+        AND #$FB     ;#%11111011    Enabling RAM at $D000 I guess
         STA a01
+
         LDX #$3F     ;size of sprite
 _L00    LDA SIGHT_SPR_DATA,X
         STA fD040,X  ;It will be sprite $41
         DEX
         BPL _L00
+
         LDA a01
-        ORA #$04     ;#%00000100
+        ORA #$04     ;#%00000100    Enabling I/O at $D000 I guess
         STA a01
         LDA $DC0E    ;CIA1: CIA Control Register A
-        ORA #$01     ;#%00000001
+        ORA #$01     ;#%00000001 Start timer (why ?)
         STA $DC0E    ;Start Timer
         RTS
 
@@ -776,7 +780,7 @@ SCREEN_ENTER_HI_SCORE   ;s0C88
         JSR s3DD3
         LDA #$00     ;#%00000000
         STA a0404
-        STA a0402
+        STA V_SCROLL_BIT_IDX
         STA BKG_COLOR0
         LDA #$02     ;#%00000010
         STA LEVEL_NR
@@ -1111,7 +1115,7 @@ _WAIT_FIRE
         STA BKG_COLOR0
         LDX COUNTER
         LDA _SCROLL_IDX,X
-        STA V_SCROLL_IDX
+        STA V_SCROLL_ROW_IDX
         LDA _LEVEL_IDX,X
         STA LEVEL_NR
         JSR s1445
@@ -1194,11 +1198,11 @@ s109B   LDY #$00     ;#%00000000
 j109D   LDA (p24),Y
         CMP #$FF     ;#%11111111
         BEQ b10F8
-        CMP V_SCROLL_IDX
+        CMP V_SCROLL_ROW_IDX
         BCC b10F8
         SEC
         SBC #$16     ;#%00010110
-        CMP V_SCROLL_IDX
+        CMP V_SCROLL_ROW_IDX
         BCS b10F4
         STY a00FD,b
         LDA (p28),Y
@@ -1224,7 +1228,7 @@ b10D2   TXA
         LDY a00FD,b
         LDA (p24),Y
         SEC
-        SBC V_SCROLL_IDX
+        SBC V_SCROLL_ROW_IDX
         ASL A
         ASL A
         ASL A
@@ -1753,7 +1757,7 @@ b1744   STA a00FB,b
         LSR A
         LSR A
         CLC
-        ADC V_SCROLL_IDX
+        ADC V_SCROLL_ROW_IDX
         PHA
         LSR A
         ROR a00FC,b
@@ -1919,7 +1923,7 @@ f1AA9   .BYTE $00,$02,$02,$02,$02,$02,$02,$02
 
 s1BA9   LDY a04E8
         LDA (p24),Y
-        CMP V_SCROLL_IDX
+        CMP V_SCROLL_ROW_IDX
         BEQ b1BB4
         RTS
 
@@ -3503,7 +3507,7 @@ s2B07   LDA a040A
         TAY
         LDA FRAME_POW_RUN,Y
         STA SPRITES_PTR,X
-        LDA V_SCROLL_IDX
+        LDA V_SCROLL_ROW_IDX
         CMP #$71     ;#%01110001
         BCS b2B27
         LDA #$FF     ;#%11111111
@@ -3523,7 +3527,7 @@ s2B2A   LDA a040A
         TAY
         LDA FRAME_POW_GUARD,Y
         STA SPRITES_PTR,X
-        LDA V_SCROLL_IDX
+        LDA V_SCROLL_ROW_IDX
         CMP #$71     ;#%01110001
         BCS b2B4A
         LDA #$FF     ;#%11111111
@@ -3705,7 +3709,7 @@ f2CCD   .BYTE $04,$04,$0C,$0C
 f2CD1   .BYTE $9B,$9B,$9B,$9B
 f2CD5   .BYTE $00,$00,$FF,$FF
 
-s2CD9   LDA V_SCROLL_IDX
+s2CD9   LDA V_SCROLL_ROW_IDX
         BEQ b2CE1
         JMP j2D81
 
@@ -5311,7 +5315,7 @@ b3ABC   LDA #$00     ;#%00000000
         BNE b3B00
         LDA #$00     ;#%00000000
         STA a04E0
-        LDA V_SCROLL_IDX
+        LDA V_SCROLL_ROW_IDX
         BNE b3AEC
         LDA #$01     ;#%00000001
         STA a04EE
@@ -5691,14 +5695,14 @@ s3DFE   JSR s3DD3
         STA a00FC,b
         LDY #$00     ;#%00000000
 _L00    LDA (pFB),Y
-        CMP V_SCROLL_IDX
+        CMP V_SCROLL_ROW_IDX
         BCS _L01
         INY
         JMP _L00
 
-_L01    STA V_SCROLL_IDX
+_L01    STA V_SCROLL_ROW_IDX
         LDA #$00     ;#%00000000
-        STA a0402
+        STA V_SCROLL_BIT_IDX
         STA a04EE
         LDA #$14     ;#%00010100
         STA a04EF
@@ -5839,7 +5843,7 @@ s3F93   LDA #<pE000  ;#%00000000
         LDA #$00     ;#%00000000
         STA a00FB,b
         STA a00FD,b
-        LDA V_SCROLL_IDX
+        LDA V_SCROLL_ROW_IDX
         LSR A
         ROR a00FB,b
         LSR A
@@ -5847,7 +5851,7 @@ s3F93   LDA #<pE000  ;#%00000000
         LSR A
         ROR a00FB,b
         STA a00FC,b
-        LDA V_SCROLL_IDX
+        LDA V_SCROLL_ROW_IDX
         ASL A
         ROL a00FD,b
         ASL A
@@ -5996,7 +6000,7 @@ f40DE   .BYTE $6D,$5D,$69,$6C,$5F,$20,$20,$20
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 SETUP_IRQ           ;s4106
-        LDA #$DF     ;#%11011111
+        LDA #$DF     ;FIXME: Not a big deal, but should be $D5 instead
         STA $D012    ;Raster Position
         LDA $D011    ;VIC Control Register 1
         AND #$7F     ;#%01111111
@@ -6005,8 +6009,10 @@ SETUP_IRQ           ;s4106
         STA IRQ_ADDR_LO
         LDA #>IRQ_A
         STA IRQ_ADDR_HI
-        LDA #$00     ;#%00000000
+
+        LDA #$00     ;Stop timer
         STA $DC0E    ;CIA1: CIA Control Register A
+
         SEI
         LDA #<IRQ_HANDLER
         STA $0314    ;IRQ
@@ -6024,35 +6030,44 @@ IRQ_HANDLER
 ; raster = $d5
 IRQ_A   NOP
         LDA $D011    ;VIC Control Register 1
-        ORA #$60     ;#%01100000
+        ORA #$60     ;#%01100000    Extended Color = 1, Bitmap = 1
         STA $D011    ;VIC Control Register 1
+
+        ; FIXME: unroll this loop
         LDX #$03     ;#%00000011
 _L0     LDA #$FF     ;#%11111111
-        STA fE3F8,X
+        STA fE3F8,X  ;Sprites 0,1,2,3 are empty
         DEX
         BPL _L0
+
         LDA $D011    ;VIC Control Register 1
         AND #$F8     ;#%11111000
-        ORA #$07     ;#%00000111
+        ORA #$07     ;#%00000111    Scroll Y position to 7
         STA $D011    ;VIC Control Register 1
+
         LDA #$00     ;#%00000000
         STA $D021    ;Background Color 0
+
         LDA $D018    ;VIC Memory Control Register
         AND #$F0     ;#%11110000
-        ORA #$04     ;#%00000100
+        ORA #$04     ;#%00000100    bitmap at $c000 / charset at 010 = $D000
         STA $D018    ;VIC Memory Control Register
+
         INC a040B
         LDA #$DE     ;#%11011110
         STA $D012    ;Raster Position
+
         LDA $D011    ;VIC Control Register 1
-        AND #$7F     ;#%01111111
+        AND #$7F     ;#%01111111    Raster MSB=0
         STA $D011    ;VIC Control Register 1
+
         LDA #<IRQ_B
         STA IRQ_ADDR_LO
         LDA #>IRQ_B
         STA IRQ_ADDR_HI
         LDA #$01     ;#%00000001
         STA $D019    ;VIC Interrupt Request Register (IRR)
+
         PLA
         TAY
         PLA
@@ -6065,24 +6080,30 @@ _L0     LDA #$FF     ;#%11111111
 IRQ_B   NOP
         NOP
         LDA $D011    ;VIC Control Register 1
-        AND #$9F     ;#%10011111
+        AND #$9F     ;#%10011111    Turn Off bitmap, turn off Extended color
         STA $D011    ;VIC Control Register 1
+
         LDA #$01     ;#%00000001
         STA $D022    ;Background Color 1, Multi-Color Register 0
         LDA #$02     ;#%00000010
         STA $D023    ;Background Color 2, Multi-Color Register 1
+
         JSR MUSIC_PLAY
+
         LDA #$1E     ;#%00011110
         STA $D012    ;Raster Position
+
         LDA $D011    ;VIC Control Register 1
-        AND #$7F     ;#%01111111
+        AND #$7F     ;#%01111111    Raster MSB off
         STA $D011    ;VIC Control Register 1
+
         LDA #<IRQ_C
         STA IRQ_ADDR_LO
         LDA #>IRQ_C
         STA IRQ_ADDR_HI
         LDA #$01     ;#%00000001
         STA $D019    ;VIC Interrupt Request Register (IRR)
+
         PLA
         TAY
         PLA
@@ -6095,22 +6116,26 @@ IRQ_B   NOP
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; raster = $1e
-IRQ_C   LDA a0402
-        EOR #$07     ;#%00000111
+IRQ_C   LDA V_SCROLL_BIT_IDX
+        EOR #$07     ;#%00000111    Reverse Y-bits
         STA a00A7,b
+
         LDA $D011    ;VIC Control Register 1
         AND #$F8     ;#%11111000
-        ORA a00A7,b
+        ORA a00A7,b  ;Vertical scroll position
         STA $D011    ;VIC Control Register 1
+
         LDA BKG_COLOR0
         STA $D021    ;Background Color 0
         LDA BKG_COLOR1
         STA $D022    ;Background Color 1, Multi-Color Register 0
         LDA BKG_COLOR2
         STA $D023    ;Background Color 2, Multi-Color Register 1
+
         LDA #$00     ;#%00000000
         STA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D01B    ;Sprite to Background Display Priority
+
         LDA #$0E     ;#%00001110
         STA a00A8,b
         LDY #$00    ;#%00000000
@@ -6146,26 +6171,31 @@ _L0     LDX f004B,b,Y
 
         LDA LEVEL_NR
         AND #$03     ;#%00000011
-        ASL A
+        ASL A        ;Shift to left, since bit 0 is unused in $D018
         STA a00A7,b
+
         LDA $D018    ;VIC Memory Control Register
         AND #$F0     ;#%11110000
-        ORA a00A7,b
+        ORA a00A7,b  ; Charset Idx. l1=$c000, l2=$c800, l3=$d000
         STA $D018    ;VIC Memory Control Register
+
         LDX a004E,b
         LDA f04C2,X
         CLC
         ADC #$14     ;#%00010100
         STA $D012    ;Raster Position
+
         LDA $D011    ;VIC Control Register 1
-        AND #$7F     ;#%01111111
+        AND #$7F     ;#%01111111    Raster MSB off
         STA $D011    ;VIC Control Register 1
+
         LDA #<IRQ_D
         STA IRQ_ADDR_LO
         LDA #>IRQ_D
         STA IRQ_ADDR_HI
         LDA #$01     ;#%00000001
         STA $D019    ;VIC Interrupt Request Register (IRR)
+
         PLA
         TAY
         PLA
@@ -6250,20 +6280,24 @@ IRQ_D   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND a448B
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
+
         LDX a0057,b
         LDA f04C2,X
         SEC
         SBC #$02     ;#%00000010
         STA $D012    ;Raster Position
+
         LDA $D011    ;VIC Control Register 1
-        AND #$7F     ;#%01111111
+        AND #$7F     ;#%01111111    Raster MSB off
         STA $D011    ;VIC Control Register 1
+
         LDA #<IRQ_E
         STA IRQ_ADDR_LO
         LDA #>IRQ_E
         STA IRQ_ADDR_HI
         LDA #$01     ;#%00000001
         STA $D019    ;VIC Interrupt Request Register (IRR)
+
         PLA
         TAY
         PLA
@@ -6348,17 +6382,20 @@ IRQ_E   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND f4487
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
+
         LDA #$D5     ;#%11010101
         STA $D012    ;Raster Position
         LDA $D011    ;VIC Control Register 1
-        AND #$7F     ;#%01111111
+        AND #$7F     ;#%01111111    Raster MSB off
         STA $D011    ;VIC Control Register 1
+
         LDA #<IRQ_A
         STA IRQ_ADDR_LO
         LDA #>IRQ_A
         STA IRQ_ADDR_HI
         LDA #$01     ;#%00000001
         STA $D019    ;VIC Interrupt Request Register (IRR)
+
         PLA
         TAY
         PLA
