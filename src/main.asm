@@ -763,7 +763,7 @@ b0C56   LDA SPRITES_X_LO
         LSR A
         LSR A
         TAY
-        LDA f3CA0,Y
+        LDA HERO_FRAMES_UP,Y
         STA SPRITES_PTR00
         LDA SPRITES_X_HI
         STA SPRITE_HERO_X_HI
@@ -5450,33 +5450,33 @@ b3B52   LDA $DC00    ;CIA1: Data Port Register A (riq: multiple directions)
         BNE b3B6A
         LDX #$02     ;#%00000010
         STX a04E0
-        LDA #<p3CB8  ;#%10111000
+        LDA #<HERO_FRAMES_UP_RIGHT  ;#%10111000
         STA a0019,b
-        LDA #>p3CB8  ;#%00111100
+        LDA #>HERO_FRAMES_UP_RIGHT  ;#%00111100
         STA a001A,b
 b3B6A   CMP #$75     ;#%01110101
         BNE b3B7D
         LDX #$06     ;#%00000110
         STX a04E0
-        LDA #<p3CB0  ;#%10110000
+        LDA #<HERO_FRAMES_DOWN_RIGHT  ;#%10110000
         STA a0019,b
-        LDA #>p3CB0  ;#%00111100
+        LDA #>HERO_FRAMES_DOWN_RIGHT  ;#%00111100
         STA a001A,b
 b3B7D   CMP #$79     ;#%01111001
         BNE b3B90
         LDX #$0A     ;#%00001010
         STX a04E0
-        LDA #<p3CB4  ;#%10110100
+        LDA #<HERO_FRAMES_DOWN_LEFT  ;#%10110100
         STA a0019,b
-        LDA #>p3CB4  ;#%00111100
+        LDA #>HERO_FRAMES_DOWN_LEFT  ;#%00111100
         STA a001A,b
 b3B90   CMP #$7A     ;#%01111010
         BNE b3BA3
         LDX #$0E     ;#%00001110
         STX a04E0
-        LDA #<p3CBC  ;#%10111100
+        LDA #<HERO_FRAMES_UP_LEFT  ;#%10111100
         STA a0019,b
-        LDA #>p3CBC  ;#%00111100
+        LDA #>HERO_FRAMES_UP_LEFT  ;#%00111100
         STA a001A,b
 b3BA3   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game direction changed)
         AND #$0F     ;#%00001111
@@ -5540,7 +5540,7 @@ b3BF8   PLA
         LDA (p2A),Y
         AND #$04     ;#%00000100
         BEQ b3C7D
-        LDA #$02     ;Hero fell in trench
+        LDA #$02     ;Hero fell in trench/water
         STA IS_HERO_ALIVE
         LDA #$04     ;#%00000100
         JSR s500F
@@ -5594,20 +5594,28 @@ b3C8F   LDA a04F7
         STA V_SCROLL_DELTA
 b3C9F   RTS
 
-f3CA0   .BYTE $98,$99,$9A,$99                   ;Anim up
-f3CA4   .BYTE $9B,$9C,$9D,$9C                   ;Anim down
-f3CA8   .BYTE $D5,$D6,$D7,$D8                   ;Anim left
-f3CAC   .BYTE $D9,$DA,$DB,$DC                   ;Anim right
-p3CB0   .BYTE $9E,$9F,$DF,$A0                   ;Anim down-right
-p3CB4   .BYTE $A1,$A2,$E0,$A3                   ;Anim down-left
-p3CB8   .BYTE $A6,$A7,$A8,$E1                   ;Anim up-right
-p3CBC   .BYTE $A9,$AA,$AB,$E2                   ;Anim up-left
+HERO_FRAMES_UP
+        .BYTE $98,$99,$9A,$99                   ;Anim up
+HERO_FRAMES_DOWN
+        .BYTE $9B,$9C,$9D,$9C                   ;Anim down
+HERO_FRAMES_LEFT
+        .BYTE $D5,$D6,$D7,$D8                   ;Anim left
+HERO_FRAMES_RIGHT
+        .BYTE $D9,$DA,$DB,$DC                   ;Anim right
+HERO_FRAMES_DOWN_RIGHT
+        .BYTE $9E,$9F,$DF,$A0                   ;Anim down-right
+HERO_FRAMES_DOWN_LEFT
+        .BYTE $A1,$A2,$E0,$A3                   ;Anim down-left
+HERO_FRAMES_UP_RIGHT
+        .BYTE $A6,$A7,$A8,$E1                   ;Anim up-right
+HERO_FRAMES_UP_LEFT
+        .BYTE $A9,$AA,$AB,$E2                   ;Anim up-left
 
 ; These frames are shared by the hero and the regular enemies
 SOLDIER_ANIM_FRAMES_HI   =*+1           ;f3CC1
 SOLDIER_ANIM_FRAMES_LO                  ;f3CC0
-        .ADDR f3CA0,p3CB8,f3CAC,p3CB0
-        .ADDR f3CA4,p3CB4,f3CA8,p3CBC
+        .ADDR HERO_FRAMES_UP,HERO_FRAMES_UP_RIGHT,HERO_FRAMES_RIGHT,HERO_FRAMES_DOWN_RIGHT
+        .ADDR HERO_FRAMES_DOWN,HERO_FRAMES_DOWN_LEFT,HERO_FRAMES_LEFT,HERO_FRAMES_UP_LEFT
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Set castle on fire animation (when you beat the game)
