@@ -151,7 +151,7 @@ a048D = $048D
 a048E = $048E
 a0491 = $0491
 a0492 = $0492
-COUNTER = $049D
+COUNTER0 = $049D
 a04A0 = $04A0
 a04DF = $04DF
 a04E0 = $04E0
@@ -159,7 +159,7 @@ a04E1 = $04E1
 BKG_COLOR0 = $04E2
 BKG_COLOR1 = $04E3
 BKG_COLOR2 = $04E4
-a04E6 = $04E6
+COUNTER1 = $04E6
 a04E7 = $04E7
 a04E8 = $04E8
 a04E9 = $04E9
@@ -388,8 +388,8 @@ _SKIP   JMP START_LEVEL
 b0953   LDA a0503
         CMP #$02     ;#%00000010
         BNE b0978
-        INC a04E6
-        LDA a04E6
+        INC COUNTER1
+        LDA COUNTER1
         CMP #$14     ;#%00010100
         BCC b0970
         CMP #$50     ;#%01010000
@@ -402,8 +402,8 @@ b0970   LDA #$CB     ;#%11001011
         STA a045D
         JMP GAME_LOOP
 
-b0978   INC a04E6
-        LDA a04E6
+b0978   INC COUNTER1
+        LDA COUNTER1
         CMP #$14     ;#%00010100
         BCC b098E
         CMP #$50     ;#%01010000
@@ -498,12 +498,12 @@ j0A2B   JSR s3DD3
         LDY #$64     ;#%01100100
         JSR DELAY
         LDA #$FF     ;#%11111111
-        STA a04E6
+        STA COUNTER1
 b0A3B   LDA $DC00    ;CIA1: Data Port Register A  (riq: unk)
         CMP #$6F     ;#%01101111
         BEQ b0A4A
         JSR WAIT_RASTER_AT_BOTTOM
-        DEC a04E6
+        DEC COUNTER1
         BNE b0A3B
 b0A4A   JMP j0883
 
@@ -846,7 +846,7 @@ f0D09   .BYTE $20,$20,$20,$20,$20,$75,$75,$75
 s0D59   LDA a0505
         BEQ b0D81
         LDA a042E
-        CMP COUNTER
+        CMP COUNTER0
         BCC b0D67
         RTS
 
@@ -886,7 +886,7 @@ b0D89   LDA #$00     ;#%00000000
         STA a044E
         STA a0505
         LDA SPRITES_Y
-        STA COUNTER
+        STA COUNTER0
         LDA a0510
         LDY #$00     ;#%00000000
         STA (pF7),Y
@@ -1100,29 +1100,31 @@ _L00    LDA #$48     ;Sprite Y position
         STA $D026    ;Sprite Multi-Color Register 1
         JSR PRINT_CREDITS
         LDA #$00     ;#%00000000
-        STA COUNTER
+        STA COUNTER0
 
 _L01    LDA #$FF     ;#%11111111
-        STA a04E6
+        STA COUNTER1
 _WAIT_FIRE
         LDA $DC00    ;CIA1: Data Port Register A (riq: main screen - fire)
         CMP #$6F     ;#%01101111
         BEQ _END
         JSR WAIT_RASTER_AT_BOTTOM
-        DEC a04E6
+        DEC COUNTER1
         BNE _WAIT_FIRE
+
+        ; Change background image
         LDA #$09     ;#%00001001
         STA BKG_COLOR0
-        LDX COUNTER
+        LDX COUNTER0
         LDA _SCROLL_IDX,X
         STA V_SCROLL_ROW_IDX
         LDA _LEVEL_IDX,X
         STA LEVEL_NR
-        JSR s1445
-        JSR s4033
+        JSR INIT_LEVEL_DATA
+        JSR SET_LEVEL_COLOR_RAM
         JSR s3F93
-        INC COUNTER
-        LDA COUNTER
+        INC COUNTER0
+        LDA COUNTER0
         CMP #$08     ;Total number of screens to display
         BNE _L01
 
@@ -1176,7 +1178,7 @@ b1011   LDA a0492,Y
         BCS b106E
         LDA #$01     ;#%00000001
         STA a0503
-        STA a04E6
+        STA COUNTER1
         LDA #$04     ;#%00000100
         JSR s500F
         LDA #$00     ;#%00000000
@@ -1559,7 +1561,11 @@ f1436   .BYTE $C2,$C2,$C2,$28
 f143A   .BYTE $28,$28,$28,$1E,$1E,$1E,$1E,$1E
         .BYTE $1E,$1E,$1E
 
-s1445   LDA LEVEL_NR
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; $D018 points to right charset for level
+; And sets a bunch of variables needed for the level
+INIT_LEVEL_DATA                 ; s1445
+        LDA LEVEL_NR
         AND #$03     ;#%00000011
         TAY
         LDA f3ECE,Y
@@ -1591,10 +1597,11 @@ s1445   LDA LEVEL_NR
         STY a00FB,b
         LDA $D018    ;VIC Memory Control Register
         AND #$F0     ;#%11110000
-        ORA a00FB,b
+        ORA a00FB,b  ;Set charset address
         STA $D018    ;VIC Memory Control Register
         RTS
 
+        ; Data for levels 0-3, although level 3 does not exist
 f14A4   =*+1
 f14A3   .ADDR f1C67,f1D00,f1DE8,f1DE8
 f14AC   =*+1
@@ -4816,8 +4823,8 @@ b365D   LDA a048E,X
 
 s3677   JMP (a00FB)
 
-s367A   INC COUNTER,X
-        LDA COUNTER,X
+s367A   INC COUNTER0,X
+        LDA COUNTER0,X
         CMP #$0F     ;#%00001111
         BCS b368D
         LSR A
@@ -4825,17 +4832,17 @@ s367A   INC COUNTER,X
         TAY
         LDA f36F9,Y
         STA a045D
-b368D   LDA COUNTER,X
+b368D   LDA COUNTER0,X
         AND #$07     ;#%00000111
         BNE b36A4
-        LDA COUNTER,X
+        LDA COUNTER0,X
         LSR A
         LSR A
         LSR A
         TAY
         LDA FRAME_GRENADE1,Y
         STA a045E,X
-        LDA COUNTER,X
+        LDA COUNTER0,X
 b36A4   CMP #$28     ;#%00101000
         BEQ b36D3
         LDA a041E,X
@@ -4860,7 +4867,7 @@ b36D2   RTS
 b36D3   LDA #$04     ;#%00000100
         STA a048E,X
         LDA #$00     ;#%00000000
-        STA COUNTER,X
+        STA COUNTER0,X
         STA a046E,X
         STA a047E,X
         STA a043E,X
@@ -4875,8 +4882,8 @@ FRAME_GRENADE1      ;f36F3
         .BYTE $92,$91,$91,$92,$93,$93
 f36F9   .BYTE $A4,$A5,$DE,$98,$98
 
-s36FE   INC COUNTER,X
-        LDA COUNTER,X
+s36FE   INC COUNTER0,X
+        LDA COUNTER0,X
         CMP #$09     ;Frames for anim(?)
         BEQ b3710
         TAY
@@ -4904,7 +4911,7 @@ s371D   LDA #$00
         STA a045E,X
         RTS
 
-s373C   INC COUNTER,X
+s373C   INC COUNTER0,X
         LDY #$00     ;#%00000000
 b3741   LDA a0492,Y
         STY a00FB,b
@@ -4945,7 +4952,7 @@ b3790   JSR s2405
 b3793   INY
         CPY #$0B     ;#%00001011
         BNE b3741
-        LDA COUNTER,X
+        LDA COUNTER0,X
         CMP #$14     ;#%00010100
         BEQ b37A9
         LSR A
@@ -5129,8 +5136,8 @@ _L00    LDA a0491
         JSR s500F
 _SKIP   RTS
 
-s3935   INC COUNTER,X
-        LDA COUNTER,X
+s3935   INC COUNTER0,X
+        LDA COUNTER0,X
         CMP #$0F     ;#%00001111
         BNE b3942
         JMP j39C9
@@ -5200,7 +5207,7 @@ b39C3   LDA #$00     ;#%00000000
 j39C9   LDA #$03     ;#%00000011
         STA a048E,X
         LDA #$00     ;#%00000000
-        STA COUNTER,X
+        STA COUNTER0,X
         STA a046E,X
         STA a047E,X
         TAY
@@ -5245,7 +5252,7 @@ _CHECK_FIRE
         LDA #$90     ;#%10010000
         STA a045E,X
         LDA #$00     ;#%00000000
-        STA COUNTER,X
+        STA COUNTER0,X
         LDA #$01     ;#%00000001
         STA a044E,X
 _SKIP   RTS
@@ -5417,8 +5424,8 @@ j3BAC   LDA a04E0
         STA a00FB,b
         LDA f3CC1,Y
         STA a00FC,b
-        INC a04E6
-        LDA a04E6
+        INC COUNTER1
+        LDA COUNTER1
         AND #$0C     ;#%00001100
         LSR A
         LSR A
@@ -5473,7 +5480,7 @@ b3BF8   PLA
         STA a0503
         LDA #$04     ;#%00000100
         JSR s500F
-        STA a04E6
+        STA COUNTER1
         LDA a04F0
         CLC
         ADC a046D
@@ -5560,7 +5567,7 @@ _L00    LDA f3D27,X
         JSR s3D48
         JSR s3F24
         LDA #$FF     ;#%11111111
-        STA a04E6
+        STA COUNTER1
 _L01    LDX #$00     ;#%00000000
 _L02    LDA #$EE     ;Fire frame
         STA SPRITES_PTR,X
@@ -5573,7 +5580,7 @@ _L03    INX
         CPX #$0B     ;#%00001011
         BNE _L02
         JSR WAIT_RASTER_AT_BOTTOM
-        DEC a04E6
+        DEC COUNTER1
         BNE _L01
         RTS
 
@@ -5706,7 +5713,7 @@ _L01    STA V_SCROLL_ROW_IDX
         STA a04EE
         LDA #$14     ;#%00010100
         STA a04EF
-        JSR s1445
+        JSR INIT_LEVEL_DATA
         LDA #$00     ;#%00000000
         JSR j15DA
         LDA #$00     ;#%00000000
@@ -5836,6 +5843,7 @@ b3F84   INC a003D,b
 
 b3F92   RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s3F93   LDA #<pE000  ;#%00000000
         STA a3FE0
         LDA #>pE000  ;#%11100000
@@ -5891,6 +5899,7 @@ b4001   CMP #$48     ;#%01001000
         BNE b3FDA
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s4006   LDA a0400
         ASL A
         ROL a0401
@@ -5901,6 +5910,7 @@ s4006   LDA a0400
         STA a0400
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s401D   LDA $D012    ;Raster Position
         STA a0400
         ASL A
@@ -5918,30 +5928,35 @@ _L00    CMP a040B
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s4033   LDA LEVEL_NR
+; Updates the Color RAM for current level
+SET_LEVEL_COLOR_RAM             ;s4033   
+        LDA LEVEL_NR
         AND #$03     ;#%00000011
         TAX
         LDA #<pD800  ;#%00000000
         STA a00FB,b
         LDA #>pD800  ;#%11011000
         STA a00FC,b
+
         LDY #$00     ;#%00000000
-b4045   LDA f40DA,X
+_L00    LDA LEVEL_COLOR_RAM,X
         STA (pFB),Y
         INC a00FB,b
-        BNE b4045
+        BNE _L00
         INC a00FC,b
         LDA a00FC,b
         CMP #$DC     ;#%11011100
-        BNE b4045
+        BNE _L00
+
         LDY #$27     ;#%00100111
         LDA #$01     ;#%00000001
-b405D   STA fDB48,Y
+_L01    STA fDB48,Y
         STA fDB98,Y
         DEY
-        BPL b405D
+        BPL _L01
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s4067   LDA $D011    ;VIC Control Register 1
         AND #$F7     ;#%11110111
         STA $D011    ;VIC Control Register 1
@@ -5960,7 +5975,7 @@ s4067   LDA $D011    ;VIC Control Register 1
         LDA #$0C     ;#%00001100
         STA BKG_COLOR2
         STA $D023    ;Background Color 2, Multi-Color Register 1
-        JSR s4033
+        JSR SET_LEVEL_COLOR_RAM
         JSR s3F93
 
         LDX #$00     ;#%00000000
@@ -5991,7 +6006,8 @@ _L00    LDA f40DE,X
         STA $D026    ;Sprite Multi-Color Register 1
         RTS
 
-f40DA   .BYTE $0D,$0E,$0D,$0D
+LEVEL_COLOR_RAM         ;f40DA
+        .BYTE $0D,$0E,$0D,$0D
 f40DE   .BYTE $6D,$5D,$69,$6C,$5F,$20,$20,$20
         .BYTE $20,$20,$21,$21,$20,$20,$20,$3C
         .BYTE $3F,$21,$20,$20,$20,$67,$5F,$68
