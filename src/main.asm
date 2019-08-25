@@ -27,7 +27,7 @@ aE6 = $E6
 ; **** ZP POINTERS ****
 ;
 p22 = $22
-p24 = $24
+p24 = $24                       ;Points to list of rows
 p26 = $26
 p28 = $28
 p2A = $2A
@@ -292,7 +292,7 @@ _L01    TXA
         LDA #$00     ;#%00000000
         STA a0502
         STA a0501
-j0883   LDA #$A5     ;#%10100101
+j0883   LDA #$A5     ;Set initial starting row
         STA V_SCROLL_ROW_IDX
         JSR s3DFE
         JSR SETUP_SCREEN
@@ -342,7 +342,7 @@ GAME_LOOP            ;j08CB
         STA a04E9
         JSR s3D48
         INC a04E9
-        JSR s3F93
+        JSR LEVEL_DRAW_VIEWPORT
         INC a04E9
         JMP GAME_LOOP
 
@@ -1122,7 +1122,7 @@ _WAIT_FIRE
         STA LEVEL_NR
         JSR INIT_LEVEL_DATA
         JSR SET_LEVEL_COLOR_RAM
-        JSR s3F93
+        JSR LEVEL_DRAW_VIEWPORT
         INC COUNTER0
         LDA COUNTER0
         CMP #$08     ;Total number of screens to display
@@ -1196,16 +1196,18 @@ f1074   .BYTE $00,$00,$00,$00,$00,$01,$00,$00
         .BYTE $01,$01,$01,$01,$00,$00,$00,$01
         .BYTE $01,$01,$01,$01,$01,$01,$00
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; TODO: Update sprites -Y post while scrolling?
 s109B   LDY #$00     ;#%00000000
-j109D   LDA (p24),Y
+_L00    LDA (p24),Y
         CMP #$FF     ;#%11111111
-        BEQ b10F8
+        BEQ _L04
         CMP V_SCROLL_ROW_IDX
-        BCC b10F8
+        BCC _L04
         SEC
         SBC #$16     ;#%00010110
         CMP V_SCROLL_ROW_IDX
-        BCS b10F4
+        BCS _L03
         STY a00FD,b
         LDA (p28),Y
         ASL A
@@ -1215,14 +1217,14 @@ j109D   LDA (p24),Y
         LDA f1C07,Y
         STA a00FC,b
         LDX #$00     ;#%00000000
-b10C5   LDA a0492,X
-        BEQ b10D2
+_L01    LDA a0492,X
+        BEQ _L02
         INX
         CPX #$0B     ;#%00001011
-        BNE b10C5
-        JMP b10F4
+        BNE _L01
+        JMP _L03
 
-b10D2   TXA
+_L02    TXA
         PHA
         JSR s24EF
         PLA
@@ -1240,10 +1242,10 @@ b10D2   TXA
         LDY f04A1,X
         STA SPRITES_Y,Y
         LDY a00FD,b
-b10F4   INY
-        JMP j109D
+_L03    INY
+        JMP _L00
 
-b10F8   STY a04E8
+_L04    STY a04E8
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -1575,7 +1577,7 @@ INIT_LEVEL_DATA                 ; s1445
         ASL A
         TAY
         LDA f14AB,Y
-        STA a0024,b
+        STA a0024,b     ;Points to list of rows
         LDA f14AC,Y
         STA a0025,b
         LDA f14A3,Y
@@ -1614,13 +1616,16 @@ f14C4   =*+1
 f14C3   .ADDR f17A9,f18A9,f1AA9,f1AA9
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Draws turret ir original/destroyed state.
-; A = Index of turret to draw (div 2)
+; Patches the level data with the turrent destroyed/restored
+; A = 0 left turret Ok
+;   = 2 right turret Ok
+;   = 4 left turret destroyed
+;   = 6 right turret destroyed
 ; FB = ptr to destination
 f14CC   =*+1
 f14CB   .ADDR f1502,f1538,f156E,f15A4
 
-LEVEL_DRAW_TURRET         ;s14D3
+LEVEL_PATCH_TURRET         ;s14D3
         TAX
         LDA f14CB,X
         STA _L01
@@ -1689,11 +1694,12 @@ f15A4   .BYTE $30,$30,$30,$30,$30,$30
         .BYTE $30,$30,$30,$77,$78,$30
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Draws door in open/closed state.
-; A = Index of door to draw (div 2)
+; Patches the level data with the door in open/closed state.
+; A = 0: Closed door
+;   = 2: Open door
 ; $0405: Destination MSB
 ;        Destination LSB is always $0D
-LEVEL_DRAW_DOOR         ;j15DA
+LEVEL_PATCH_DOOR         ;j15DA
         TAX
         LDA f161D,X
         STA _L01
@@ -2014,6 +2020,7 @@ f1C06   .ADDR s2271,s22E4,s2329,s223C
         .ADDR s1EED,s1EAF,s1F5F,s1E73
         .ADDR s1E66,s1E58,s1E4F,s1E4E
 
+; Rows for lvl 1
 f1C3E   .BYTE $9E,$9B,$98,$90,$8E,$84,$81,$7E
         .BYTE $7B,$7B,$7B,$66,$64,$5B,$5B,$57
         .BYTE $56,$54,$53,$50,$4D,$4A,$46,$3E
@@ -2035,6 +2042,8 @@ f1CB7   .BYTE $01,$01,$01,$00,$07,$02,$02,$02
         .BYTE $0C,$09,$00,$00,$08,$00,$00,$00
         .BYTE $00,$00,$00,$07,$00,$00,$00,$07
         .BYTE $00,$00,$00,$00,$07,$0B,$0D,$1B
+
+; Rows for lvl 2
 f1CDF   .BYTE $A5,$A2,$9D,$9B,$9B,$96,$95,$95
         .BYTE $93,$8C,$8C,$8A,$88,$83,$7B,$7B
         .BYTE $7B,$74,$70,$68,$61,$5E,$52,$51
@@ -2065,6 +2074,8 @@ f1D40   .BYTE $15,$07,$0E,$16,$0E,$13,$0E,$0E
         .BYTE $18,$18,$07,$17,$18,$18,$04,$0C
         .BYTE $08,$09,$14,$14,$16,$13,$16,$16
         .BYTE $03,$1A,$0B,$0D,$1B
+
+; Rows for lvl 3
 f1DC5   .BYTE $B4,$B3,$A4,$A3,$92,$8B,$8B,$83
         .BYTE $77,$74,$73,$61,$60,$5D,$58,$53
         .BYTE $50,$4E,$4C,$43,$3E,$3B,$3A,$26
@@ -2098,8 +2109,8 @@ s1E58   JSR s2271
         STA a0492,X
         RTS
 
-s1E61   LDA #$02     ;#%00000010
-        JMP LEVEL_DRAW_DOOR
+s1E61   LDA #$02     ;Draw open door
+        JMP LEVEL_PATCH_DOOR
 
 s1E66   LDA #$06     ;#%00000110
         STA f04AC,X
@@ -5055,8 +5066,8 @@ j37CF   TXA
         LDA a00FD,b
         STA a00FC,b
         LDA #$04     ;#%00000100
-        JSR LEVEL_DRAW_TURRET
-        JSR s3F93
+        JSR LEVEL_PATCH_TURRET
+        JSR LEVEL_DRAW_VIEWPORT
 j3841   PLA
         TAY
         PLA
@@ -5087,8 +5098,8 @@ b3848   LDA SPRITES_X_LO,Y
         LDA #>$859A  ;FIXME: harcoded part of the map
         STA a00FC,b
         LDA #$06     ;#%00000110
-        JSR LEVEL_DRAW_TURRET
-        JSR s3F93
+        JSR LEVEL_PATCH_TURRET
+        JSR LEVEL_DRAW_VIEWPORT
         JMP j3841
 
 s388B   INC f04B7,X
@@ -5293,9 +5304,9 @@ b3A46   LDA #$FF     ;#%11111111
 
 j3A4C   LDA #$01     ;#%00000001
         STA a04F7
-        LDA #$02     ;#%00000010
-        JSR LEVEL_DRAW_DOOR
-        JSR s3F93
+        LDA #$02     ;Draw open door
+        JSR LEVEL_PATCH_DOOR
+        JSR LEVEL_DRAW_VIEWPORT
 b3A59   LDA a040D
         BNE b3A79
         LDA a041D
@@ -5705,6 +5716,8 @@ _L00    LDA #$64     ;#%01100100
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; TODO: Something related to level clean-up / setup
+;       Called when player lost a life?
 s3DFE   JSR s3DD3
         LDA #$97     ;#%10010111
         STA a041D
@@ -5744,29 +5757,36 @@ _L01    STA V_SCROLL_ROW_IDX
         LDA #$14     ;#%00010100
         STA a04EF
         JSR INIT_LEVEL_DATA
-        LDA #$00     ;#%00000000
-        JSR LEVEL_DRAW_DOOR
+        LDA #$00     ;Closed door
+        JSR LEVEL_PATCH_DOOR
         LDA #$00
         STA a04F7
         STA a04FD
-        LDA #<$88C0  ;FIXME: harcoded part of the map
+
+        ;Draw Left turret at row 56 ($88c0) in lvl 2
+        LDA #<$88C0
         STA a00FB,b
-        LDA #>$88C0  ;FIXME: harcoded part of the map
+        LDA #>$88C0
         STA a00FC,b
-        LDA #$00     ;#%00000000
-        JSR LEVEL_DRAW_TURRET
-        LDA #<$859A  ;FIXME: harcoded part of the map
+        LDA #$00     ;Draw left turret Ok
+        JSR LEVEL_PATCH_TURRET
+
+        ;Draw right turret at row  35 ($859a) in lvl 2
+        LDA #<$859A
         STA a00FB,b
-        LDA #>$859A  ;FIXME: harcoded part of the map
+        LDA #>$859A
         STA a00FC,b
-        LDA #$02     ;#%00000010
-        JSR LEVEL_DRAW_TURRET
-        LDA #<$8370  ;FIXME: harcoded part of the map
+        LDA #$02     ;Draw right turret Ok
+        JSR LEVEL_PATCH_TURRET
+
+        ;Draw Left turret at row 22 ($859a) in lvl 2
+        LDA #<$8370
         STA a00FB,b
-        LDA #>$8370  ;FIXME: harcoded part of the map
+        LDA #>$8370
         STA a00FC,b
-        LDA #$00     ;#%00000000
-        JSR LEVEL_DRAW_TURRET
+        LDA #$00     ;Draw left turret Ok
+        JSR LEVEL_PATCH_TURRET
+
         LDA #$00     ;#%00000000
         STA a04F5
         LDA LEVEL_NR
@@ -5777,19 +5797,21 @@ _L01    STA V_SCROLL_ROW_IDX
         LDA #$00     ;#%00000000
         STA a04DF
 
-        LDX #$00     ;Sprite $ff is empty
-_L02    LDA #$00     ;
+        LDX #$00     ;Set sprite $ff as empty
+_L02    LDA #$00
         STA aFFC0,X
         INX
-        CPX #$40     ; lenght of the sprite
+        CPX #$40     ;lenght of the sprite
         BNE _L02
 
         JSR s3F24
         JSR s109B
+
+        ; Make sure player has at least 5 grenades
         LDA GRENADES
-        CMP #$05     ;#%00000101
+        CMP #$05
         BCS _L03
-        LDA #$05     ;#%00000101
+        LDA #$05
         STA GRENADES
 _L03    RTS
 
@@ -5828,6 +5850,7 @@ b3F19   INX
         BNE b3EF6
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s3F24   LDA #$0F     ;#%00001111
         STA a0014,b
         STA a00D7,b
@@ -5874,10 +5897,12 @@ b3F84   INC a003D,b
 b3F92   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s3F93   LDA #<pE000  ;#%00000000
-        STA a3FE0
-        LDA #>pE000  ;#%11100000
-        STA a3FE1
+; Copies "current" map to screen RAM
+LEVEL_DRAW_VIEWPORT             ;s3F93
+        LDA #<pE000  ;Screen RAM low
+        STA _L04
+        LDA #>pE000  ;Screen RAM hi
+        STA _L05
         LDA #$00     ;#%00000000
         STA a00FB,b
         STA a00FD,b
@@ -5898,35 +5923,42 @@ s3F93   LDA #<pE000  ;#%00000000
         ROL a00FD,b
         CLC
         ADC a00FB,b
-        STA a3FDD
+        STA _L01
         LDA a00FC,b
         ADC a00FD,b
         CLC
         ADC a0405
-        STA a3FDE
-b3FDA   LDY #$27     ;#%00100111
-a3FDD   =*+$01
-a3FDE   =*+$02
-b3FDC   LDA f0000,Y
-a3FE0   =*+$01
-a3FE1   =*+$02
+        STA _L02
+
+_L00    LDY #$27     ;Copy entire row (40 chars)
+_L01    =*+$01
+_L02    =*+$02
+_L03    LDA f0000,Y
+_L04    =*+$01
+_L05    =*+$02
         STA f0000,Y
         DEY
-        BPL b3FDC
+        BPL _L03
+
+        ;Next row: origin
         CLC
-        LDA a3FDD
+        LDA _L01
         ADC #$28     ;#%00101000
-        STA a3FDD
-        BCC b3FF3
-        INC a3FDE
-b3FF3   CLC
-        LDA a3FE0
+        STA _L01
+        BCC _L06
+        INC _L02
+
+        ;Next row destination
+_L06    CLC
+        LDA _L04
         ADC #$28     ;#%00101000
-        STA a3FE0
-        BCC b4001
-        INC a3FE1
-b4001   CMP #$48     ;#%01001000
-        BNE b3FDA
+        STA _L04
+        BCC _L07
+        INC _L05
+
+_L07    CMP #$48     ;#%01001000
+        BNE _L00
+
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -5959,7 +5991,7 @@ _L00    CMP a040B
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Updates the Color RAM for current level
-SET_LEVEL_COLOR_RAM             ;s4033   
+SET_LEVEL_COLOR_RAM             ;s4033
         LDA LEVEL_NR
         AND #$03     ;#%00000011
         TAX
@@ -6008,7 +6040,7 @@ SETUP_SCREEN            ;s4067
         STA BKG_COLOR2
         STA $D023    ;Background Color 2, Multi-Color Register 1
         JSR SET_LEVEL_COLOR_RAM
-        JSR s3F93
+        JSR LEVEL_DRAW_VIEWPORT
 
         ; set rows 21 and 23 with text and color
         LDX #$00     ;#%00000000
