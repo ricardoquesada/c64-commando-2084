@@ -295,7 +295,7 @@ _L01    TXA
 j0883   LDA #$A5     ;#%10100101
         STA V_SCROLL_ROW_IDX
         JSR s3DFE
-        JSR s4067
+        JSR SETUP_SCREEN
         JSR SETUP_IRQ
 
         ; Display main title screen
@@ -323,7 +323,7 @@ START_LEVEL          ;j08B8
 
         ; Restart after life lost
 j08C2   JSR s3DFE
-        JSR s4067
+        JSR SETUP_SCREEN
         JSR SETUP_IRQ
 
         ; Main loop
@@ -1612,95 +1612,124 @@ f14BC   =*+1
 f14BB   .ADDR f1CB7,f1D40,f1E2C,f1E2C
 f14C4   =*+1
 f14C3   .ADDR f17A9,f18A9,f1AA9,f1AA9
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Draws turret ir original/destroyed state.
+; A = Index of turret to draw (div 2)
+; FB = ptr to destination
 f14CC   =*+1
 f14CB   .ADDR f1502,f1538,f156E,f15A4
 
-s14D3   TAX
+LEVEL_DRAW_TURRET         ;s14D3
+        TAX
         LDA f14CB,X
-        STA a14E5
+        STA _L01
         LDA f14CC,X
-        STA a14E6
+        STA _L02
         LDX #$00     ;#%00000000
-b14E2   LDY #$00     ;#%00000000
-a14E5   =*+$01
-a14E6   =*+$02
-b14E4   LDA f2596,X
+_L00    LDY #$00     ;#%00000000
+_L01    =*+$01
+_L02    =*+$02
+_L03    LDA f2596,X
         STA (pFB),Y
         INX
         INY
         CPY #$06     ;#%00000110
-        BNE b14E4
+        BNE _L03
+
         LDA a00FB,b
         CLC
-        ADC #$28     ;#%00101000
+        ADC #$28     ;#%00101000        Next row
         STA a00FB,b
-        BCC b14FD
+        BCC _L04
         INC a00FC,b
-b14FD   CPX #$36     ;#%00110110
-        BCC b14E2
+_L04    CPX #$36     ;#%00110110
+        BCC _L00
         RTS
 
-f1502   .BYTE $30,$30,$30,$7A,$71,$30,$30,$30
-        .BYTE $7A,$D7,$DD,$71,$30,$7A,$B7,$7B
-        .BYTE $7B,$73,$7A,$B7,$7B,$7B,$72,$6B
-        .BYTE $6E,$7B,$7B,$72,$7D,$6B,$74,$6E
-        .BYTE $72,$7D,$DA,$6A,$74,$74,$7B,$DA
-        .BYTE $6A,$30,$69,$74,$7B,$6A,$30,$30
+; Turrets to draw: left turrent / right turrent, destroyed, restored
+f1502   .BYTE $30,$30,$30,$7A,$71,$30
+        .BYTE $30,$30,$7A,$D7,$DD,$71
+        .BYTE $30,$7A,$B7,$7B,$7B,$73
+        .BYTE $7A,$B7,$7B,$7B,$72,$6B
+        .BYTE $6E,$7B,$7B,$72,$7D,$6B
+        .BYTE $74,$6E,$72,$7D,$DA,$6A
+        .BYTE $74,$74,$7B,$DA,$6A,$30
+        .BYTE $69,$74,$7B,$6A,$30,$30
         .BYTE $30,$69,$6A,$30,$30,$30
-f1538   .BYTE $30,$7A,$71,$30,$30,$30,$7A,$70
-        .BYTE $D7,$71,$30,$30,$82,$7B,$7B,$DD
-        .BYTE $71,$30,$76,$79,$7B,$7B,$DD,$71
-        .BYTE $76,$6E,$79,$7B,$7B,$7D,$77,$EF
-        .BYTE $6E,$79,$7D,$74,$30,$77,$EF,$7B
-        .BYTE $74,$74,$30,$30,$77,$7B,$74,$78
-        .BYTE $30,$30,$30,$77,$78,$30
-f156e   .BYTE $30,$30,$30,$30,$30,$30,$30,$30
-        .BYTE $30,$30,$30,$30,$30,$30,$DF,$DE
-        .BYTE $EB,$30,$30,$DE,$E0,$6A,$77,$EB
-        .BYTE $E2,$8F,$6A,$35,$18,$EE,$F1,$6A
-        .BYTE $FF,$EC,$DE,$6A,$74,$F1,$DE,$E0
-        .BYTE $6A,$30,$69,$74,$7B,$6A,$FF,$1F
-        .BYTE $30,$69,$6A,$30,$30,$30
-f15A4   .BYTE $30,$30,$30,$30,$30,$30,$30,$30
-        .BYTE $30,$30,$30,$30,$30,$E2,$92,$1B
-        .BYTE $30,$30,$1C,$6A,$69,$92,$ED,$30
-        .BYTE $E1,$1B,$1E,$69,$F1,$30,$77,$14
-        .BYTE $30,$33,$EE,$32,$30,$77,$EB,$E2
-        .BYTE $F1,$EC,$30,$30,$77,$8E,$74,$78
+
+f1538   .BYTE $30,$7A,$71,$30,$30,$30
+        .BYTE $7A,$70,$D7,$71,$30,$30
+        .BYTE $82,$7B,$7B,$DD,$71,$30
+        .BYTE $76,$79,$7B,$7B,$DD,$71
+        .BYTE $76,$6E,$79,$7B,$7B,$7D
+        .BYTE $77,$EF,$6E,$79,$7D,$74
+        .BYTE $30,$77,$EF,$7B,$74,$74
+        .BYTE $30,$30,$77,$7B,$74,$78
         .BYTE $30,$30,$30,$77,$78,$30
 
-j15DA   TAX
+f156e   .BYTE $30,$30,$30,$30,$30,$30
+        .BYTE $30,$30,$30,$30,$30,$30
+        .BYTE $30,$30,$DF,$DE,$EB,$30
+        .BYTE $30,$DE,$E0,$6A,$77,$EB
+        .BYTE $E2,$8F,$6A,$35,$18,$EE
+        .BYTE $F1,$6A,$FF,$EC,$DE,$6A
+        .BYTE $74,$F1,$DE,$E0,$6A,$30
+        .BYTE $69,$74,$7B,$6A,$FF,$1F
+        .BYTE $30,$69,$6A,$30,$30,$30
+
+f15A4   .BYTE $30,$30,$30,$30,$30,$30
+        .BYTE $30,$30,$30,$30,$30,$30
+        .BYTE $30,$E2,$92,$1B,$30,$30
+        .BYTE $1C,$6A,$69,$92,$ED,$30
+        .BYTE $E1,$1B,$1E,$69,$F1,$30
+        .BYTE $77,$14,$30,$33,$EE,$32
+        .BYTE $30,$77,$EB,$E2,$F1,$EC
+        .BYTE $30,$30,$77,$8E,$74,$78
+        .BYTE $30,$30,$30,$77,$78,$30
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Draws door in open/closed state.
+; A = Index of door to draw (div 2)
+; $0405: Destination MSB
+;        Destination LSB is always $0D
+LEVEL_DRAW_DOOR         ;j15DA
+        TAX
         LDA f161D,X
-        STA a1600
+        STA _L01
         LDA f161E,X
-        STA a1601
+        STA _L02
+
+        ; Only lvl 1 and 2 has doors. Skip in lvl 3
         LDA LEVEL_NR
         AND #$03     ;#%00000011
         CMP #$03     ;#%00000011
-        BEQ b161C
+        BEQ _SKIP
+
         LDA #$0D     ;#%00001101
         STA a00FB,b
         LDA a0405
         STA a00FC,b
         LDX #$00     ;#%00000000
-b15FD   LDY #$00     ;#%00000000
-a1600   =*+$01
-a1601   =*+$02
-b15FF   LDA f2596,X
+_L00    LDY #$00     ;#%00000000
+_L01    =*+$01
+_L02    =*+$02
+_L03    LDA f2596,X
         STA (pFB),Y
         INX
         INY
         CPY #$0F     ;#%00001111
-        BNE b15FF
+        BNE _L03
+
         LDA a00FB,b
         CLC
         ADC #$28     ;#%00101000
         STA a00FB,b
-        BCC b1618
+        BCC _L04
         INC a00FC,b
-b1618   CPX #$86     ;#%10000110
-        BCC b15FD
-b161C   RTS
+_L04    CPX #$86     ;#%10000110
+        BCC _L00
+_SKIP   RTS
 
 f161E   =*+1
 f161D   .ADDR f1621,f16A8
@@ -1739,6 +1768,7 @@ f16A8   .BYTE $CC,$45,$00,$00,$00,$00,$00,$00
         .BYTE $49,$30,$00,$00,$00,$00,$00,$00
         .BYTE $00,$00,$00,$00,$00,$30,$90
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 j172F   LDA a04F0
         SEC
         SBC #$10     ;#%00010000
@@ -2069,7 +2099,7 @@ s1E58   JSR s2271
         RTS
 
 s1E61   LDA #$02     ;#%00000010
-        JMP j15DA
+        JMP LEVEL_DRAW_DOOR
 
 s1E66   LDA #$06     ;#%00000110
         STA f04AC,X
@@ -5025,7 +5055,7 @@ j37CF   TXA
         LDA a00FD,b
         STA a00FC,b
         LDA #$04     ;#%00000100
-        JSR s14D3
+        JSR LEVEL_DRAW_TURRET
         JSR s3F93
 j3841   PLA
         TAY
@@ -5057,7 +5087,7 @@ b3848   LDA SPRITES_X_LO,Y
         LDA #>$859A  ;FIXME: harcoded part of the map
         STA a00FC,b
         LDA #$06     ;#%00000110
-        JSR s14D3
+        JSR LEVEL_DRAW_TURRET
         JSR s3F93
         JMP j3841
 
@@ -5264,7 +5294,7 @@ b3A46   LDA #$FF     ;#%11111111
 j3A4C   LDA #$01     ;#%00000001
         STA a04F7
         LDA #$02     ;#%00000010
-        JSR j15DA
+        JSR LEVEL_DRAW_DOOR
         JSR s3F93
 b3A59   LDA a040D
         BNE b3A79
@@ -5715,8 +5745,8 @@ _L01    STA V_SCROLL_ROW_IDX
         STA a04EF
         JSR INIT_LEVEL_DATA
         LDA #$00     ;#%00000000
-        JSR j15DA
-        LDA #$00     ;#%00000000
+        JSR LEVEL_DRAW_DOOR
+        LDA #$00
         STA a04F7
         STA a04FD
         LDA #<$88C0  ;FIXME: harcoded part of the map
@@ -5724,19 +5754,19 @@ _L01    STA V_SCROLL_ROW_IDX
         LDA #>$88C0  ;FIXME: harcoded part of the map
         STA a00FC,b
         LDA #$00     ;#%00000000
-        JSR s14D3
+        JSR LEVEL_DRAW_TURRET
         LDA #<$859A  ;FIXME: harcoded part of the map
         STA a00FB,b
         LDA #>$859A  ;FIXME: harcoded part of the map
         STA a00FC,b
         LDA #$02     ;#%00000010
-        JSR s14D3
+        JSR LEVEL_DRAW_TURRET
         LDA #<$8370  ;FIXME: harcoded part of the map
         STA a00FB,b
         LDA #>$8370  ;FIXME: harcoded part of the map
         STA a00FC,b
         LDA #$00     ;#%00000000
-        JSR s14D3
+        JSR LEVEL_DRAW_TURRET
         LDA #$00     ;#%00000000
         STA a04F5
         LDA LEVEL_NR
@@ -5957,13 +5987,15 @@ _L01    STA fDB48,Y
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s4067   LDA $D011    ;VIC Control Register 1
-        AND #$F7     ;#%11110111
+; Setup VIC, plus status bar, scores, sprites, etc.
+SETUP_SCREEN            ;s4067
+        LDA $D011    ;VIC Control Register 1
+        AND #$F7     ;#%11110111        Rows to display = 24
         STA $D011    ;VIC Control Register 1
         LDA #$00     ;#%00000000
         STA $D020    ;Border Color
         LDA $D016    ;VIC Control Register 2
-        ORA #$10     ;#%00010000
+        ORA #$10     ;#%00010000        Enable multi color mode
         STA $D016    ;VIC Control Register 2
         LDA #$09     ;#%00001001
         STA BKG_COLOR0
@@ -5978,15 +6010,16 @@ s4067   LDA $D011    ;VIC Control Register 1
         JSR SET_LEVEL_COLOR_RAM
         JSR s3F93
 
+        ; set rows 21 and 23 with text and color
         LDX #$00     ;#%00000000
-_L00    LDA f40DE,X
-        STA fE348,X
+_L00    LDA STATUS_BAR_TXT,X
+        STA fE348,X  ;row 21
         LDA #$01     ;#%00000001
-        STA fDB48,X
+        STA fDB48,X  ;white for row 21
         LDA #$20     ;#%00100000
-        STA fE398,X
+        STA fE398,X  ;row 23
         LDA #$00     ;#%00000000
-        STA fDB98,X
+        STA fDB98,X  ;black for row 23
         INX
         CPX #$28     ;#%00101000
         BNE _L00
@@ -6008,7 +6041,9 @@ _L00    LDA f40DE,X
 
 LEVEL_COLOR_RAM         ;f40DA
         .BYTE $0D,$0E,$0D,$0D
-f40DE   .BYTE $6D,$5D,$69,$6C,$5F,$20,$20,$20
+
+STATUS_BAR_TXT          ;f40DE
+        .BYTE $6D,$5D,$69,$6C,$5F,$20,$20,$20
         .BYTE $20,$20,$21,$21,$20,$20,$20,$3C
         .BYTE $3F,$21,$20,$20,$20,$67,$5F,$68
         .BYTE $20,$21,$21,$20,$20,$20,$20,$62
