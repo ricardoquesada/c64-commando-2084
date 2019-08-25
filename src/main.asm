@@ -182,7 +182,7 @@ GRENADES = $04FF
 LIVES = $0500
 a0501 = $0501
 a0502 = $0502
-a0503 = $0503
+IS_HERO_ALIVE = $0503           ;0: hero alive, 1:was shot, 2:fell down in trench
 a0504 = $0504
 a0505 = $0505
 a050F = $050F
@@ -353,7 +353,8 @@ b08F7   INC a040A
         JSR s24B3
         JSR s1BA9
         JSR s3641
-        LDA a0503
+
+        LDA IS_HERO_ALIVE
         BNE b0953
         JSR HANDLE_JOY2
         LDA a04F7
@@ -385,9 +386,11 @@ b0939   LDA #$02     ;Song to play (Level complete)
         INC LEVEL_NR
 _SKIP   JMP START_LEVEL
 
-b0953   LDA a0503
+b0953   LDA IS_HERO_ALIVE
         CMP #$02     ;#%00000010
         BNE b0978
+
+        ; Hero fell down in trench
         INC COUNTER1
         LDA COUNTER1
         CMP #$14     ;#%00010100
@@ -402,17 +405,18 @@ b0970   LDA #$CB     ;Hero fall down in trench frame #0
         STA SPRITES_PTR00
         JMP GAME_LOOP
 
+        ; Hero was shot
 b0978   INC COUNTER1
         LDA COUNTER1
         CMP #$14     ;#%00010100
         BCC b098E
         CMP #$50     ;#%01010000
         BCS b0996
-        LDA #$B8     ;Frame for something
+        LDA #$B8     ;Hero was shot: frame #1
         STA SPRITES_PTR00
         JMP GAME_LOOP
 
-b098E   LDA #$DD     ;Hero was shot frame
+b098E   LDA #$DD     ;Hero was shot: frame #0
         STA SPRITES_PTR00
         JMP GAME_LOOP
 
@@ -1176,8 +1180,8 @@ b1011   LDA a0492,Y
         SBC #$08     ;#%00001000
         CMP SPRITES_Y,Y
         BCS b106E
-        LDA #$01     ;#%00000001
-        STA a0503
+        LDA #$01     ;Hero was shot
+        STA IS_HERO_ALIVE
         STA COUNTER1
         LDA #$04     ;#%00000100
         JSR s500F
@@ -4001,8 +4005,8 @@ s2EEB   LDA #$0C     ;#%00001100
         STA SPRITES_PTR04,X
         LDA #$02     ;#%00000010
         STA a0452,X
-        LDA a0503
-        BNE b2F0A
+        LDA IS_HERO_ALIVE
+        BNE b2F0A                               ;WTF
 b2F0A   RTS
 
 s2F0B   INC f04B7,X
@@ -5137,7 +5141,7 @@ b389F   LDA #$00     ;#%00000000
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 TRY_THROW_GRENADE
-        LDA a0503
+        LDA IS_HERO_ALIVE
         BNE _SKIP
         LDA a04EF
         BNE _L00
@@ -5265,7 +5269,7 @@ j39C9   LDA #$03     ;#%00000011
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s39E1   LDA a0503
+s39E1   LDA IS_HERO_ALIVE
         BNE b3A46
         LDA a04EF
         BNE _CHECK_FIRE
@@ -5527,8 +5531,8 @@ b3BF8   PLA
         LDA (p2A),Y
         AND #$04     ;#%00000100
         BEQ b3C7D
-        LDA #$02     ;#%00000010
-        STA a0503
+        LDA #$02     ;Hero fell in trench
+        STA IS_HERO_ALIVE
         LDA #$04     ;#%00000100
         JSR s500F
         STA COUNTER1
@@ -5744,7 +5748,7 @@ s3DFE   JSR s3DD3
         STA a04E1
         STA a04E0
         STA a043D
-        STA a0503
+        STA IS_HERO_ALIVE
         LDA LEVEL_NR
         AND #$03     ;#%00000011
         ASL A
