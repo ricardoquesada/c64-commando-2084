@@ -154,8 +154,8 @@ a0492 = $0492
 COUNTER0 = $049D
 a04A0 = $04A0
 a04DF = $04DF
-HERO_ANIM_IDX = $04E0                           ;Type of animation for hero: left,right,up,down,diagoanlly,etc.
-                                                ; See: SOLDIER_ANIM_FRAMES_HI/LO
+HERO_ANIM_IDX = $04E0           ;Type of animation for hero: left,right,up,down,diagoanlly,etc.
+                                ; See: SOLDIER_ANIM_FRAMES_HI/LO
 a04E1 = $04E1
 BKG_COLOR0 = $04E2
 BKG_COLOR1 = $04E3
@@ -168,12 +168,12 @@ a04EA = $04EA
 a04EC = $04EC
 a04ED = $04ED
 a04EE = $04EE
-a04EF = $04EF
+ENEMIES_INSIDE = $04EF          ;How many enemies are inside the castle/warehouse
 a04F0 = $04F0
 a04F1 = $04F1
 a04F2 = $04F2
 LEVEL_NR = $04F3
-a04F4 = $04F4
+a04F4 = $04F4                   ;Seems to be a delay or something related to enemies inside
 IS_LEVEL_COMPLETE = $04F5       ;0: game in progress, 1:lvl complete. Exit animation finished (unused apparently)
 IS_ANIM_EXIT_DOOR = $04F7       ;1: hero goes to exit door animation in progress
 SCORE_LSB = $04F8
@@ -266,7 +266,7 @@ b083E   LDA a01
         STA a01
         RTS
 
-        ; riq: unused
+        ; TODO: unused, remove
         .BYTE $E0,$09,$D0,$F5,$20,$AD,$35,$20
         .BYTE $57,$0A,$20
 
@@ -317,7 +317,7 @@ j0883   LDA #$A5     ;Set initial starting row
         STA GRENADES
         STA LIVES
 
-START_LEVEL          ;j08B8
+START_LEVEL          ;$08B8
         LDA #$A5     ;#%10100101
         STA V_SCROLL_ROW_IDX
         LDA #$00     ;Song to play (main theme)
@@ -330,7 +330,7 @@ RESTART
         JSR SETUP_IRQ
 
         ; Main loop
-GAME_LOOP            ;j08CB
+GAME_LOOP            ;$08CB
         JSR WAIT_RASTER_AT_BOTTOM
         LDA V_SCROLL_DELTA
         BEQ _L00
@@ -524,13 +524,13 @@ NMI_HANDLER
         ;TODO: This generates small garbage in the top row of the map.
         ;Can be safely removed once we don't care about the generating exaclty
         ;the same binary.
-RESET_ROUTINE       ;f0A4E
+RESET_ROUTINE       ;$0A4E
         .ADDR j0850, j0850
         .BYTE $C3,$C2,$CD,$38,$30
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Sets the sight "()" sprite for high scores as sprite $41
-SET_SIGHT_SPRITE    ;s0A57
+SET_SIGHT_SPRITE    ;$0A57
         ;TODO: probably it is safe to remove the stop/start timer since
         ;timer is not being used by code, and is already stop
         LDA $DC0E    ;CIA1: CIA Control Register A
@@ -554,7 +554,7 @@ _L00    LDA SIGHT_SPR_DATA,X
         STA $DC0E    ;Start Timer
         RTS
 
-SIGHT_SPR_DATA      ;f0A7F
+SIGHT_SPR_DATA      ;$0A7F
         .BYTE $00,$00,$00,$02,$AA,$00,$0A,$AA
         .BYTE $80,$28,$20,$A0,$20,$20,$20,$20
         .BYTE $00,$20,$A0,$00,$28,$80,$00,$08
@@ -784,7 +784,7 @@ b0C7B   LDA SPRITES_Y
 b0C87   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-SCREEN_ENTER_HI_SCORE   ;s0C88
+SCREEN_ENTER_HI_SCORE   ;$0C88
         LDA #$01     ;Song to play (high scores)
         JSR MUSIC_INIT
         JSR s1334
@@ -1150,9 +1150,9 @@ _MS_SPRITES_X_HI
         .BYTE $00,$00,$00,$00,$00,$FF,$FF
 _MS_SPRITES_PTR04
         .BYTE $F6,$F7,$F8,$F9,$FA,$FB,$AC
-_LEVEL_IDX      ;f1001
+_LEVEL_IDX      ;$1001
         .BYTE $00,$00,$01,$01,$03,$03,$03
-_SCROLL_IDX     ;f1008
+_SCROLL_IDX     ;$1008
         .BYTE $53,$7C,$3A,$01,$A9,$6E,$36
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -1260,7 +1260,7 @@ _L04    STY a04E8
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-PRINT_CREDITS       ;s10FC
+PRINT_CREDITS       ;$10FC
         LDA #<pE029  ;Screen RAM lo
         STA a00FB,b
         LDA #>pE029  ;Screen RAM hi
@@ -1295,7 +1295,7 @@ _L02    INX
 _L03    JMP _L00
 _L04    RTS
 
-MSG_CREDITS         ;f1143
+MSG_CREDITS         ;$1143
         .BYTE $20,$20,$20,$20,$20,$20,$20,$20
         .BYTE $20,$20,$20,$5F,$66,$63,$6E,$5F
         .BYTE $20,$6A,$6C,$5F,$6D,$5F,$68,$6E
@@ -1636,7 +1636,7 @@ f14C3   .ADDR f17A9,f18A9,f1AA9,f1AA9
 f14CC   =*+1
 f14CB   .ADDR f1502,f1538,f156E,f15A4
 
-LEVEL_PATCH_TURRET         ;s14D3
+LEVEL_PATCH_TURRET         ;$14D3
         TAX
         LDA f14CB,X
         STA _L01
@@ -1710,7 +1710,7 @@ f15A4   .BYTE $30,$30,$30,$30,$30,$30
 ;   = 2: Open door
 ; $0405: Destination MSB
 ;        Destination LSB is always $0D
-LEVEL_PATCH_DOOR         ;j15DA
+LEVEL_PATCH_DOOR         ;$15DA
         TAX
         LDA f161D,X
         STA _L01
@@ -2829,6 +2829,7 @@ j24A7   LDA #$00     ;#%00000000
         STA a0482,Y
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s24B3   LDX #$00     ;#%00000000
         STX a04F4
 b24B8   LDA SPRITES_Y,X
@@ -3161,7 +3162,7 @@ b27D5   LDA #$02     ;#%00000010
         STA SPRITES_PTR04,Y
         RTS
 
-FRAME_BAZOOKA_GUY       ;f27E0
+FRAME_BAZOOKA_GUY       ;$27E0
         .BYTE $E5,$E6,$E7,$E6
 
 s27E4   INC f04B7,X
@@ -3344,9 +3345,9 @@ b2942   LDA a040A
         STA SPRITES_PTR04,X
         RTS
 
-FRAME_BOSS1_RIGHT       ;f2952
+FRAME_BOSS1_RIGHT       ;$2952
         .BYTE $B9,$BA
-FRAME_BOSS1_LEFT        ;f2954
+FRAME_BOSS1_LEFT        ;$2954
         .BYTE $EF,$F0
 
 s2956   INC f04B7,X
@@ -3547,7 +3548,7 @@ s2ADA   INC f04B7,X
 
 b2AF4   JMP s358E
 
-FRAME_POW_RESCUE    ;f2AF7 (Pow == Prisoner of War)
+FRAME_POW_RESCUE    ;$2AF7 (Pow == Prisoner of War)
         .BYTE $C4,$C5
 
 s2AF9   INC f04B7,X
@@ -3575,7 +3576,7 @@ s2B07   LDA a040A
         STA a0482,X
 b2B27   RTS
 
-FRAME_POW_RUN       ;f2B28 (POW == Prisoner of War)
+FRAME_POW_RUN       ;$2B28 (POW == Prisoner of War)
         .BYTE $C2,$C3
 
 s2B2A   LDA a040A
@@ -3595,7 +3596,7 @@ s2B2A   LDA a040A
         STA a0482,X
 b2B4A   RTS
 
-FRAME_POW_GUARD     ;f2B4B
+FRAME_POW_GUARD     ;$2B4B
         .BYTE $C0,$C1
 
 s2B4D   INC f04B7,X
@@ -3768,18 +3769,20 @@ f2CCD   .BYTE $04,$04,$0C,$0C
 f2CD1   .BYTE $9B,$9B,$9B,$9B
 f2CD5   .BYTE $00,$00,$FF,$FF
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Logic that handles once the player reaches the top of the map.
 s2CD9   LDA V_SCROLL_ROW_IDX
         BEQ b2CE1
         JMP j2D81
 
-b2CE1   LDA a04EF
+b2CE1   LDA ENEMIES_INSIDE
         BEQ b2CC0
         JSR s4006
         AND #$7F     ;#%01111111
         BNE b2CC0
         LDA #$3F     ;#%00111111
         STA a0504
-        DEC a04EF
+        DEC ENEMIES_INSIDE
         BNE b2CF7       ;WFT?
 b2CF7   LDA LEVEL_NR
         AND #$03     ;#%00000011
@@ -3999,7 +4002,7 @@ b2ECD   LDA f04B7,X
         INC a0482,X
 b2EE5   RTS
 
-FRAME_GRENADE0       ;f2EE6
+FRAME_GRENADE0       ;$2EE6
         .BYTE $92,$91,$91,$92,$93
 
 s2EEB   LDA #$0C     ;#%00001100
@@ -4799,11 +4802,11 @@ s358E   LDA #$00     ;#%00000000
         STA SPRITES_X_LO,X
         LDA #$FF     ;#%11111111
         STA SPRITES_X_HI,X
-        STA SPRITES_PTR04,X
+        STA SPRITES_PTR04,X             ;set empty sprite frame
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-SETUP_VIC_BANK          ;s35AD
+SETUP_VIC_BANK          ;$35AD
         LDA a01
         AND #$FE     ;#%11111110        Enable I/O
         STA a01
@@ -4939,7 +4942,7 @@ _L03    LDA #$04     ;#%00000100
         STA a044E,X
         RTS
 
-FRAME_GRENADE1      ;f36F3
+FRAME_GRENADE1      ;$36F3
         .BYTE $92,$91,$91,$92,$93,$93
 f36F9   .BYTE $A4,$A5,$DE,$98,$98
 
@@ -4957,7 +4960,7 @@ s36FE   INC COUNTER0,X
 _L00    JSR s371D
         RTS
 
-FRAME_BULLET_END             ;f3714
+FRAME_BULLET_END             ;$3714
         .BYTE $94,$95,$96,$97,$96,$96,$94,$FF
         .BYTE $FF
 
@@ -5042,7 +5045,7 @@ b37A9   LDA #$00     ;#%00000000
         STA SPRITES_PTR01,X
         RTS
 
-FRAME_EXPLOSION     ;f37CA
+FRAME_EXPLOSION     ;$37CA
         .BYTE $AF,$AE,$AD,$AF,$FF
 
 j37CF   TXA
@@ -5154,10 +5157,10 @@ b389F   LDA #$00     ;#%00000000
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-TRY_THROW_GRENADE
+TRY_THROW_GRENADE               ;$38c3
         LDA IS_HERO_DEAD
         BNE _SKIP
-        LDA a04EF
+        LDA ENEMIES_INSIDE
         BNE _L00
         LDA a04F4
         BEQ _SKIP
@@ -5286,7 +5289,7 @@ j39C9   LDA #$03     ;#%00000011
 ; Try fire shotgun ?
 s39E1   LDA IS_HERO_DEAD
         BNE b3A46
-        LDA a04EF
+        LDA ENEMIES_INSIDE
         BNE _CHECK_FIRE
         LDA a04F4
         BEQ b3A46
@@ -5334,7 +5337,7 @@ b3A46   LDA #$FF     ;#%11111111
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Level complete. Open door and animate hero to go through the exit door
-HERO_START_ANIM_EXIT_DOOR          ;j3A4C
+HERO_START_ANIM_EXIT_DOOR          ;$3A4C
         LDA #$01     ;#%00000001
         STA IS_ANIM_EXIT_DOOR
         LDA #$02     ;Draw open door
@@ -5384,10 +5387,10 @@ _L02    LDA #$01
         JMP SETUP_HERO_ANIMATION
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-HANDLE_JOY2         ;s3AAA
+HANDLE_JOY2         ;$3AAA
         LDA IS_ANIM_EXIT_DOOR
         BNE HERO_ANIM_EXIT_DOOR
-        LDA a04EF
+        LDA ENEMIES_INSIDE
         BNE b3ABC
         LDA a04F4
         BNE b3ABC
@@ -5514,7 +5517,7 @@ b3BA3   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game direction changed
 
         ; Fall-through
 
-SETUP_HERO_ANIMATION            ;j3BAC
+SETUP_HERO_ANIMATION            ;$3BAC
         LDA HERO_ANIM_IDX
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
@@ -5645,8 +5648,8 @@ HERO_FRAMES_UP_LEFT
         .BYTE $A9,$AA,$AB,$E2                   ;Anim up-left
 
 ; These frames are shared by the hero and the regular enemies
-SOLDIER_ANIM_FRAMES_HI   =*+1           ;f3CC1
-SOLDIER_ANIM_FRAMES_LO                  ;f3CC0
+SOLDIER_ANIM_FRAMES_HI   =*+1           ;$3CC1
+SOLDIER_ANIM_FRAMES_LO                  ;$3CC0
         .ADDR HERO_FRAMES_UP
         .ADDR HERO_FRAMES_UP_RIGHT
         .ADDR HERO_FRAMES_RIGHT
@@ -5658,7 +5661,7 @@ SOLDIER_ANIM_FRAMES_LO                  ;f3CC0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Set castle on fire animation (when you beat the game)
-SET_CASTLE_ON_FIRE      ;s3CD0
+SET_CASTLE_ON_FIRE      ;$3CD0
         JSR s3DD3
         LDX #$00     ;#%00000000
 _L00    LDA f3D27,X
@@ -5790,7 +5793,7 @@ _L00    LDA #$64     ;#%01100100
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Setup up lvl: hero position, patches door to closed, patches turrets to restored,
 ; min grenades is 5, and more
-SETUP_LEVEL             ;s3DFE
+SETUP_LEVEL             ;$3DFE
         JSR s3DD3
         LDA #$97     ;#%10010111
         STA SPRITE_HERO_X_LO
@@ -5827,8 +5830,8 @@ _L01    STA V_SCROLL_ROW_IDX
         LDA #$00     ;#%00000000
         STA V_SCROLL_BIT_IDX
         STA a04EE
-        LDA #$14     ;#%00010100
-        STA a04EF
+        LDA #$14     ;Number of enemites that leaves the final castle/warehouse
+        STA ENEMIES_INSIDE
         JSR INIT_LEVEL_DATA
         LDA #$00     ;Closed door
         JSR LEVEL_PATCH_DOOR
@@ -5971,7 +5974,7 @@ b3F92   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Copies "current" map to screen RAM
-LEVEL_DRAW_VIEWPORT             ;s3F93
+LEVEL_DRAW_VIEWPORT             ;$3F93
         LDA #<pE000  ;Screen RAM low
         STA _L04
         LDA #>pE000  ;Screen RAM hi
@@ -6056,7 +6059,7 @@ s401D   LDA $D012    ;Raster Position
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Waits until raster reaches $d5 vertical position
 ; triggered by IRQ_A
-WAIT_RASTER_AT_BOTTOM   ;s402A
+WAIT_RASTER_AT_BOTTOM   ;$402A
         LDA a040B
 _L00    CMP a040B
         BEQ _L00
@@ -6064,7 +6067,7 @@ _L00    CMP a040B
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Updates the Color RAM for current level
-SET_LEVEL_COLOR_RAM             ;s4033
+SET_LEVEL_COLOR_RAM             ;$4033
         LDA LEVEL_NR
         AND #$03     ;#%00000011
         TAX
@@ -6093,7 +6096,7 @@ _L01    STA fDB48,Y
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Setup VIC, plus status bar, scores, sprites, etc.
-SETUP_SCREEN            ;s4067
+SETUP_SCREEN            ;$4067
         LDA $D011    ;VIC Control Register 1
         AND #$F7     ;#%11110111        Rows to display = 24
         STA $D011    ;VIC Control Register 1
@@ -6144,10 +6147,10 @@ _L00    LDA STATUS_BAR_TXT,X
         STA $D026    ;Sprite Multi-Color Register 1
         RTS
 
-LEVEL_COLOR_RAM         ;f40DA
+LEVEL_COLOR_RAM         ;$40DA
         .BYTE $0D,$0E,$0D,$0D
 
-STATUS_BAR_TXT          ;f40DE
+STATUS_BAR_TXT          ;$40DE
         .BYTE $6D,$5D,$69,$6C,$5F,$20,$20,$20
         .BYTE $20,$20,$21,$21,$20,$20,$20,$3C
         .BYTE $3F,$21,$20,$20,$20,$67,$5F,$68
@@ -6155,7 +6158,7 @@ STATUS_BAR_TXT          ;f40DE
         .BYTE $63,$20,$20,$20,$20,$20,$21,$21
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-SETUP_IRQ           ;s4106
+SETUP_IRQ               ;$4106
         LDA #$DF     ;FIXME: Not a big deal, but should be $D5 instead
         STA $D012    ;Raster Position
         LDA $D011    ;VIC Control Register 1
