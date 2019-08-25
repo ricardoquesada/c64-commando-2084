@@ -71,7 +71,7 @@ fEFBA = $EFBA
 ; **** ABSOLUTE ADRESSES ****
 ;
 a0014 = $0014
-a0019 = $0019
+a0019 = $0019                           ; Stores current hero animation, but seems unused
 a001A = $001A
 a0022 = $0022
 a0023 = $0023
@@ -107,19 +107,19 @@ a00FD = $00FD
 a00FE = $00FE
 a0400 = $0400
 a0401 = $0401
-V_SCROLL_BIT_IDX = $0402
-V_SCROLL_ROW_IDX = $0403
+V_SCROLL_BIT_IDX = $0402                ;pixels scrolled vertically: 0-7
+V_SCROLL_ROW_IDX = $0403                ;index to the row in the level: 0 means end of scroll (top of map)
 V_SCROLL_DELTA = $0404                  ;How many pixels needs to get scrolled. $0: no scroll needed, $ff: -1 one pixel
 a0405 = $0405
 IRQ_ADDR_LO = $0406
 IRQ_ADDR_HI = $0407
 a040A = $040A
 a040B = $040B
-SPRITE_HERO_X_HI = $040D
+SPRITE_HERO_X_HI = $040D                ;MSB for X pos
 a040E = $040E
 a0411 = $0411
 SPRITES_X_HI = $0412
-SPRITE_HERO_X_LO = $041D
+SPRITE_HERO_X_LO = $041D                ;LSB for X pos
 a041E = $041E
 a0421 = $0421
 SPRITES_X_LO = $0422
@@ -154,7 +154,8 @@ a0492 = $0492
 COUNTER0 = $049D
 a04A0 = $04A0
 a04DF = $04DF
-a04E0 = $04E0
+HERO_ANIM_IDX = $04E0                           ;Type of animation for hero: left,right,up,down,diagoanlly,etc.
+                                                ; See: SOLDIER_ANIM_FRAMES_HI/LO
 a04E1 = $04E1
 BKG_COLOR0 = $04E2
 BKG_COLOR1 = $04E3
@@ -173,8 +174,8 @@ a04F1 = $04F1
 a04F2 = $04F2
 LEVEL_NR = $04F3
 a04F4 = $04F4
-IS_LEVEL_COMPLETE = $04F5       ;0: game in progress, 1:lvl complete (unused apparently)
-a04F7 = $04F7
+IS_LEVEL_COMPLETE = $04F5       ;0: game in progress, 1:lvl complete. Exit animation finished (unused apparently)
+IS_ANIM_EXIT_DOOR = $04F7       ;1: hero goes to exit door animation in progress
 SCORE_LSB = $04F8
 SCORE_MSB = $04F9
 a04FD = $04FD
@@ -182,7 +183,7 @@ GRENADES = $04FF
 LIVES = $0500
 a0501 = $0501
 a0502 = $0502
-IS_HERO_ALIVE = $0503           ;0: hero alive, 1:was shot, 2:fell down in trench
+IS_HERO_DEAD = $0503            ;0: hero alive, 1:was shot, 2:fell down in trench
 a0504 = $0504
 a0505 = $0505
 a050F = $050F
@@ -281,7 +282,8 @@ _L00    LDA RESET_ROUTINE,X
         INX
         CPX #$09     ;#%00001001
         BNE _L00
-        JSR s35AD
+
+        JSR SETUP_VIC_BANK
         JSR SET_SIGHT_SPRITE
         JSR s401D
         LDX #$10     ;#%00010000
@@ -355,10 +357,10 @@ _L00    INC a040A
         JSR s1BA9
         JSR s3641
 
-        LDA IS_HERO_ALIVE
+        LDA IS_HERO_DEAD
         BNE HERO_DIED
         JSR HANDLE_JOY2
-        LDA a04F7
+        LDA IS_ANIM_EXIT_DOOR
         BNE _L01
         JSR s100F
 _L01    LDA SPRITE_HERO_Y
@@ -390,8 +392,8 @@ _L03    JMP START_LEVEL
 
         ; Animate hero "is dead"
 HERO_DIED               ;b0953
-        LDA IS_HERO_ALIVE
-        CMP #$02     ;#%00000010
+        LDA IS_HERO_DEAD
+        CMP #$02     ;Died of fall in trench/water?
         BNE _L01
 
         ; Hero fell down in trench
@@ -1186,7 +1188,7 @@ b1011   LDA a0492,Y
         CMP SPRITES_Y,Y
         BCS b106E
         LDA #$01     ;Hero was shot
-        STA IS_HERO_ALIVE
+        STA IS_HERO_DEAD
         STA COUNTER1
         LDA #$04     ;#%00000100
         JSR s500F
@@ -3778,7 +3780,7 @@ b2CE1   LDA a04EF
         LDA #$3F     ;#%00111111
         STA a0504
         DEC a04EF
-        BNE b2CF7
+        BNE b2CF7       ;WFT?
 b2CF7   LDA LEVEL_NR
         AND #$03     ;#%00000011
         CMP #$03     ;#%00000011
@@ -4010,7 +4012,7 @@ s2EEB   LDA #$0C     ;#%00001100
         STA SPRITES_PTR04,X
         LDA #$02     ;#%00000010
         STA a0452,X
-        LDA IS_HERO_ALIVE
+        LDA IS_HERO_DEAD
         BNE b2F0A                               ;WTF
 b2F0A   RTS
 
@@ -4800,28 +4802,35 @@ s358E   LDA #$00     ;#%00000000
         STA SPRITES_PTR04,X
         RTS
 
-s35AD   LDA a01
-        AND #$FE     ;#%11111110
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+SETUP_VIC_BANK          ;s35AD
+        LDA a01
+        AND #$FE     ;#%11111110        Enable I/O
         STA a01
+
         LDA $DD02    ;CIA2: Data Direction Register A
-        ORA #$03     ;#%00000011
+        ORA #$03     ;#%00000011        Allow writing to $DD00 VIC bank
         STA $DD02    ;CIA2: Data Direction Register A
+
         LDA $DD00    ;CIA2: Data Port Register A
-        AND #$FC     ;#%11111100
+        AND #$FC     ;#%11111100        Set VIC bank: $C000-$FFFF
         STA $DD00    ;CIA2: Data Port Register A
+
         LDA $D018    ;VIC Memory Control Register
         AND #$0F     ;#%00001111
-        ORA #$80     ;#%10000000
+        ORA #$80     ;#%10000000        Set screen RAM to $E000
         STA $D018    ;VIC Memory Control Register
+
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s35CE   LDA a040A
         LDA a04E1
         AND #$0F     ;#%00001111
-        CMP a04E0
+        CMP HERO_ANIM_IDX
         BEQ b35EE
         SEC
-        SBC a04E0
+        SBC HERO_ANIM_IDX
         AND #$0F     ;#%00001111
         CMP #$08     ;#%00001000
         BCC b35EB
@@ -5146,7 +5155,7 @@ b389F   LDA #$00     ;#%00000000
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 TRY_THROW_GRENADE
-        LDA IS_HERO_ALIVE
+        LDA IS_HERO_DEAD
         BNE _SKIP
         LDA a04EF
         BNE _L00
@@ -5179,7 +5188,7 @@ _L00    LDA a0491
         STA a0491
         LDA #$00     ;#%00000000
         STA a04A0
-        STA a04E0
+        STA HERO_ANIM_IDX
         LDA #$A4     ;#%10100100
         STA SPRITES_PTR00
         SED
@@ -5275,12 +5284,13 @@ j39C9   LDA #$03     ;#%00000011
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Try fire shotgun ?
-s39E1   LDA IS_HERO_ALIVE
+s39E1   LDA IS_HERO_DEAD
         BNE b3A46
         LDA a04EF
         BNE _CHECK_FIRE
         LDA a04F4
         BEQ b3A46
+
 _CHECK_FIRE
         LDA $DC00    ;CIA1: Data Port Register A (riq: in-game fire)
         AND #$10     ;#%00010000
@@ -5323,57 +5333,65 @@ b3A46   LDA #$FF     ;#%11111111
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-j3A4C   LDA #$01     ;#%00000001
-        STA a04F7
+; Level complete. Open door and animate hero to go through the exit door
+HERO_START_ANIM_EXIT_DOOR          ;j3A4C
+        LDA #$01     ;#%00000001
+        STA IS_ANIM_EXIT_DOOR
         LDA #$02     ;Draw open door
         JSR LEVEL_PATCH_DOOR
         JSR LEVEL_DRAW_VIEWPORT
-b3A59   LDA SPRITE_HERO_X_HI
-        BNE b3A79
+
+HERO_ANIM_EXIT_DOOR     ;b3A59
+        LDA SPRITE_HERO_X_HI
+        BNE _L00
         LDA SPRITE_HERO_X_LO
         CMP #$AF     ;#%10101111
-        BEQ b3A8B
-        BCS b3A79
-        LDA #$04     ;#%00000100
-        STA a04E0
-        LDA #$02     ;#%00000010
+        BEQ _L01
+        BCS _L00
+
+        ; Right
+        LDA #$04     ;Hero right anim
+        STA HERO_ANIM_IDX
+        LDA #$02     ;2 pixels to the right
         STA SPRITE_HERO_DELTA_X
         LDA #$00     ;#%00000000
         STA SPRITE_HERO_DELTA_Y
-        JMP j3BAC
+        JMP SETUP_HERO_ANIMATION
 
-b3A79   LDA #$0C     ;#%00001100
-        STA a04E0
-        LDA #$FE     ;#%11111110
+        ; Left
+_L00    LDA #$0C     ;Hero left anim
+        STA HERO_ANIM_IDX
+        LDA #$FE     ;to pixels to the left
         STA SPRITE_HERO_DELTA_X
         LDA #$00     ;#%00000000
         STA SPRITE_HERO_DELTA_Y
-        JMP j3BAC
+        JMP SETUP_HERO_ANIMATION
 
-b3A8B   LDA #$00     ;#%00000000
+        ; Up
+_L01    LDA #$00     ;Hero up anim
         STA SPRITE_HERO_DELTA_X
-        STA a04E0
-        LDA #$FF     ;#%11111111
+        STA HERO_ANIM_IDX
+        LDA #$FF     ;1 pixel up
         STA SPRITE_HERO_DELTA_Y
         LDA SPRITE_HERO_Y
         CMP #$5A     ;Hero Y pos?
-        BEQ b3AA2
-        JMP j3BAC
+        BEQ _L02
+        JMP SETUP_HERO_ANIMATION
 
         ;Level complete. Hero animation going up done.
-b3AA2   LDA #$01
+_L02    LDA #$01
         STA IS_LEVEL_COMPLETE
-        JMP j3BAC
+        JMP SETUP_HERO_ANIMATION
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 HANDLE_JOY2         ;s3AAA
-        LDA a04F7
-        BNE b3A59
+        LDA IS_ANIM_EXIT_DOOR
+        BNE HERO_ANIM_EXIT_DOOR
         LDA a04EF
         BNE b3ABC
         LDA a04F4
         BNE b3ABC
-        JMP j3A4C
+        JMP HERO_START_ANIM_EXIT_DOOR
 
 b3ABC   LDA #$00     ;#%00000000
         STA SPRITE_HERO_DELTA_X
@@ -5383,8 +5401,8 @@ b3ABC   LDA #$00     ;#%00000000
         LDA $DC00    ;CIA1: Data Port Register A (riq: in-game up)
         AND #$01     ;#%00000001
         BNE b3B00
-        LDA #$00     ;#%00000000
-        STA a04E0
+        LDA #$00     ;Anim index for SOLDIER_ANIM_FRAMES (up)
+        STA HERO_ANIM_IDX
         LDA V_SCROLL_ROW_IDX
         BNE b3AEC
 
@@ -5410,8 +5428,8 @@ b3AFB   LDA #$FF     ;#%11111111
 b3B00   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game down)
         AND #$02     ;#%00000010
         BNE b3B18
-        LDA #$08     ;#%00001000
-        STA a04E0
+        LDA #$08     ;Anim index for SOLIDER_ANIM_FRAMES (down)
+        STA HERO_ANIM_IDX
         LDA SPRITE_HERO_Y
         CMP #$C1     ;#%11000001
         BCS b3B18
@@ -5421,8 +5439,8 @@ b3B00   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game down)
 b3B18   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game left)
         AND #$04     ;#%00000100
         BNE b3B35
-        LDA #$0C     ;#%00001100
-        STA a04E0
+        LDA #$0C     ;Anim index for SOLDIER_ANIM_FRAMES (left)
+        STA HERO_ANIM_IDX
         LDA SPRITE_HERO_X_HI
         BNE b3B30
         LDA SPRITE_HERO_X_LO
@@ -5434,8 +5452,8 @@ b3B30   LDA #$FE     ;#%11111110
 b3B35   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game right)
         AND #$08     ;#%00001000
         BNE b3B52
-        LDA #$04     ;#%00000100
-        STA a04E0
+        LDA #$04     ;Anim index for SOLDIER_ANIM_FRAMES (right)
+        STA HERO_ANIM_IDX
         LDA SPRITE_HERO_X_HI
         BEQ b3B4D
         LDA SPRITE_HERO_X_LO
@@ -5446,43 +5464,58 @@ b3B4D   LDA #$02     ;#%00000010
 
 b3B52   LDA $DC00    ;CIA1: Data Port Register A (riq: multiple directions)
         ORA #$10     ;#%00010000
-        CMP #$76     ;#%01110110
+        CMP #$76     ;#%01110110        up-right
         BNE b3B6A
-        LDX #$02     ;#%00000010
-        STX a04E0
+
+        LDX #$02     ;Anim index for SOLDIER_ANIM_FRAMES (up-right)
+        STX HERO_ANIM_IDX
         LDA #<HERO_FRAMES_UP_RIGHT  ;#%10111000
         STA a0019,b
         LDA #>HERO_FRAMES_UP_RIGHT  ;#%00111100
         STA a001A,b
-b3B6A   CMP #$75     ;#%01110101
+        ;FIXME: unintended fallthrough.
+        ;       a jump must be placed here
+
+b3B6A   CMP #$75     ;#%01110101        down-right
         BNE b3B7D
-        LDX #$06     ;#%00000110
-        STX a04E0
+        LDX #$06     ;Anim index for SOLDIER_ANIM_FRAMES (down-right)
+        STX HERO_ANIM_IDX
         LDA #<HERO_FRAMES_DOWN_RIGHT  ;#%10110000
         STA a0019,b
         LDA #>HERO_FRAMES_DOWN_RIGHT  ;#%00111100
         STA a001A,b
-b3B7D   CMP #$79     ;#%01111001
+        ;FIXME: unintended fallthrough.
+        ;       a jump must be placed here
+
+b3B7D   CMP #$79     ;#%01111001        down-left
         BNE b3B90
-        LDX #$0A     ;#%00001010
-        STX a04E0
+        LDX #$0A     ;Anim index for SOLDER_ANIM_FRAMES (down-left)
+        STX HERO_ANIM_IDX
         LDA #<HERO_FRAMES_DOWN_LEFT  ;#%10110100
         STA a0019,b
         LDA #>HERO_FRAMES_DOWN_LEFT  ;#%00111100
         STA a001A,b
-b3B90   CMP #$7A     ;#%01111010
+        ;FIXME: unintended fallthrough.
+        ;       a jump must be placed here
+
+b3B90   CMP #$7A     ;#%01111010        up-left
         BNE b3BA3
-        LDX #$0E     ;#%00001110
-        STX a04E0
+        LDX #$0E     ;Anim index for SOLDIER_ANIM_FRAMES (up-left)
+        STX HERO_ANIM_IDX
         LDA #<HERO_FRAMES_UP_LEFT  ;#%10111100
         STA a0019,b
         LDA #>HERO_FRAMES_UP_LEFT  ;#%00111100
         STA a001A,b
+
 b3BA3   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game direction changed)
         AND #$0F     ;#%00001111
         CMP #$0F     ;#%00001111
         BEQ b3BCC
-j3BAC   LDA a04E0
+
+        ; Fall-through
+
+SETUP_HERO_ANIMATION            ;j3BAC
+        LDA HERO_ANIM_IDX
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
         STA a00FB,b
@@ -5541,7 +5574,7 @@ b3BF8   PLA
         AND #$04     ;#%00000100
         BEQ b3C7D
         LDA #$02     ;Hero fell in trench/water
-        STA IS_HERO_ALIVE
+        STA IS_HERO_DEAD
         LDA #$04     ;#%00000100
         JSR s500F
         STA COUNTER1
@@ -5586,7 +5619,7 @@ b3C89   LDA #$00     ;#%00000000
         STA a043D
         RTS
 
-b3C8F   LDA a04F7
+b3C8F   LDA IS_ANIM_EXIT_DOOR
         BNE b3C9F
         LDA #$00     ;#%00000000
         STA SPRITE_HERO_DELTA_X
@@ -5614,8 +5647,14 @@ HERO_FRAMES_UP_LEFT
 ; These frames are shared by the hero and the regular enemies
 SOLDIER_ANIM_FRAMES_HI   =*+1           ;f3CC1
 SOLDIER_ANIM_FRAMES_LO                  ;f3CC0
-        .ADDR HERO_FRAMES_UP,HERO_FRAMES_UP_RIGHT,HERO_FRAMES_RIGHT,HERO_FRAMES_DOWN_RIGHT
-        .ADDR HERO_FRAMES_DOWN,HERO_FRAMES_DOWN_LEFT,HERO_FRAMES_LEFT,HERO_FRAMES_UP_LEFT
+        .ADDR HERO_FRAMES_UP
+        .ADDR HERO_FRAMES_UP_RIGHT
+        .ADDR HERO_FRAMES_RIGHT
+        .ADDR HERO_FRAMES_DOWN_RIGHT
+        .ADDR HERO_FRAMES_DOWN
+        .ADDR HERO_FRAMES_DOWN_LEFT
+        .ADDR HERO_FRAMES_LEFT
+        .ADDR HERO_FRAMES_UP_LEFT
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Set castle on fire animation (when you beat the game)
@@ -5749,8 +5788,8 @@ _L00    LDA #$64     ;#%01100100
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; TODO: Something related to level clean-up / setup
-;       Called when player lost a life?
+; Setup up lvl: hero position, patches door to closed, patches turrets to restored,
+; min grenades is 5, and more
 SETUP_LEVEL             ;s3DFE
         JSR s3DD3
         LDA #$97     ;#%10010111
@@ -5766,9 +5805,9 @@ SETUP_LEVEL             ;s3DFE
         STA SPRITE_HERO_DELTA_X
         STA SPRITE_HERO_DELTA_Y
         STA a04E1
-        STA a04E0
+        STA HERO_ANIM_IDX
         STA a043D
-        STA IS_HERO_ALIVE
+        STA IS_HERO_DEAD
         LDA LEVEL_NR
         AND #$03     ;#%00000011
         ASL A
@@ -5794,7 +5833,7 @@ _L01    STA V_SCROLL_ROW_IDX
         LDA #$00     ;Closed door
         JSR LEVEL_PATCH_DOOR
         LDA #$00
-        STA a04F7
+        STA IS_ANIM_EXIT_DOOR
         STA a04FD
 
         ;Draw Left turret at row 56 ($88c0) in lvl 2
