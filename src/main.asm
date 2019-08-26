@@ -26,10 +26,10 @@ aE6 = $E6
 ;
 ; **** ZP POINTERS ****
 ;
-p22 = $22
-p24 = $24                       ;Points to list of rows
-p26 = $26
-p28 = $28
+p22 = $22                       ;sprite to create: X lo
+p24 = $24                       ;rows that trigger sprite class init
+p26 = $26                       ;sprite to create: X hi
+p28 = $28                       ;what sprite class to create at row
 p2A = $2A
 p5D = $5D
 p5F = $5F
@@ -162,7 +162,7 @@ BKG_COLOR1 = $04E3
 BKG_COLOR2 = $04E4
 COUNTER1 = $04E6
 a04E7 = $04E7
-a04E8 = $04E8
+TRIGGER_ROW_IDX = $04E8         ;If == to row index, create sprite class
 a04E9 = $04E9
 a04EA = $04EA
 a04EC = $04EC
@@ -1256,7 +1256,7 @@ _L02    TXA
 _L03    INY
         JMP _L00
 
-_L04    STY a04E8
+_L04    STY TRIGGER_ROW_IDX
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -1636,10 +1636,10 @@ f14B3   .ADDR LVL1_SPRITE_X_HI_TBL
         .ADDR LVL3_SPRITE_X_HI_TBL
         .ADDR LVL3_SPRITE_X_HI_TBL
 f14BC   =*+1
-f14BB   .ADDR f1CB7
-        .ADDR f1D40
-        .ADDR f1E2C
-        .ADDR f1E2C
+f14BB   .ADDR LVL1_SPRITE_CLASS_PER_ROW
+        .ADDR LVL2_SPRITE_CLASS_PER_ROW
+        .ADDR LVL3_SPRITE_CLASS_PER_ROW
+        .ADDR LVL3_SPRITE_CLASS_PER_ROW
 f14C4   =*+1
 f14C3   .ADDR f17A9
         .ADDR f18A9
@@ -1866,6 +1866,7 @@ b1744   STA a00FB,b
         STA a00FD,b
         RTS
 
+        ;Level 1 data. Used by ($2A)
 f17A9   .BYTE $00,$02,$02,$02,$02,$02,$02,$02
         .BYTE $02,$02,$02,$02,$02,$02,$02,$02
         .BYTE $02,$02,$00,$00,$00,$02,$02,$00
@@ -1898,6 +1899,8 @@ f17A9   .BYTE $00,$02,$02,$02,$02,$02,$02,$02
         .BYTE $01,$01,$01,$01,$01,$01,$01,$01
         .BYTE $02,$01,$01,$01,$01,$03,$02,$01
         .BYTE $03,$02,$01,$03,$00,$01,$01,$00
+
+        ;Level 2 data. Used by ($2A)
 f18A9   .BYTE $00,$04,$04,$04,$04,$04,$04,$04
         .BYTE $04,$04,$04,$04,$04,$04,$04,$04
         .BYTE $02,$02,$02,$02,$02,$02,$00,$00
@@ -1962,6 +1965,8 @@ f18A9   .BYTE $00,$04,$04,$04,$04,$04,$04,$04
         .BYTE $01,$01,$01,$01,$01,$01,$01,$01
         .BYTE $02,$01,$01,$01,$01,$03,$02,$01
         .BYTE $03,$02,$01,$03,$00,$01,$01,$00
+
+        ;Level 3 data. Used by ($2A)
 f1AA9   .BYTE $00,$02,$02,$02,$02,$02,$02,$02
         .BYTE $02,$02,$00,$02,$02,$02,$02,$00
         .BYTE $00,$02,$00,$00,$00,$02,$02,$02
@@ -1997,14 +2002,17 @@ f1AA9   .BYTE $00,$02,$02,$02,$02,$02,$02,$02
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Which sprites to create acoording to the scroll Y position
+; It supports multiple rows with the same value, but it seems to be limited
+; to 8 (since 8 pixels per row).
+; TODO: find out the limitation
 NEW_SPRITE_IF_NEEDED   ;$1BA9
-        LDY a04E8
+        LDY TRIGGER_ROW_IDX
         LDA (p24),Y
         CMP V_SCROLL_ROW_IDX
         BEQ _L00
         RTS
 
-_L00    INC a04E8
+_L00    INC TRIGGER_ROW_IDX
 
         ; Try to find an empty seat, when class is 0
         LDX #$0A     ;#%00001010
@@ -2062,8 +2070,11 @@ _L04    STY a00FD,b
 
 INIT_CLASS_TBL_HI = *+1         ;$1C07
 INIT_CLASS_TBL_LO               ;$1C06
-        .ADDR s2271,s22E4,s2329,s223C
-        .ADDR CLASS_INIT_BIKE
+        .ADDR s2271                     ;$00
+        .ADDR s22E4                     ;$01
+        .ADDR s2329                     ;$02
+        .ADDR s223C                     ;$03
+        .ADDR CLASS_INIT_BIKE           ;$04
         .ADDR s2190,s215F,s212F
         .ADDR s236E,s2385,s20F6,s1E61
         .ADDR s23CC,s20B1,s22A9,s2053
@@ -2071,7 +2082,7 @@ INIT_CLASS_TBL_LO               ;$1C06
         .ADDR s1EED,s1EAF,s1F5F,s1E73
         .ADDR s1E66,s1E58,s1E4F,s1E4E
 
-; Rows for lvl 1
+; Level 1 data
 LVL1_TRIGGER_ROW_TBL    ;$1C3E
         .BYTE $9E,$9B,$98,$90,$8E,$84,$81,$7E
         .BYTE $7B,$7B,$7B,$66,$64,$5B,$5B,$57
@@ -2091,13 +2102,14 @@ LVL1_SPRITE_X_HI_TBL    ;$1C8F
         .BYTE $00,$58,$00,$00,$58,$00,$00,$00
         .BYTE $00,$FF,$00,$00,$FF,$FF,$00,$00
         .BYTE $00,$00,$00,$FF,$FF,$00,$00,$00
-f1CB7   .BYTE $01,$01,$01,$00,$07,$02,$02,$02
+LVL1_SPRITE_CLASS_PER_ROW       ;$1CB7
+        .BYTE $01,$01,$01,$00,$07,$02,$02,$02
         .BYTE $05,$06,$05,$03,$07,$04,$0C,$08
         .BYTE $0C,$09,$00,$00,$08,$00,$00,$00
         .BYTE $00,$00,$00,$07,$00,$00,$00,$07
         .BYTE $00,$00,$00,$00,$07,$0B,$0D,$1B
 
-; Rows for lvl 2
+; Level 2 data
 LVL2_TRIGGER_ROW_TBL    ;$1CDF
         .BYTE $A5,$A2,$9D,$9B,$9B,$96,$95,$95
         .BYTE $93,$8C,$8C,$8A,$88,$83,$7B,$7B
@@ -2114,10 +2126,13 @@ LVL2_SPRITE_X_HI_TBL    ;$1D20
         .BYTE $00,$00,$00,$FF,$FF,$00,$00,$00
         .BYTE $FF,$00,$00,$00,$63,$63,$00,$00
         .BYTE $00,$3F,$00,$00,$00,$00,$00,$00
-f1D40   .BYTE $15,$07,$0E,$16,$0E,$13,$0E,$0E
+LVL2_SPRITE_CLASS_PER_ROW       ;$1D40
+        .BYTE $15,$07,$0E,$16,$0E,$13,$0E,$0E
         .BYTE $0E,$0E,$0E,$07,$0E,$0E,$0E,$0E
         .BYTE $0E,$0E,$07,$0C,$08,$09,$12,$11
         .BYTE $0E,$09,$0F,$0C,$10,$0F,$0B,$1B
+
+        ; TODO: unk. unused (?). investigate
         .BYTE $C6,$C4,$B5,$B4,$A7,$9D,$97,$95
         .BYTE $87,$81,$68,$68,$5E,$5E,$50,$4B
         .BYTE $3C,$36,$32,$28,$09,$09,$01,$00
@@ -2132,7 +2147,7 @@ f1D40   .BYTE $15,$07,$0E,$16,$0E,$13,$0E,$0E
         .BYTE $08,$09,$14,$14,$16,$13,$16,$16
         .BYTE $03,$1A,$0B,$0D,$1B
 
-; Rows for lvl 3
+; Level 3 data
 LVL3_TRIGGER_ROW_TBL    ;$1DC5
         .BYTE $B4,$B3,$A4,$A3,$92,$8B,$8B,$83
         .BYTE $77,$74,$73,$61,$60,$5D,$58,$53
@@ -2151,7 +2166,8 @@ LVL3_SPRITE_X_HI_TBL    ;$1E0A
         .BYTE $00,$00,$FF,$FF,$00,$00,$00,$00
         .BYTE $00,$00,$FF,$00,$00,$00,$FF,$00
         .BYTE $00,$00
-f1E2C   .BYTE $12,$11,$12,$12,$11,$00,$00,$07
+LVL3_SPRITE_CLASS_PER_ROW       ;$1E2C
+        .BYTE $12,$11,$12,$12,$11,$00,$00,$07
         .BYTE $13,$11,$12,$13,$12,$14,$14,$11
         .BYTE $12,$12,$07,$19,$11,$12,$11,$12
         .BYTE $12,$12,$07,$11,$11,$00,$00,$00
