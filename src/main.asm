@@ -71,7 +71,7 @@ fEFBA = $EFBA
 ; **** ABSOLUTE ADRESSES ****
 ;
 a0014 = $0014
-a0019 = $0019                           ; Stores current hero animation, but seems unused
+a0019 = $0019                   ;Stores current hero animation, but seems unused
 a001A = $001A
 a0022 = $0022
 a0023 = $0023
@@ -162,7 +162,7 @@ BKG_COLOR1 = $04E3
 BKG_COLOR2 = $04E4
 COUNTER1 = $04E6
 a04E7 = $04E7
-TRIGGER_ROW_IDX = $04E8         ;If == to row index, create sprite class
+TRIGGER_ROW_IDX = $04E8         ;If equal to row index, create object
 a04E9 = $04E9
 a04EA = $04EA
 a04EC = $04EC
@@ -1208,10 +1208,12 @@ f1074   .BYTE $00,$00,$00,$00,$00,$01,$00,$00
         .BYTE $01,$01,$01,$01,$01,$01,$00
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; TODO: Update sprites -Y post while scrolling?
-s109B   LDY #$00     ;#%00000000
-_L00    LDA (p24),Y
-        CMP #$FF     ;#%11111111
+; Recreate enemies based on the row index. Called when the level is restared.
+; E.g: after losing a life.
+REINIT_OBJS             ;$109B   
+        LDY #$00     ;#%00000000
+_L00    LDA (p24),Y  ;End of trigger-rows?
+        CMP #$FF
         BEQ _L04
         CMP V_SCROLL_ROW_IDX
         BCC _L04
@@ -1220,13 +1222,15 @@ _L00    LDA (p24),Y
         CMP V_SCROLL_ROW_IDX
         BCS _L03
         STY a00FD,b
-        LDA (p28),Y
+        LDA (p28),Y     ;Object to init
         ASL A
         TAY
-        LDA INIT_CLASS_TBL_LO,Y
+        LDA INIT_OBJ_TBL_LO,Y   ;Prepare jump table for object creation
         STA a00FB,b
-        LDA INIT_CLASS_TBL_HI,Y
+        LDA INIT_OBJ_TBL_HI,Y
         STA a00FC,b
+
+        ; Find empty seat
         LDX #$00     ;#%00000000
 _L01    LDA SPRITES_CLASS05,X
         BEQ _L02
@@ -1237,11 +1241,12 @@ _L01    LDA SPRITES_CLASS05,X
 
 _L02    TXA
         PHA
-        JSR s24EF
+        JSR JMP_FB
         PLA
         TAX
+
         LDY a00FD,b
-        LDA (p24),Y
+        LDA (p24),Y     ; trigger row
         SEC
         SBC V_SCROLL_ROW_IDX
         ASL A
@@ -1636,10 +1641,10 @@ f14B3   .ADDR LVL1_SPRITE_X_HI_TBL
         .ADDR LVL3_SPRITE_X_HI_TBL
         .ADDR LVL3_SPRITE_X_HI_TBL
 f14BC   =*+1
-f14BB   .ADDR LVL1_SPRITE_CLASS_PER_ROW
-        .ADDR LVL2_SPRITE_CLASS_PER_ROW
-        .ADDR LVL3_SPRITE_CLASS_PER_ROW
-        .ADDR LVL3_SPRITE_CLASS_PER_ROW
+f14BB   .ADDR LVL1_OBJ_TBL
+        .ADDR LVL2_OBJ_TBL
+        .ADDR LVL3_OBJ_TBL
+        .ADDR LVL3_OBJ_TBL
 f14C4   =*+1
 f14C3   .ADDR f17A9
         .ADDR f18A9
@@ -2002,7 +2007,7 @@ f1AA9   .BYTE $00,$02,$02,$02,$02,$02,$02,$02
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Which sprites to create acoording to the scroll Y position
-; It supports multiple rows with the same value, but it seems to be limited
+; It supports multiple sprites per row, but it seems to be limited
 ; to 8 (since 8 pixels per row).
 ; TODO: find out the limitation
 NEW_SPRITE_IF_NEEDED   ;$1BA9
@@ -2056,26 +2061,31 @@ _L03    LDA SPRITES_CLASS05,X
         ; It might be possible that a new sprite cannot be alloced
         RTS
 
-        ; Init new sprite class
+        ; Init new object.
+        ; At least one seat is available for the sprite but it might be possible
+        ; that the new object requires more than one  sprite (like the bike that
+        ; requires 2).
+        ; The obj idx does not correspond to the sprite class idx.
 
 _L04    STY a00FD,b
         LDA (p28),Y
         ASL A
         TAY
-        LDA INIT_CLASS_TBL_LO,Y
+        LDA INIT_OBJ_TBL_LO,Y
         STA a00FB,b
-        LDA INIT_CLASS_TBL_HI,Y
+        LDA INIT_OBJ_TBL_HI,Y
         STA a00FC,b
         JMP (a00FB)
 
-INIT_CLASS_TBL_HI = *+1         ;$1C07
-INIT_CLASS_TBL_LO               ;$1C06
+INIT_OBJ_TBL_HI = *+1         ;$1C07
+INIT_OBJ_TBL_LO               ;$1C06
         .ADDR s2271                     ;$00
         .ADDR s22E4                     ;$01
         .ADDR s2329                     ;$02
         .ADDR s223C                     ;$03
-        .ADDR CLASS_INIT_BIKE           ;$04
-        .ADDR s2190,s215F,s212F
+        .ADDR OBJ_INIT_BIKE             ;$04
+        .ADDR s2190                     ;$05
+        .ADDR s215F,s212F
         .ADDR s236E,s2385,s20F6,s1E61
         .ADDR s23CC,s20B1,s22A9,s2053
         .ADDR s2082,s2001,s201d,s1F8F
@@ -2102,7 +2112,7 @@ LVL1_SPRITE_X_HI_TBL    ;$1C8F
         .BYTE $00,$58,$00,$00,$58,$00,$00,$00
         .BYTE $00,$FF,$00,$00,$FF,$FF,$00,$00
         .BYTE $00,$00,$00,$FF,$FF,$00,$00,$00
-LVL1_SPRITE_CLASS_PER_ROW       ;$1CB7
+LVL1_OBJ_TBL            ;$1CB7
         .BYTE $01,$01,$01,$00,$07,$02,$02,$02
         .BYTE $05,$06,$05,$03,$07,$04,$0C,$08
         .BYTE $0C,$09,$00,$00,$08,$00,$00,$00
@@ -2126,7 +2136,7 @@ LVL2_SPRITE_X_HI_TBL    ;$1D20
         .BYTE $00,$00,$00,$FF,$FF,$00,$00,$00
         .BYTE $FF,$00,$00,$00,$63,$63,$00,$00
         .BYTE $00,$3F,$00,$00,$00,$00,$00,$00
-LVL2_SPRITE_CLASS_PER_ROW       ;$1D40
+LVL2_OBJ_TBL            ;$1D40
         .BYTE $15,$07,$0E,$16,$0E,$13,$0E,$0E
         .BYTE $0E,$0E,$0E,$07,$0E,$0E,$0E,$0E
         .BYTE $0E,$0E,$07,$0C,$08,$09,$12,$11
@@ -2166,7 +2176,7 @@ LVL3_SPRITE_X_HI_TBL    ;$1E0A
         .BYTE $00,$00,$FF,$FF,$00,$00,$00,$00
         .BYTE $00,$00,$FF,$00,$00,$00,$FF,$00
         .BYTE $00,$00
-LVL3_SPRITE_CLASS_PER_ROW       ;$1E2C
+LVL3_OBJ_TBL            ;$1E2C
         .BYTE $12,$11,$12,$12,$11,$00,$00,$07
         .BYTE $13,$11,$12,$13,$12,$14,$14,$11
         .BYTE $12,$12,$07,$19,$11,$12,$11,$12
@@ -2535,6 +2545,8 @@ s215F   LDY a00FD,b
         STX a04ED
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Create sprite class $11
 s2190   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_LO_X05,X
@@ -2556,8 +2568,11 @@ s2190   LDY a00FD,b
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Init class bike. From lvl1, the one that crosses the bridge
-CLASS_INIT_BIKE         ;$21C1
+; Init object bike (sprite classes $0f and $10)
+; From lvl1, the one that crosses the bridge
+; This object requires two different class sprites: front and back bike.
+; Creates the back one only if there is space for it.
+OBJ_INIT_BIKE         ;$21C1
         LDA #$20     ;#%00100000
         STA SPRITES_LO_X05,X
         LDA #$21     ;#%00100001
@@ -2574,8 +2589,11 @@ CLASS_INIT_BIKE         ;$21C1
         STA SPRITES_DELTA_Y05,X
         STA f04B7,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$0F     ;#%00001111
+        LDA #$0F
         STA SPRITES_CLASS05,X
+
+        ; If there is additional room, create the back bike class sprite
+        ; as well.
         LDY #$00     ;#%00000000
 _L00    LDA SPRITES_CLASS05,Y
         BEQ _L01
@@ -2617,6 +2635,7 @@ b2231   LDA SPRITES_CLASS05,Y
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Create sprite class: $0D
 s223C   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_LO_X05,X
@@ -2640,6 +2659,7 @@ s223C   LDY a00FD,b
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Create sprite class: $07
 s2271   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_LO_X05,X
@@ -2663,6 +2683,8 @@ s2271   LDY a00FD,b
         STA SPRITES_CLASS05,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Create sprite class: $1C
 s22A9   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_LO_X05,X
@@ -2688,6 +2710,7 @@ s22A9   LDY a00FD,b
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Create sprite class: $0A
 s22E4   LDY a00FD,b
         LDA #$9F     ;#%10011111
         SEC
@@ -2721,6 +2744,7 @@ s22E4   LDY a00FD,b
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Create sprite class: $0A
 s2329   LDY a00FD,b
         LDA #$86     ;#%10000110
         SEC
@@ -2824,7 +2848,7 @@ s2405   TYA
         PHA
         LDA SPRITES_CLASS05,Y
         TAY
-        LDA f256D,Y
+        LDA POINTS_TBL,Y
         JSR SCORE_ADD
         PLA
         TAY
@@ -2897,6 +2921,7 @@ b2490   TXA
 
 b24A2   LDA #$06     ;#%00000110
         STA SPRITES_CLASS05,Y
+
 j24A7   LDA #$00     ;#%00000000
         STA f04B7,Y
         STA SPRITES_DELTA_X05,Y
@@ -2908,18 +2933,18 @@ j24A7   LDA #$00     ;#%00000000
 ANIM_ENEMIES    ;$24B3
         LDX #$00     ;#%00000000
         STX a04F4
-b24B8   LDA SPRITES_Y05,X
+_L00    LDA SPRITES_Y05,X
         CMP #$1E     ;#%00011110
-        BCC b24CF
+        BCC _L01
         CMP #$C2     ;#%11000010
-        BCS b24CF
+        BCS _L01
         LDA SPRITES_LO_X05,X
         CMP #$5B     ;#%01011011
-        BCC b24D2
+        BCC _L02
         LDA SPRITES_HI_X05,X
-        BEQ b24D2
-b24CF   JSR s358E
-b24D2   LDA SPRITES_CLASS05,X
+        BEQ _L02
+_L01    JSR s358E
+_L02    LDA SPRITES_CLASS05,X
         ASL A
         TAY
         LDA ANIM_CLASS_TBL_LO,Y
@@ -2927,13 +2952,14 @@ b24D2   LDA SPRITES_CLASS05,X
         LDA ANIM_CLASS_TBL_HI,Y
         STA a00FC,b
         INC a04E7
-        JSR s24EF
+        JSR JMP_FB
         INX
         CPX #$0B     ;#%00001011
-        BNE b24B8
+        BNE _L00
         RTS
 
-s24EF   JMP (a00FB)
+JMP_FB              ;$24EF
+        JMP (a00FB)
 
         ; Anim class table
 ANIM_CLASS_TBL_HI =*+1
@@ -2987,7 +3013,9 @@ f2544   .BYTE $00,$00,$00,$00,$00,$03,$00,$02
         .BYTE $03,$00,$00,$02,$02,$00,$00,$02
         .BYTE $02
 
-f256D   .BYTE $00,$00,$00,$00,$00,$03,$00,$03
+        ; Points to score for each sprite class killed
+POINTS_TBL      ;$256D   
+        .BYTE $00,$00,$00,$00,$00,$03,$00,$03
         .BYTE $00,$00,$03,$00,$00,$05,$00,$00
         .BYTE $00,$0A,$00,$00,$00,$03,$00,$03
         .BYTE $03,$03,$14,$03,$02,$00,$0A,$00
@@ -2997,6 +3025,7 @@ f256D   .BYTE $00,$00,$00,$00,$00,$03,$00,$03
 f2596
 s2596   RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s2597   INC f04B7,X
         LDA a04EA
         BEQ b25C4
@@ -6020,7 +6049,7 @@ _L02    LDA #$00
         BNE _L02
 
         JSR s3F24
-        JSR s109B
+        JSR REINIT_OBJS
 
         ; Make sure player has at least 5 grenades
         LDA GRENADES
