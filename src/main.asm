@@ -123,14 +123,14 @@ SPRITES_LO_X00 = $041D                ;LSB for X pos
 SPRITES_LO_X01 = $041E
 SPRITES_LO_X03 = $0421
 SPRITES_LO_X04 = $0422
-SPRITES_POS_Y00 = $042D
-SPRITES_POS_Y01 = $042E
-SPRITES_POS_Y03 = $0431
-SPRITES_POS_Y04 = $0432
-a043D = $043D
-a043E = $043E
-a0441 = $0441
-a0442 = $0442
+SPRITES_Y00 = $042D
+SPRITES_Y01 = $042E
+SPRITES_Y03 = $0431
+SPRITES_Y04 = $0432
+SPRITES_BKG_PRI00 = $043D
+SPRITES_BKG_PRI01 = $043E
+SPRITES_BKG_PRI03 = $0441
+SPRITES_BKG_PRI04 = $0442
 SPRITES_COLOR00 = $044D                 ;primary color of sprite
 SPRITES_COLOR01 = $044E
 SPRITES_COLOR03 = $0451
@@ -147,10 +147,10 @@ SPRITES_DELTA_Y00 = $047D             ;pixels to move vertically for hero (neg o
 SPRITES_DELTA_Y01 = $047E
 SPRITES_DELTA_Y03 = $0481
 SPRITES_DELTA_Y04 = $0482
-a048D = $048D
-a048E = $048E
-a0491 = $0491
-a0492 = $0492
+SPRITES_CLASS00 = $048D
+SPRITES_CLASS01 = $048E
+SPRITES_CLASS03 = $0491
+SPRITES_CLASS05 = $0492
 COUNTER0 = $049D
 a04A0 = $04A0
 FIRE_COOLDOWN = $04DF           ;reset with $ff
@@ -363,7 +363,7 @@ _L00    INC a040A
         LDA IS_ANIM_EXIT_DOOR
         BNE _L01
         JSR s100F
-_L01    LDA SPRITES_POS_Y00
+_L01    LDA SPRITES_Y00
         CMP #$5A     ;#%01011010
         BNE GAME_LOOP
 
@@ -619,7 +619,7 @@ b0B11   STA a00FB,b
         STA a00FC,b
         STA a00FD,b
         STA a00FE,b
-        LDA SPRITES_POS_Y04
+        LDA SPRITES_Y04
         AND #$F0     ;#%11110000
         SEC
         SBC #$2E     ;#%00101110
@@ -680,7 +680,7 @@ s0B94   LDA #$64     ;#%01100100
         STA SPRITES_LO_X04
         LDA #$64     ;#%01100100
         AND #$F0     ;#%11110000
-        STA SPRITES_POS_Y04
+        STA SPRITES_Y04
         LDA #$00     ;#%00000000
         STA SPRITES_HI_X04
         LDA #$41     ;#%01000001
@@ -688,13 +688,13 @@ s0B94   LDA #$64     ;#%01100100
         LDA #$02     ;red
         STA SPRITES_COLOR04
         LDA #$FF     ;#%11111111
-        STA a0442
+        STA SPRITES_BKG_PRI04
         LDA #$01     ;#%00000001
-        STA a0492
+        STA SPRITES_CLASS05
         LDA SPRITES_LO_X04
         STA SPRITES_LO_X00
         LDA #$B4     ;#%10110100
-        STA SPRITES_POS_Y00
+        STA SPRITES_Y00
         LDA #$00     ;#%00000000
         STA SPRITES_HI_X00
         LDA #$98     ;#%10011000
@@ -702,9 +702,9 @@ s0B94   LDA #$64     ;#%01100100
         LDA #$06     ;blue
         STA SPRITES_COLOR00
         LDA #$00     ;#%00000000
-        STA a043D
+        STA SPRITES_BKG_PRI00
         LDA #$01     ;#%00000001
-        STA a048D
+        STA SPRITES_CLASS00
         LDX #$07     ;#%00000111
         LDA #$00     ;#%00000000
 b0BE3   STA f0506,X
@@ -729,7 +729,7 @@ HISCORE_READ_JOY
         LDA $DC00    ;CIA1: Data Port Register A  (riq: enter high score)
         AND #$01     ;#%00000001
         BNE b0C1D
-        LDA SPRITES_POS_Y04
+        LDA SPRITES_Y04
         CMP #$64     ;#%01100100
         BCC b0C1D
         LDA #$FE     ;#%11111110
@@ -737,7 +737,7 @@ HISCORE_READ_JOY
 b0C1D   LDA $DC00    ;CIA1: Data Port Register A (riq: enter high score)
         AND #$02     ;#%00000010
         BNE b0C30
-        LDA SPRITES_POS_Y04
+        LDA SPRITES_Y04
         CMP #$78     ;#%01111000
         BCS b0C30
         LDA #$02     ;#%00000010
@@ -776,7 +776,7 @@ s0C6F   LDA SPRITES_LO_X04
         BNE b0C7B
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X04
-b0C7B   LDA SPRITES_POS_Y04
+b0C7B   LDA SPRITES_Y04
         AND #$0F     ;#%00001111
         BNE b0C87
         LDA #$00     ;#%00000000
@@ -856,13 +856,13 @@ f0D09   .BYTE $20,$20,$20,$20,$20,$75,$75,$75
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s0D59   LDA a0505
         BEQ b0D81
-        LDA SPRITES_POS_Y01
+        LDA SPRITES_Y01
         CMP COUNTER0
         BCC b0D67
         RTS
 
 b0D67   LDA #$00     ;#%00000000
-        STA a048E
+        STA SPRITES_CLASS01
         STA a0505
         LDA #$FF     ;Emtpy sprite
         STA SPRITES_PTR01
@@ -884,19 +884,19 @@ b0D89   LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y01
         LDA SPRITES_LO_X00
         STA SPRITES_LO_X01
-        LDA SPRITES_POS_Y00
-        STA SPRITES_POS_Y01
+        LDA SPRITES_Y00
+        STA SPRITES_Y01
         LDA SPRITES_HI_X00
         STA SPRITES_HI_X01
         LDA #$01     ;#%00000001
-        STA a048E
+        STA SPRITES_CLASS01
         LDA #$90     ;Bullet frame
         STA SPRITES_PTR01
-        STA a043E
+        STA SPRITES_BKG_PRI01
         LDA #$01     ;white
         STA SPRITES_COLOR01
         STA a0505
-        LDA SPRITES_POS_Y04
+        LDA SPRITES_Y04
         STA COUNTER0
         LDA a0510
         LDY #$00     ;#%00000000
@@ -1083,7 +1083,7 @@ SCREEN_MAIN_TITLE
         STA $D017    ;Sprites Expand 2x Vertical (Y)
         LDX #$00     ;#%00000000
 _L00    LDA #$48     ;Sprite Y position
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA _MS_SPRITES_LO_X04,X
         STA SPRITES_LO_X04,X
         LDA _MS_SPRITES_PTR04,X
@@ -1094,11 +1094,11 @@ _L00    LDA #$48     ;Sprite Y position
         STA SPRITES_DELTA_X04,X
         STA SPRITES_DELTA_Y04,X
         LDA #$10     ;#%00010000
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         LDA #$08     ;orange
         STA SPRITES_COLOR04,X
         LDA #$00     ;#%00000000
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         INX
         CPX #$07     ;total number of sprites
         BNE _L00
@@ -1157,7 +1157,7 @@ _SCROLL_IDX     ;$1008
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s100F   LDY #$00     ;#%00000000
-b1011   LDA a0492,Y
+b1011   LDA SPRITES_CLASS05,Y
         STY a00FB,b
         TAY
         LDA f1074,Y
@@ -1177,15 +1177,15 @@ b1011   LDA a0492,Y
         SBC #$04     ;#%00000100
         CMP SPRITES_LO_X04,Y
         BCS b106E
-        LDA SPRITES_POS_Y00
+        LDA SPRITES_Y00
         CLC
         ADC #$08     ;#%00001000
-        CMP SPRITES_POS_Y04,Y
+        CMP SPRITES_Y04,Y
         BCC b106E
-        LDA SPRITES_POS_Y00
+        LDA SPRITES_Y00
         SEC
         SBC #$08     ;#%00001000
-        CMP SPRITES_POS_Y04,Y
+        CMP SPRITES_Y04,Y
         BCS b106E
         LDA #$01     ;Hero was shot
         STA IS_HERO_DEAD
@@ -1228,7 +1228,7 @@ _L00    LDA (p24),Y
         LDA f1C07,Y
         STA a00FC,b
         LDX #$00     ;#%00000000
-_L01    LDA a0492,X
+_L01    LDA SPRITES_CLASS05,X
         BEQ _L02
         INX
         CPX #$0B     ;#%00001011
@@ -1249,9 +1249,9 @@ _L02    TXA
         ASL A
         CLC
         ADC #$2B     ;#%00101011
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDY f04A1,X
-        STA SPRITES_POS_Y04,Y
+        STA SPRITES_Y04,Y
         LDY a00FD,b
 _L03    INY
         JMP _L00
@@ -1563,7 +1563,7 @@ SCREEN_REFRESH_LIVES
         RTS
 
         LDX #$0F     ;#%00001111
-b142B   LDA SPRITES_POS_Y00,X
+b142B   LDA SPRITES_Y00,X
         STA f04C2,X
         DEX
         BPL b142B
@@ -1983,17 +1983,17 @@ s1BA9   LDY a04E8
 
 b1BB4   INC a04E8
         LDX #$0A     ;#%00001010
-b1BB9   LDA a0492,X
+b1BB9   LDA SPRITES_CLASS05,X
         BEQ b1BF0
         DEX
         BPL b1BB9
         LDX #$0A     ;#%00001010
-b1BC3   LDA a0492,X
+b1BC3   LDA SPRITES_CLASS05,X
         BEQ b1BF0
         DEX
         BPL b1BC3
         LDX #$0A     ;#%00001010
-b1BCD   LDA a0492,X
+b1BCD   LDA SPRITES_CLASS05,X
         CMP #$08     ;#%00001000
         BEQ b1BF0
         CMP #$09     ;#%00001001
@@ -2112,12 +2112,12 @@ s1E4E   RTS
 
 s1E4F   JSR s223C
         LDA #$28     ;#%00101000
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         RTS
 
 s1E58   JSR s2271
         LDA #$27     ;#%00100111
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         RTS
 
 s1E61   LDA #$02     ;Draw open door
@@ -2137,7 +2137,7 @@ j1E7D   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_LO_X04,X
         LDA #$28     ;#%00101000
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR04,X
         LDA (p26),Y
@@ -2148,9 +2148,9 @@ j1E7D   LDY a00FD,b
         JSR s4006
         STA f04B7,X
         LDA #$FF     ;#%11111111
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$26     ;#%00100110
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         RTS
 
 f1EAD   .BYTE $78,$D2
@@ -2161,7 +2161,7 @@ s1EAF   JSR s4006
         LDA f1EAD,Y
         STA SPRITES_LO_X04,X
         LDA #$B8     ;#%10111000
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$FE     ;#%11111110
         STA SPRITES_DELTA_Y04,X
         LDA #$F3     ;#%11110011
@@ -2170,13 +2170,13 @@ s1EAF   JSR s4006
         STA SPRITES_COLOR04,X
         LDA #$00     ;#%00000000
         STA SPRITES_HI_X04,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         STA SPRITES_DELTA_X04,X
         STA f04B7,X
         LDA #$08     ;#%00001000
         STA f04AC,X
         LDA #$25     ;#%00100101
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         LDA #$05     ;#%00000101
         JSR s500F
         RTS
@@ -2184,7 +2184,7 @@ s1EAF   JSR s4006
 s1EED   LDA #$3E     ;#%00111110
         STA SPRITES_LO_X04,X
         LDA #$64     ;#%01100100
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$F1     ;#%11110001
         STA SPRITES_PTR04,X
         LDA #$08     ;orange
@@ -2196,11 +2196,11 @@ s1EED   LDA #$3E     ;#%00111110
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y04,X
         STA f04B7,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$23     ;#%00100011
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         LDY #$00     ;#%00000000
-b1F1D   LDA a0492,Y
+b1F1D   LDA SPRITES_CLASS05,Y
         BEQ b1F28
         INY
         CPY #$0B     ;#%00001011
@@ -2212,7 +2212,7 @@ b1F28   TYA
         LDA #$56     ;#%01010110
         STA SPRITES_LO_X04,Y
         LDA #$64     ;#%01100100
-        STA SPRITES_POS_Y04,Y
+        STA SPRITES_Y04,Y
         LDA #$F2     ;#%11110010
         STA SPRITES_PTR04,Y
         LDA #$08     ;orange
@@ -2224,9 +2224,9 @@ b1F28   TYA
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y04,Y
         STA f04B7,Y
-        STA a0442,Y
+        STA SPRITES_BKG_PRI04,Y
         LDA #$24     ;#%00100100
-        STA a0492,Y
+        STA SPRITES_CLASS05,Y
         TXA
         STA f04A1,Y
         RTS
@@ -2252,7 +2252,7 @@ s1F5F   JSR s1F8F
         RTS
 
 s1F8F   LDY #$00     ;#%00000000
-b1F91   LDA a0492,Y
+b1F91   LDA SPRITES_CLASS05,Y
         BEQ b1F9C
         INY
         CPY #$0B     ;#%00001011
@@ -2264,7 +2264,7 @@ b1F9C   TYA
         LDA #$3E     ;#%00111110
         STA SPRITES_LO_X04,X
         LDA #$82     ;#%10000010
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$B0     ;#%10110000
         STA SPRITES_PTR04,X
         LDA #$0B     ;dark grey
@@ -2276,15 +2276,15 @@ b1F9C   TYA
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y04,X
         STA f04B7,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$22     ;#%00100010
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         TXA
         STA f04A1,Y
         LDA #$56     ;#%01010110
         STA SPRITES_LO_X04,Y
         LDA #$82     ;#%10000010
-        STA SPRITES_POS_Y04,Y
+        STA SPRITES_Y04,Y
         LDA #$B1     ;#%10110001
         STA SPRITES_PTR04,Y
         LDA #$0B     ;dark grey
@@ -2296,9 +2296,9 @@ b1F9C   TYA
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y04,Y
         STA f04B7,Y
-        STA a0442,Y
+        STA SPRITES_BKG_PRI04,Y
         LDA #$10     ;#%00010000
-        STA a0492,Y
+        STA SPRITES_CLASS05,Y
         RTS
 
 s2001   LDA #$46     ;#%01000110
@@ -2306,7 +2306,7 @@ s2001   LDA #$46     ;#%01000110
         LDA #$FF     ;#%11111111
         STA SPRITES_HI_X04,X
         LDA #$1E     ;#%00011110
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$FF     ;#%11111111
         STA SPRITES_DELTA_X04,X
         LDA #$0C     ;#%00001100
@@ -2318,7 +2318,7 @@ s201D   LDA #$32     ;#%00110010
         LDA #$00     ;#%00000000
         STA SPRITES_HI_X04,X
         LDA #$1E     ;#%00011110
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$04     ;#%00000100
         STA f04AC,X
         LDA #$01     ;#%00000001
@@ -2331,15 +2331,15 @@ j2036   LDA #$00     ;#%00000000
         STA SPRITES_COLOR04,X
         LDA #$00     ;#%00000000
         STA f04B7,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$20     ;#%00100000
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         RTS
 
 s2053   LDA #$2C     ;#%00101100
         STA SPRITES_LO_X04,X
         LDA #$24     ;#%00100100
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X04,X
         STA SPRITES_DELTA_Y04,X
@@ -2349,21 +2349,21 @@ s2053   LDA #$2C     ;#%00101100
         STA SPRITES_COLOR04,X
         LDA #$00     ;#%00000000
         STA SPRITES_HI_X04,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$06     ;#%00000110
         STA f04AC,X
         LDA #$1E     ;#%00011110
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         RTS
 
 s2082   LDA #$30     ;#%00110000
         STA SPRITES_LO_X04,X
         LDA #$1E     ;#%00011110
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X04,X
         STA SPRITES_DELTA_Y04,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$FD     ;#%11111101
         STA SPRITES_PTR04,X
         LDA #$08     ;orange
@@ -2373,13 +2373,13 @@ s2082   LDA #$30     ;#%00110000
         LDA #$0A     ;#%00001010
         STA f04AC,X
         LDA #$1E     ;#%00011110
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         RTS
 
 s20B1   LDA #$A0     ;#%10100000
         STA SPRITES_LO_X04,X
         LDA #$50     ;#%01010000
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$01     ;#%00000001
         STA SPRITES_DELTA_Y04,X
         LDA #$08     ;#%00001000
@@ -2395,9 +2395,9 @@ s20B1   LDA #$A0     ;#%10100000
         AND #$1F     ;#%00011111
         STA f04B7,X
         LDA #$00     ;#%00000000
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$1A     ;#%00011010
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         JSR s4006
         AND #$01     ;#%00000001
         ASL A
@@ -2407,7 +2407,7 @@ s20B1   LDA #$A0     ;#%10100000
         RTS
 
 S20F6   LDA #$1E     ;#%00011110
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$5A     ;#%01011010
         STA SPRITES_LO_X04,X
         LDA #$FF     ;#%11111111
@@ -2422,9 +2422,9 @@ S20F6   LDA #$1E     ;#%00011110
         STA SPRITES_COLOR04,X
         LDA #$00     ;#%00000000
         STA f04B7,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$18     ;#%00011000
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         LDA #$0C     ;#%00001100
         STA f04A1,X
         STA f04AC,X
@@ -2434,7 +2434,7 @@ s212F   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_LO_X04,X
         LDA #$26     ;#%00100110
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$BB     ;#%10111011
         STA SPRITES_PTR04,X
         LDA #$0B     ;dark grey
@@ -2445,16 +2445,16 @@ s212F   LDY a00FD,b
         STA SPRITES_DELTA_X04,X
         STA SPRITES_DELTA_Y04,X
         STA f04B7,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$16     ;#%00010110
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         RTS
 
 s215F   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_LO_X04,X
         LDA #$21     ;#%00100001
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$C2     ;#%11000010
         STA SPRITES_PTR04,X
         LDA #$06     ;blue
@@ -2464,9 +2464,9 @@ s215F   LDY a00FD,b
         STA SPRITES_DELTA_X04,X
         STA SPRITES_DELTA_Y04,X
         STA f04B7,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$12     ;#%00010010
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         STX a04ED
         RTS
 
@@ -2474,7 +2474,7 @@ s2190   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_LO_X04,X
         LDA #$21     ;#%00100001
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$C0     ;#%11000000
         STA SPRITES_PTR04,X
         LDA #$0B     ;dark grey
@@ -2484,16 +2484,16 @@ s2190   LDY a00FD,b
         STA SPRITES_DELTA_X04,X
         STA SPRITES_DELTA_Y04,X
         STA f04B7,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         STA a04EC
         LDA #$11     ;#%00010001
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         RTS
 
 s21C1   LDA #$20     ;#%00100000
         STA SPRITES_LO_X04,X
         LDA #$21     ;#%00100001
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$B0     ;#%10110000
         STA SPRITES_PTR04,X
         LDA #$09     ;brown
@@ -2505,11 +2505,11 @@ s21C1   LDA #$20     ;#%00100000
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y04,X
         STA f04B7,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$0F     ;#%00001111
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         LDY #$00     ;#%00000000
-b21F1   LDA a0492,Y
+b21F1   LDA SPRITES_CLASS05,Y
         BEQ b21FC
         INY
         CPY #$0B     ;#%00001011
@@ -2521,7 +2521,7 @@ b21FC   TYA
         LDA #$38     ;#%00111000
         STA SPRITES_LO_X04,Y
         LDA #$21     ;#%00100001
-        STA SPRITES_POS_Y04,Y
+        STA SPRITES_Y04,Y
         LDA #$B1     ;#%10110001
         STA SPRITES_PTR04,Y
         LDA #$09     ;brown
@@ -2533,13 +2533,13 @@ b21FC   TYA
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y04,Y
         STA f04B7,Y
-        STA a0442,Y
+        STA SPRITES_BKG_PRI04,Y
         LDA #$10     ;#%00010000
-        STA a0492,Y
+        STA SPRITES_CLASS05,Y
         RTS
 
         LDY #$00     ;#%00000000
-b2231   LDA a0492,Y
+b2231   LDA SPRITES_CLASS05,Y
         BEQ s223C
         INY
         CPY #$0B     ;#%00001011
@@ -2550,7 +2550,7 @@ s223C   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_LO_X04,X
         LDA #$21     ;#%00100001
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$CD     ;#%11001101
         STA SPRITES_PTR04,X
         LDA #$02     ;red
@@ -2563,16 +2563,16 @@ s223C   LDY a00FD,b
         STA f04B7,X
         STA a04EA
         LDA #$FF     ;#%11111111
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$0D     ;#%00001101
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         RTS
 
 s2271   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_LO_X04,X
         LDA #$26     ;#%00100110
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$C8     ;Soldier in trench
         STA SPRITES_PTR04,X
         LDA #$0B     ;dark grey
@@ -2583,19 +2583,19 @@ s2271   LDY a00FD,b
         STA SPRITES_DELTA_X04,X
         STA SPRITES_DELTA_Y04,X
         STA f04B7,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$08     ;#%00001000
         STA f04A1,X
         STA f04AC,X
         LDA #$07     ;#%00000111
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         RTS
 
 s22A9   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_LO_X04,X
         LDA #$2A     ;#%00101010
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$ED     ;#%11101101
         STA SPRITES_PTR04,X
         LDA #$0B     ;dark grey
@@ -2605,14 +2605,14 @@ s22A9   LDY a00FD,b
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X04,X
         STA SPRITES_DELTA_Y04,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         JSR s4006
         STA f04B7,X
         LDA #$08     ;#%00001000
         STA f04A1,X
         STA f04AC,X
         LDA #$1C     ;#%00011100
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         RTS
 
 s22E4   LDY a00FD,b
@@ -2624,7 +2624,7 @@ s22E4   LDY a00FD,b
         ASL A
         CLC
         ADC #$1E     ;#%00011110
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$5A     ;#%01011010
         STA SPRITES_LO_X04,X
         LDA #$FF     ;#%11111111
@@ -2639,9 +2639,9 @@ s22E4   LDY a00FD,b
         STA SPRITES_COLOR04,X
         LDA #$00     ;#%00000000
         STA f04B7,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$0A     ;#%00001010
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         LDA #$0C     ;#%00001100
         STA f04A1,X
         STA f04AC,X
@@ -2656,7 +2656,7 @@ s2329   LDY a00FD,b
         ASL A
         CLC
         ADC #$1E     ;#%00011110
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$01     ;#%00000001
         STA SPRITES_LO_X04,X
         LDA #$00     ;#%00000000
@@ -2671,9 +2671,9 @@ s2329   LDY a00FD,b
         STA SPRITES_COLOR04,X
         LDA #$00     ;#%00000000
         STA f04B7,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$0A     ;#%00001010
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         LDA #$04     ;#%00000100
         STA f04A1,X
         STA f04AC,X
@@ -2705,9 +2705,9 @@ j2399   LDA #$00     ;#%00000000
         STA SPRITES_COLOR04,X
         LDA #$00     ;#%00000000
         STA f04B7,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$17     ;#%00010111
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         LDY a00FD,b
         LDA (p26),Y
         SEC
@@ -2717,13 +2717,13 @@ j2399   LDA #$00     ;#%00000000
         ASL A
         CLC
         ADC #$1E     ;#%00011110
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA (p22),Y
         STA f04A1,X
         RTS
 
 s23CC   LDA #$1E     ;#%00011110
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$5A     ;#%01011010
         STA SPRITES_LO_X04,X
         LDA #$FF     ;#%11111111
@@ -2738,9 +2738,9 @@ s23CC   LDA #$1E     ;#%00011110
         STA SPRITES_COLOR04,X
         LDA #$00     ;#%00000000
         STA f04B7,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$19     ;#%00011001
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         LDA #$0C     ;#%00001100
         STA f04A1,X
         STA f04AC,X
@@ -2748,24 +2748,24 @@ s23CC   LDA #$1E     ;#%00011110
 
 s2405   TYA
         PHA
-        LDA a0492,Y
+        LDA SPRITES_CLASS05,Y
         TAY
         LDA f256D,Y
         JSR SCORE_ADD
         PLA
         TAY
-        LDA a0492,Y
+        LDA SPRITES_CLASS05,Y
         CMP #$07     ;#%00000111
         BEQ b241E
         CMP #$1C     ;#%00011100
         BNE b242B
 b241E   LDA #$1D     ;#%00011101
-        STA a0492,Y
+        STA SPRITES_CLASS05,Y
         LDA #$CB     ;#%11001011
         STA SPRITES_PTR04,Y
         JMP j24A7
 
-b242B   LDA a0492,Y
+b242B   LDA SPRITES_CLASS05,Y
         CMP #$1A     ;#%00011010
         BNE b2444
         LDA #$BC     ;#%10111100
@@ -2773,13 +2773,13 @@ b242B   LDA a0492,Y
         LDA #$01     ;white
         STA SPRITES_COLOR04,Y
         LDA #$13     ;#%00010011
-        STA a0492,Y
+        STA SPRITES_CLASS05,Y
         JMP j24A7
 
-b2444   LDA a0492,Y
+b2444   LDA SPRITES_CLASS05,Y
         CMP #$11     ;#%00010001
         BNE b2485
-        LDA a048E,X
+        LDA SPRITES_CLASS01,X
         CMP #$04     ;#%00000100
         BEQ b2485
         LDA #$BD     ;#%10111101
@@ -2787,7 +2787,7 @@ b2444   LDA a0492,Y
         LDA #$0E     ;light blue
         STA SPRITES_COLOR04,Y
         LDA #$13     ;#%00010011
-        STA a0492,Y
+        STA SPRITES_CLASS05,Y
         INC a04EC
         LDA a04EC
         CMP #$02     ;#%00000010
@@ -2796,7 +2796,7 @@ b2444   LDA a0492,Y
         PHA
         LDX a04ED
         LDA #$14     ;#%00010100
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X04,X
         STA SPRITES_DELTA_Y04,X
@@ -2805,7 +2805,7 @@ b2444   LDA a0492,Y
         TAX
         JMP j24A7
 
-b2485   LDA a0492,Y
+b2485   LDA SPRITES_CLASS05,Y
         CMP #$23     ;#%00100011
         BEQ b2490
         CMP #$24     ;#%00100100
@@ -2822,7 +2822,7 @@ b2490   TXA
         JMP j24A7
 
 b24A2   LDA #$06     ;#%00000110
-        STA a0492,Y
+        STA SPRITES_CLASS05,Y
 j24A7   LDA #$00     ;#%00000000
         STA f04B7,Y
         STA SPRITES_DELTA_X04,Y
@@ -2832,7 +2832,7 @@ j24A7   LDA #$00     ;#%00000000
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s24B3   LDX #$00     ;#%00000000
         STX a04F4
-b24B8   LDA SPRITES_POS_Y04,X
+b24B8   LDA SPRITES_Y04,X
         CMP #$1E     ;#%00011110
         BCC b24CF
         CMP #$C2     ;#%11000010
@@ -2843,7 +2843,7 @@ b24B8   LDA SPRITES_POS_Y04,X
         LDA SPRITES_HI_X04,X
         BEQ b24D2
 b24CF   JSR s358E
-b24D2   LDA a0492,X
+b24D2   LDA SPRITES_CLASS05,X
         ASL A
         TAY
         LDA f24F2,Y
@@ -2924,9 +2924,9 @@ b25CC   JSR s32ED
         STA SPRITES_COLOR04,Y
         LDA #$00     ;#%00000000
         STA f04B7,Y
-        STA a0442,Y
+        STA SPRITES_BKG_PRI04,Y
         LDA #$0E     ;#%00001110
-        STA a0492,Y
+        STA SPRITES_CLASS05,Y
 b25EF   RTS
 
 s25F0   INC f04B7,X
@@ -2956,7 +2956,7 @@ b261B   LDA #$00     ;#%00000000
 b2621   LDA #$01     ;#%00000001
         STA SPRITES_DELTA_Y04,X
         LDY #$00     ;#%00000000
-b2628   LDA a0492,Y
+b2628   LDA SPRITES_CLASS05,Y
         BEQ b2633
         INY
         CPY #$0B     ;#%00001011
@@ -2965,19 +2965,19 @@ b2628   LDA a0492,Y
 
 b2633   LDA SPRITES_LO_X04,X
         STA SPRITES_LO_X04,Y
-        LDA SPRITES_POS_Y04,X
+        LDA SPRITES_Y04,X
         CLC
         ADC #$10     ;#%00010000
-        STA SPRITES_POS_Y04,Y
+        STA SPRITES_Y04,Y
         LDA #$05     ;#%00000101
-        STA a0492,Y
+        STA SPRITES_CLASS05,Y
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR04,Y
         LDA SPRITES_HI_X04,X
         STA SPRITES_HI_X04,Y
         LDA #$00     ;#%00000000
         STA f04B7,Y
-        STA a0442,Y
+        STA SPRITES_BKG_PRI04,Y
         TXA
         PHA
         LDA f04AC,X
@@ -3017,7 +3017,7 @@ s2697   INC f04B7,X
         AND #$3F     ;#%00111111
         BNE s2696
         LDY #$00     ;#%00000000
-b26A3   LDA a0492,Y
+b26A3   LDA SPRITES_CLASS05,Y
         BEQ b26AE
         INY
         CPY #$0B     ;#%00001011
@@ -3028,18 +3028,18 @@ b26AE   LDA SPRITES_LO_X04,X
         CLC
         ADC #$0A     ;#%00001010
         STA SPRITES_LO_X04,Y
-        LDA SPRITES_POS_Y04,X
-        STA SPRITES_POS_Y04,Y
+        LDA SPRITES_Y04,X
+        STA SPRITES_Y04,Y
         LDA SPRITES_HI_X04,X
         STA SPRITES_HI_X04,Y
         LDA #$0A     ;#%00001010
-        STA a0492,Y
+        STA SPRITES_CLASS05,Y
         LDA #$08     ;dark grey
         STA SPRITES_COLOR04,Y
         LDA #$1D     ;#%00011101
         STA f04B7,Y
         LDA #$00     ;#%00000000
-        STA a0442,Y
+        STA SPRITES_BKG_PRI04,Y
         LDA #$01     ;#%00000001
         STA SPRITES_DELTA_X04,Y
         RTS
@@ -3049,14 +3049,14 @@ s26DD   INC f04B7,X
         LDA f04B7,X
         AND #$0F     ;#%00001111
         BNE b26F3
-        INC SPRITES_POS_Y04,X
-        LDA SPRITES_POS_Y04,X
-        STA SPRITES_POS_Y04,Y
+        INC SPRITES_Y04,X
+        LDA SPRITES_Y04,X
+        STA SPRITES_Y04,Y
 b26F3   CMP #$10     ;#%00010000
         BNE b2700
-        DEC SPRITES_POS_Y04,X
-        LDA SPRITES_POS_Y04,X
-        STA SPRITES_POS_Y04,Y
+        DEC SPRITES_Y04,X
+        LDA SPRITES_Y04,X
+        STA SPRITES_Y04,Y
 b2700   RTS
 
         INC f04B7,X
@@ -3067,7 +3067,7 @@ b2700   RTS
 
 
 b270C   LDA #$0C     ;#%00001100
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         LDA #$00     ;#%00000000
         STA f04B7,X
         STA SPRITES_DELTA_X04,X
@@ -3099,11 +3099,11 @@ b274C   LDA f04B7,X
         BEQ b2754
 b2753   RTS
 
-b2754   LDA SPRITES_POS_Y00
-        CMP SPRITES_POS_Y04,X
+b2754   LDA SPRITES_Y00
+        CMP SPRITES_Y04,X
         BCC b2753
         LDY #$00     ;#%00000000
-b275E   LDA a0492,Y
+b275E   LDA SPRITES_CLASS05,Y
         BEQ b2769
         INY
         CPY #$0B     ;#%00001011
@@ -3117,10 +3117,10 @@ b2769   LDA #$00     ;#%00000000
         STA SPRITES_PTR04,X
         LDA SPRITES_LO_X04,X
         STA SPRITES_LO_X04,Y
-        LDA SPRITES_POS_Y04,X
-        STA SPRITES_POS_Y04,Y
+        LDA SPRITES_Y04,X
+        STA SPRITES_Y04,Y
         LDA #$21     ;#%00100001
-        STA a0492,Y
+        STA SPRITES_CLASS05,Y
         LDA #$01     ;white
         STA SPRITES_COLOR04,Y
         LDA #$EA     ;Frame bazooka left-down
@@ -3129,7 +3129,7 @@ b2769   LDA #$00     ;#%00000000
         STA SPRITES_HI_X04,Y
         LDA #$00     ;#%00000000
         STA f04B7,Y
-        STA a0442,Y
+        STA SPRITES_BKG_PRI04,Y
         LDA #$02     ;#%00000010
         STA SPRITES_DELTA_Y04,Y
         LDA SPRITES_HI_X04,X
@@ -3171,11 +3171,11 @@ s27E4   INC f04B7,X
         BEQ b27EF
         RTS
 
-b27EF   LDA SPRITES_POS_Y00
-        CMP SPRITES_POS_Y04,X
+b27EF   LDA SPRITES_Y00
+        CMP SPRITES_Y04,X
         BCC b2803
         LDY #$00     ;#%00000000
-b27F9   LDA a0492,Y
+b27F9   LDA SPRITES_CLASS05,Y
         BEQ b2804
         INY
         CPY #$0B     ;#%00001011
@@ -3184,10 +3184,10 @@ b2803   RTS
 
 b2804   LDA SPRITES_LO_X04,X
         STA SPRITES_LO_X04,Y
-        LDA SPRITES_POS_Y04,X
-        STA SPRITES_POS_Y04,Y
+        LDA SPRITES_Y04,X
+        STA SPRITES_Y04,Y
         LDA #$1F     ;#%00011111
-        STA a0492,Y
+        STA SPRITES_CLASS05,Y
         LDA #$00     ;black
         STA SPRITES_COLOR04,Y
         LDA #$D2     ;#%11010010
@@ -3196,13 +3196,13 @@ b2804   LDA SPRITES_LO_X04,X
         STA SPRITES_HI_X04,Y
         LDA #$00     ;#%00000000
         STA f04B7,Y
-        STA a0442,Y
+        STA SPRITES_BKG_PRI04,Y
         LDA #$01     ;#%00000001
         STA SPRITES_DELTA_Y04,Y
-        LDA SPRITES_POS_Y04,Y
+        LDA SPRITES_Y04,Y
         CLC
         ADC #$06     ;#%00000110
-        STA SPRITES_POS_Y04,Y
+        STA SPRITES_Y04,Y
         LDA f04AC,X
         CMP #$06     ;#%00000110
         BEQ b2851
@@ -3249,7 +3249,7 @@ s2876   INC f04B7,X
         BEQ b288E
         RTS
 
-b288E   LDA SPRITES_POS_Y04,X
+b288E   LDA SPRITES_Y04,X
         CMP #$50     ;#%01010000
         BCC b2898
         JSR s300C
@@ -3267,7 +3267,7 @@ s28A3   LDA SPRITES_LO_X04,X
         CLC
         ADC SPRITES_DELTA_X04,X
         STA a04F0
-        LDA SPRITES_POS_Y04,X
+        LDA SPRITES_Y04,X
         CLC
         ADC SPRITES_DELTA_Y04,X
         CLC
@@ -3312,12 +3312,12 @@ s290E   LDY #$00     ;#%00000000
         LDA (pFC),Y
         TAY
         LDA #$00     ;#%00000000
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA (p2A),Y
         AND #$02     ;#%00000010
         BEQ b2923
         LDA #$FF     ;#%11111111
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
 b2923   RTS
 
 s2924   JSR s28A3
@@ -3499,15 +3499,15 @@ s2A78   LDA SPRITES_HI_X00
         SBC #$0F     ;#%00001111
         CMP SPRITES_LO_X04,X
         BCS b2AC7
-        LDA SPRITES_POS_Y00
+        LDA SPRITES_Y00
         CLC
         ADC #$12     ;#%00010010
-        CMP SPRITES_POS_Y04,X
+        CMP SPRITES_Y04,X
         BCC b2AC7
-        LDA SPRITES_POS_Y00
+        LDA SPRITES_Y00
         SEC
         SBC #$0A     ;#%00001010
-        CMP SPRITES_POS_Y04,X
+        CMP SPRITES_Y04,X
         BCS b2AC7
         LDA #$03     ;#%00000011
         SED
@@ -3624,7 +3624,7 @@ b2B7D   LDA f04B7,X
         JSR s32ED
         RTS
 
-b2B88   LDA SPRITES_POS_Y04,X
+b2B88   LDA SPRITES_Y04,X
         CMP #$73     ;#%01110011
         BCC b2BA1
         LDA #$FF     ;#%11111111
@@ -3639,14 +3639,14 @@ b2BA1   RTS
 b2BA2   LDA SPRITES_LO_X04,X
         AND #$1F     ;#%00011111
         BNE b2BB2
-        INC SPRITES_POS_Y04,X
-        LDA SPRITES_POS_Y04,X
-        STA SPRITES_POS_Y04,Y
+        INC SPRITES_Y04,X
+        LDA SPRITES_Y04,X
+        STA SPRITES_Y04,Y
 b2BB2   CMP #$10     ;#%00010000
         BNE b2BBF
-        DEC SPRITES_POS_Y04,X
-        LDA SPRITES_POS_Y04,X
-        STA SPRITES_POS_Y04,Y
+        DEC SPRITES_Y04,X
+        LDA SPRITES_Y04,X
+        STA SPRITES_Y04,Y
 b2BBF   LDA SPRITES_LO_X04,X
         CMP #$B4     ;#%10110100
         BNE b2BCF
@@ -3682,7 +3682,7 @@ b2BFE   CMP #$14     ;#%00010100
         STA SPRITES_PTR04,X
         LDA #$00     ;#%00000000
         STA a04EA
-b2C0C   LDA SPRITES_POS_Y04,X
+b2C0C   LDA SPRITES_Y04,X
         CMP #$82     ;#%10000010
         BCC b2C31
         LDA #$98     ;Frame Hero/Enemy heading up
@@ -3695,7 +3695,7 @@ b2C0C   LDA SPRITES_POS_Y04,X
         LDA #$FF     ;#%11111111
         STA SPRITES_DELTA_Y04,X
         LDA #$05     ;#%00000101
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         RTS
 
 b2C31   LDA f04B7,X
@@ -3704,7 +3704,7 @@ b2C31   LDA f04B7,X
         RTS
 
 b2C39   LDY #$00     ;#%00000000
-b2C3B   LDA a0492,Y
+b2C3B   LDA SPRITES_CLASS05,Y
         BEQ b2C46
         INY
         CPY #$0B     ;#%00001011
@@ -3720,9 +3720,9 @@ b2C46   LDA SPRITES_HI_X00
         ADC #$2F     ;#%00101111
         BCS b2CC0
         STA a00FB,b
-        LDA SPRITES_POS_Y00
+        LDA SPRITES_Y00
         SEC
-        SBC SPRITES_POS_Y04,X
+        SBC SPRITES_Y04,X
         STA a00FC,b
         LDA #$CE     ;Frame falling in hole #1?
         STA SPRITES_PTR04,X
@@ -3730,10 +3730,10 @@ b2C46   LDA SPRITES_HI_X00
         STA a04EA
         LDA SPRITES_LO_X04,X
         STA SPRITES_LO_X04,Y
-        LDA SPRITES_POS_Y04,X
+        LDA SPRITES_Y04,X
         SEC
         SBC #$02     ;#%00000010
-        STA SPRITES_POS_Y04,Y
+        STA SPRITES_Y04,Y
         LDA SPRITES_HI_X04,X
         STA SPRITES_HI_X04,Y
         JSR s3555
@@ -3757,9 +3757,9 @@ b2C97   STA SPRITES_DELTA_X04,Y
         STA SPRITES_COLOR04,Y
         LDA #$00     ;#%00000000
         STA f04B7,Y
-        STA a0442,Y
+        STA SPRITES_BKG_PRI04,Y
         LDA #$0E     ;#%00001110
-        STA a0492,Y
+        STA SPRITES_CLASS05,Y
 b2CC0   RTS
 
 f2CC1   .BYTE $29,$29,$32,$32
@@ -3799,9 +3799,9 @@ b2D0B   JSR s4006
         ADC #$8C     ;#%10001100
         STA SPRITES_LO_X04,X
         LDA #$3C     ;#%00111100
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$1B     ;#%00011011
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         INC a04F4
         JMP j2DBC
 
@@ -3814,7 +3814,7 @@ b2D26   JSR s4006
         AND #$07     ;#%00000111
         CLC
         ADC f2CC5,Y
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA f2CD5,Y
         STA SPRITES_HI_X04,X
         LDA f2CC9,Y
@@ -3827,7 +3827,7 @@ b2D26   JSR s4006
         LDA f2CD1,Y
         STA SPRITES_PTR04,X
         LDA #$1B     ;#%00011011
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         JMP j2DD8
 
 b2D66   JSR s4006
@@ -3836,9 +3836,9 @@ b2D66   JSR s4006
         ADC #$8C     ;#%10001100
         STA SPRITES_LO_X04,X
         LDA #$64     ;#%01100100
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$1B     ;#%00011011
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         INC a04F4
         JMP j2DBC
 
@@ -3863,9 +3863,9 @@ j2D81   JSR s4006
         LDA a04F0
         STA SPRITES_LO_X04,X
         LDA a04F1
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$05     ;#%00000101
-        STA a0492,X
+        STA SPRITES_CLASS05,X
 j2DBC   LDA #$01     ;#%00000001
         STA SPRITES_DELTA_Y04,X
         LDA #$00     ;#%00000000
@@ -3883,7 +3883,7 @@ j2DD8   LDA #$0B     ;dark grey
         AND #$1F     ;#%00011111
         STA f04B7,X
         LDA #$00     ;#%00000000
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
 b2DEA   RTS
 
 b2DEB   JSR s4006
@@ -3914,14 +3914,14 @@ b2DF3   JSR s4006
 b2E1C   LDA a04F0
         STA SPRITES_LO_X04,X
         LDA a04F1
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$00     ;#%00000000
         STA SPRITES_HI_X04,X
         LDA #$01     ;#%00000001
         STA SPRITES_DELTA_X04,X
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y04,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$D9     ;#%11011001
         STA SPRITES_PTR04,X
         LDA #$0B     ;dark grey
@@ -3929,7 +3929,7 @@ b2E1C   LDA a04F0
         LDA #$14     ;#%00010100
         STA f04B7,X
         LDA #$18     ;#%00011000
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         JSR s4006
         AND #$03     ;#%00000011
         CLC
@@ -3955,14 +3955,14 @@ b2E5D   JSR s4006
         LDA a04F0
         STA SPRITES_LO_X04,X
         LDA a04F1
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$FF     ;#%11111111
         STA SPRITES_HI_X04,X
         LDA #$FF     ;#%11111111
         STA SPRITES_DELTA_X04,X
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y04,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA #$15     ;sprite at 0xc540. bug?
         STA SPRITES_PTR04,X
         LDA #$0B     ;dark grey
@@ -3970,7 +3970,7 @@ b2E5D   JSR s4006
         LDA #$14     ;#%00010100
         STA f04B7,X
         LDA #$18     ;#%00011000
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         JSR s4006
         AND #$03     ;#%00000011
         CLC
@@ -4006,7 +4006,7 @@ FRAME_GRENADE0       ;$2EE6
         .BYTE $92,$91,$91,$92,$93
 
 s2EEB   LDA #$0C     ;#%00001100
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         LDA #$00     ;#%00000000
         STA f04B7,X
         STA SPRITES_DELTA_X04,X
@@ -4057,16 +4057,16 @@ s2F37   INC f04B7,X
         AND #$01     ;#%00000001
         BNE b2F67
         LDA #$00     ;#%00000000
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA (p2A),Y
         AND #$02     ;#%00000010
         BEQ b2F66
         LDA #$FF     ;#%11111111
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
 b2F66   RTS
 
 b2F67   LDA #$09     ;#%00001001
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         LDA #$00     ;#%00000000
         STA f04B7,X
         STA SPRITES_DELTA_X04,X
@@ -4097,11 +4097,11 @@ b2F9F   JSR s2FA3
         RTS
 
 s2FA3   LDA #$00     ;#%00000000
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         STA SPRITES_DELTA_X04,X
         STA SPRITES_DELTA_Y04,X
         LDA f143A,X
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$64     ;#%01100100
         STA SPRITES_LO_X04,X
         LDA #$FF     ;#%11111111
@@ -4110,7 +4110,7 @@ s2FA3   LDA #$00     ;#%00000000
         RTS
 
 s2FC2   INC f04B7,X
-        LDA SPRITES_POS_Y04,X
+        LDA SPRITES_Y04,X
         CMP #$82     ;#%10000010
         BCC b3002
         LDA #$98     ;#%10011000
@@ -4132,9 +4132,9 @@ s2FC2   INC f04B7,X
         LDA #$00     ;#%00000000
 b2FF4   STA SPRITES_DELTA_X04,X
         LDA #$15     ;#%00010101
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         LDA #$FF     ;#%11111111
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         RTS
 
 b3002   CMP #$50     ;#%01010000
@@ -4236,7 +4236,7 @@ b30BF   LDA #$98     ;#%10011000
         LDA #$FF     ;#%11111111
         STA SPRITES_DELTA_Y04,X
         LDA #$05     ;#%00000101
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         RTS
 
 s30DD   INC f04B7,X
@@ -4286,27 +4286,27 @@ s3128   LDA SPRITES_HI_X04,X
         SBC #$3C     ;#%00111100
         CMP SPRITES_LO_X00
         BCS b3181
-        LDA SPRITES_POS_Y04,X
+        LDA SPRITES_Y04,X
         CLC
         ADC #$14     ;#%00010100
-        CMP SPRITES_POS_Y00
+        CMP SPRITES_Y00
         BCC b3159
         SEC
         SBC #$28     ;#%00101000
-        CMP SPRITES_POS_Y00
+        CMP SPRITES_Y00
         BCS b31A6
         RTS
 
 b3159   JMP j31CB
 
-b315C   LDA SPRITES_POS_Y04,X
+b315C   LDA SPRITES_Y04,X
         CLC
         ADC #$14     ;#%00010100
-        CMP SPRITES_POS_Y00
+        CMP SPRITES_Y00
         BCC b3175
         SEC
         SBC #$28     ;#%00101000
-        CMP SPRITES_POS_Y00
+        CMP SPRITES_Y00
         BCS b317B
         LDA #$04     ;#%00000100
         STA f04AC,X
@@ -4320,14 +4320,14 @@ b317B   LDA #$02     ;#%00000010
         STA f04AC,X
         RTS
 
-b3181   LDA SPRITES_POS_Y04,X
+b3181   LDA SPRITES_Y04,X
         CLC
         ADC #$14     ;#%00010100
-        CMP SPRITES_POS_Y00
+        CMP SPRITES_Y00
         BCC b319A
         SEC
         SBC #$28     ;#%00101000
-        CMP SPRITES_POS_Y00
+        CMP SPRITES_Y00
         BCS b31A0
         LDA #$0C     ;#%00001100
         STA f04AC,X
@@ -4449,9 +4449,9 @@ b3276   LDA #$04     ;#%00000100
         BPL j3289
         LDA #$0C     ;#%00001100
         STA a00FB,b
-j3289   LDA SPRITES_POS_Y00
+j3289   LDA SPRITES_Y00
         SEC
-        SBC SPRITES_POS_Y04,X
+        SBC SPRITES_Y04,X
         BPL b329B
         LSR a00FB,b
         LDA a00FB,b
@@ -4491,7 +4491,7 @@ s32ED   LDA SPRITES_HI_X04,X
         CMP SPRITES_HI_X00
         BNE b3301
         LDY #$00     ;#%00000000
-b32F7   LDA a0492,Y
+b32F7   LDA SPRITES_CLASS05,Y
         BEQ b3304
         INY
         CPY #$0B     ;#%00001011
@@ -4505,8 +4505,8 @@ b3304   TXA
         CLC
         ADC #$06     ;#%00000110
         STA SPRITES_LO_X04,Y
-        LDA SPRITES_POS_Y04,X
-        STA SPRITES_POS_Y04,Y
+        LDA SPRITES_Y04,X
+        STA SPRITES_Y04,Y
         LDA SPRITES_HI_X04,X
         STA SPRITES_HI_X04,Y
         LDA #$93     ;#%10010011
@@ -4515,9 +4515,9 @@ b3304   TXA
         STA SPRITES_COLOR04,Y
         LDA #$00     ;#%00000000
         STA f04B7,Y
-        STA a0442,Y
+        STA SPRITES_BKG_PRI04,Y
         LDA #$0B     ;#%00001011
-        STA a0492,Y
+        STA SPRITES_CLASS05,Y
         LDA SPRITES_LO_X00
         SEC
         SBC SPRITES_LO_X04,Y
@@ -4527,9 +4527,9 @@ b3304   TXA
         EOR #$FF     ;#%11111111
         STA a00FB,b
         INC a00FB,b
-        LDA SPRITES_POS_Y00
+        LDA SPRITES_Y00
         SEC
-        SBC SPRITES_POS_Y04,Y
+        SBC SPRITES_Y04,Y
         STA a00FC,b
         BCS b337C
         LDA a00FC,b
@@ -4554,9 +4554,9 @@ b337C   JSR s3555
         INC a00FB,b
         JMP j33B8
 
-b338D   LDA SPRITES_POS_Y00
+b338D   LDA SPRITES_Y00
         SEC
-        SBC SPRITES_POS_Y04,Y
+        SBC SPRITES_Y04,Y
         STA a00FC,b
         BCS b33B5
         LDA a00FC,b
@@ -4587,7 +4587,7 @@ j33D0   LDA f04B7,X
         AND a0504
         BNE b33E4
         LDY #$00     ;#%00000000
-b33DA   LDA a0492,Y
+b33DA   LDA SPRITES_CLASS05,Y
         BEQ b33E5
         INY
         CPY #$0B     ;#%00001011
@@ -4609,27 +4609,27 @@ b33F2   LDA SPRITES_LO_X04,X
         SBC #$3C     ;#%00111100
         CMP SPRITES_LO_X00
         BCS b3450
-        LDA SPRITES_POS_Y04,X
+        LDA SPRITES_Y04,X
         CLC
         ADC #$14     ;#%00010100
-        CMP SPRITES_POS_Y00
+        CMP SPRITES_Y00
         BCC b3419
         SEC
         SBC #$28     ;#%00101000
-        CMP SPRITES_POS_Y00
+        CMP SPRITES_Y00
         BCS b3481
         RTS
 
 b3419   JMP j34B0
 
-j341C   LDA SPRITES_POS_Y04,X
+j341C   LDA SPRITES_Y04,X
         CLC
         ADC #$14     ;#%00010100
-        CMP SPRITES_POS_Y00
+        CMP SPRITES_Y00
         BCC b3439
         SEC
         SBC #$28     ;#%00101000
-        CMP SPRITES_POS_Y00
+        CMP SPRITES_Y00
         BCS b3443
         LDA f04AC,X
         AND #$FE     ;#%11111110
@@ -4651,14 +4651,14 @@ b3443   LDA f04AC,X
 
 b344D   JMP j34E1
 
-b3450   LDA SPRITES_POS_Y04,X
+b3450   LDA SPRITES_Y04,X
         CLC
         ADC #$14     ;#%00010100
-        CMP SPRITES_POS_Y00
+        CMP SPRITES_Y00
         BCC b346D
         SEC
         SBC #$28     ;#%00101000
-        CMP SPRITES_POS_Y00
+        CMP SPRITES_Y00
         BCS b3477
         LDA f04AC,X
         AND #$FE     ;#%11111110
@@ -4741,16 +4741,16 @@ j34E1   STX a00FB,b
         LDA f3617,X
         STA SPRITES_LO_X04,Y
         LDA f3627,X
-        STA SPRITES_POS_Y04,Y
+        STA SPRITES_Y04,Y
         LDX a00FB,b
         LDA SPRITES_LO_X04,X
         CLC
         ADC SPRITES_LO_X04,Y
         STA SPRITES_LO_X04,Y
-        LDA SPRITES_POS_Y04,X
+        LDA SPRITES_Y04,X
         CLC
-        ADC SPRITES_POS_Y04,Y
-        STA SPRITES_POS_Y04,Y
+        ADC SPRITES_Y04,Y
+        STA SPRITES_Y04,Y
         LDA SPRITES_HI_X04,X
         STA SPRITES_HI_X04,Y
         LDA #$90     ;bullet frame
@@ -4759,9 +4759,9 @@ j34E1   STX a00FB,b
         STA SPRITES_COLOR04,Y
         LDA #$00     ;#%00000000
         STA f04B7,Y
-        STA a0442,Y
+        STA SPRITES_BKG_PRI04,Y
         LDA #$08     ;#%00001000
-        STA a0492,Y
+        STA SPRITES_CLASS05,Y
         RTS
 
 f3535   .BYTE $00,$01,$01,$02,$02,$02,$01,$01
@@ -4793,11 +4793,11 @@ f3576   .BYTE $BE,$FF,$BE,$FF,$BE,$FF,$BF,$FF
         .BYTE $FF,$BF,$FF
 
 s358E   LDA #$00     ;#%00000000
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         STA SPRITES_DELTA_X04,X
         STA SPRITES_DELTA_Y04,X
         LDA f143A,X
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$64     ;#%01100100
         STA SPRITES_LO_X04,X
         LDA #$FF     ;#%11111111
@@ -4859,7 +4859,7 @@ f3637   .ADDR s39E1,s3935,s367A,s36FE
         .ADDR s373C
 
 s3641   LDX #$00     ;#%00000000
-b3643   LDA SPRITES_POS_Y01,X
+b3643   LDA SPRITES_Y01,X
         CMP #$1E     ;#%00011110
         BCC b365A
         CMP #$DC     ;#%11011100
@@ -4870,7 +4870,7 @@ b3643   LDA SPRITES_POS_Y01,X
         LDA SPRITES_HI_X01,X
         BEQ b365D
 b365A   JSR s371D
-b365D   LDA a048E,X
+b365D   LDA SPRITES_CLASS01,X
         ASL A
         TAY
         LDA f3637,Y
@@ -4911,13 +4911,13 @@ _L01    CMP #$28     ;#%00101000
         BEQ _L03
         LDA SPRITES_LO_X01,X
         STA a04F0
-        LDA SPRITES_POS_Y01,X
+        LDA SPRITES_Y01,X
         STA a04F1
         LDA SPRITES_HI_X01,X
         STA a04F2
         JSR j172F
         LDA #$00     ;#%00000000
-        STA a043E,X
+        STA SPRITES_BKG_PRI01,X
         LDY #$00     ;#%00000000
         LDA (pFC),Y
         TAY
@@ -4925,16 +4925,16 @@ _L01    CMP #$28     ;#%00101000
         AND #$02     ;#%00000010
         BEQ _L02
         LDA #$FF     ;#%11111111
-        STA a043E,X
+        STA SPRITES_BKG_PRI01,X
 _L02    RTS
 
 _L03    LDA #$04     ;#%00000100
-        STA a048E,X
+        STA SPRITES_CLASS01,X
         LDA #$00     ;#%00000000
         STA COUNTER0,X
         STA SPRITES_DELTA_X01,X
         STA SPRITES_DELTA_Y01,X
-        STA a043E,X
+        STA SPRITES_BKG_PRI01,X
         TAY
         LDA FRAME_EXPLOSION,Y
         STA SPRITES_PTR01,X
@@ -4967,11 +4967,11 @@ FRAME_BULLET_END             ;$3714
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; TODO: Reset bullet state ?
 s371D   LDA #$00
-        STA a048E,X
+        STA SPRITES_CLASS01,X
         STA SPRITES_DELTA_X01,X
         STA SPRITES_DELTA_Y01,X
         LDA f1436,X
-        STA SPRITES_POS_Y01,X
+        STA SPRITES_Y01,X
         LDA #$64     ;#%01100100
         STA SPRITES_LO_X01,X
         LDA #$FF     ;#%11111111
@@ -4982,7 +4982,7 @@ s371D   LDA #$00
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s373C   INC COUNTER0,X
         LDY #$00     ;#%00000000
-b3741   LDA a0492,Y
+b3741   LDA SPRITES_CLASS05,Y
         STY a00FB,b
         TAY
         LDA f2544,Y
@@ -5002,17 +5002,17 @@ b3741   LDA a0492,Y
         SBC #$12     ;#%00010010
         CMP SPRITES_LO_X04,Y
         BCS b3793
-        LDA SPRITES_POS_Y01,X
+        LDA SPRITES_Y01,X
         CLC
         ADC #$16     ;#%00010110
-        CMP SPRITES_POS_Y04,Y
+        CMP SPRITES_Y04,Y
         BCC b3793
-        LDA SPRITES_POS_Y01,X
+        LDA SPRITES_Y01,X
         SEC
         SBC #$16     ;#%00010110
-        CMP SPRITES_POS_Y04,Y
+        CMP SPRITES_Y04,Y
         BCS b3793
-        LDA a0492,Y
+        LDA SPRITES_CLASS05,Y
         CMP #$1E     ;#%00011110
         BNE b3790
         JMP j37CF
@@ -5032,11 +5032,11 @@ b3793   INY
         RTS
 
 b37A9   LDA #$00     ;#%00000000
-        STA a048E,X
+        STA SPRITES_CLASS01,X
         STA SPRITES_DELTA_X01,X
         STA SPRITES_DELTA_Y01,X
         LDA f1436,X
-        STA SPRITES_POS_Y01,X
+        STA SPRITES_Y01,X
         LDA #$64     ;#%01100100
         STA SPRITES_LO_X01,X
         LDA #$FF     ;#%11111111
@@ -5063,10 +5063,10 @@ j37CF   TXA
         SEC
         SBC #$0E     ;#%00001110
         STA SPRITES_LO_X01,X
-        LDA SPRITES_POS_Y04,Y
-        STA SPRITES_POS_Y01,X
+        LDA SPRITES_Y04,Y
+        STA SPRITES_Y01,X
         LDA #$0C     ;#%00001100
-        STA a0492,Y
+        STA SPRITES_CLASS05,Y
         LDA #$00     ;#%00000000
         STA f04B7,Y
         TAX
@@ -5078,16 +5078,16 @@ j37CF   TXA
         SEC
         SBC #$18     ;#%00011000
         STA a04F0
-        LDA SPRITES_POS_Y04,Y
+        LDA SPRITES_Y04,Y
         SEC
         SBC #$2E     ;#%00101110
         STA a04F1
         LDA SPRITES_HI_X04,Y
         STA a04F2
-        LDA SPRITES_POS_Y04,Y
+        LDA SPRITES_Y04,Y
         SEC
         SBC #$0A     ;#%00001010
-        STA SPRITES_POS_Y04,Y
+        STA SPRITES_Y04,Y
         JSR j172F
         LDA a00FC,b
         STA a00FB,b
@@ -5106,10 +5106,10 @@ b3848   LDA SPRITES_LO_X04,Y
         CLC
         ADC #$0E     ;#%00001110
         STA SPRITES_LO_X01,X
-        LDA SPRITES_POS_Y04,Y
-        STA SPRITES_POS_Y01,X
+        LDA SPRITES_Y04,Y
+        STA SPRITES_Y01,X
         LDA #$0C     ;#%00001100
-        STA a0492,Y
+        STA SPRITES_CLASS05,Y
         LDA #$00     ;#%00000000
         STA f04B7,Y
         TAX
@@ -5117,10 +5117,10 @@ b3848   LDA SPRITES_LO_X04,Y
         STA SPRITES_PTR04,Y
         LDA #$08     ;orange
         STA SPRITES_COLOR04,Y
-        LDA SPRITES_POS_Y04,Y
+        LDA SPRITES_Y04,Y
         SEC
         SBC #$0A     ;#%00001010
-        STA SPRITES_POS_Y04,Y
+        STA SPRITES_Y04,Y
         LDA #<$859A  ;FIXME: harcoded part of the map
         STA a00FB,b
         LDA #>$859A  ;FIXME: harcoded part of the map
@@ -5142,12 +5142,12 @@ s388B   INC f04B7,X
         RTS
 
 b389F   LDA #$00     ;#%00000000
-        STA a0492,X
+        STA SPRITES_CLASS05,X
         STA SPRITES_DELTA_X04,X
         STA SPRITES_DELTA_Y04,X
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         LDA f143A,X
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA #$64     ;#%01100100
         STA SPRITES_LO_X04,X
         LDA #$FF     ;#%11111111
@@ -5164,7 +5164,7 @@ TRY_THROW_GRENADE               ;$38c3
         BNE _L00
         LDA a04F4
         BEQ _SKIP
-_L00    LDA a0491
+_L00    LDA SPRITES_CLASS03
         BNE _SKIP
         LDA GRENADES
         BEQ _SKIP
@@ -5173,8 +5173,8 @@ _L00    LDA a0491
         BNE _SKIP
         LDA SPRITES_LO_X00
         STA SPRITES_LO_X03
-        LDA SPRITES_POS_Y00
-        STA SPRITES_POS_Y03
+        LDA SPRITES_Y00
+        STA SPRITES_Y03
         LDA SPRITES_HI_X00
         STA SPRITES_HI_X03
         LDA #$00     ;#%00000000
@@ -5185,10 +5185,10 @@ _L00    LDA a0491
         STA SPRITES_PTR03
         LDA #$0E     ;light blue
         STA SPRITES_COLOR03
-        LDA a043D
-        STA a0441
+        LDA SPRITES_BKG_PRI00
+        STA SPRITES_BKG_PRI03
         LDA #$02     ;#%00000010
-        STA a0491
+        STA SPRITES_CLASS03
         LDA #$00     ;#%00000000
         STA a04A0
         STA HERO_ANIM_IDX
@@ -5213,7 +5213,7 @@ s3935   INC COUNTER0,X
         JMP j39C9
 
 b3942   LDY #$00     ;#%00000000
-b3944   LDA a0492,Y
+b3944   LDA SPRITES_CLASS05,Y
         STY a00FB,b
         TAY
         LDA f2544,Y
@@ -5233,15 +5233,15 @@ b3944   LDA a0492,Y
         SBC #$0A     ;#%00001010
         CMP SPRITES_LO_X04,Y
         BCS b398F
-        LDA SPRITES_POS_Y01,X
+        LDA SPRITES_Y01,X
         CLC
         ADC #$0C     ;#%00001100
-        CMP SPRITES_POS_Y04,Y
+        CMP SPRITES_Y04,Y
         BCC b398F
-        LDA SPRITES_POS_Y01,X
+        LDA SPRITES_Y01,X
         SEC
         SBC #$0C     ;#%00001100
-        CMP SPRITES_POS_Y04,Y
+        CMP SPRITES_Y04,Y
         BCS b398F
         JSR s2405
         JSR s371D
@@ -5250,7 +5250,7 @@ b398F   INY
         BNE b3944
         LDA SPRITES_LO_X01,X
         STA a04F0
-        LDA SPRITES_POS_Y01,X
+        LDA SPRITES_Y01,X
         SEC
         SBC #$06     ;#%00000110
         STA a04F1
@@ -5267,15 +5267,15 @@ b398F   INY
         AND #$02     ;#%00000010
         BEQ b39C3
         LDA #$FF     ;#%11111111
-        STA a043E,X
+        STA SPRITES_BKG_PRI01,X
         RTS
 
 b39C3   LDA #$00     ;#%00000000
-        STA a043E,X
+        STA SPRITES_BKG_PRI01,X
         RTS
 
 j39C9   LDA #$03     ;#%00000011
-        STA a048E,X
+        STA SPRITES_CLASS01,X
         LDA #$00     ;#%00000000
         STA COUNTER0,X
         STA SPRITES_DELTA_X01,X
@@ -5318,14 +5318,14 @@ _L00    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game fire)
         CLC
         ADC f3617,Y
         STA SPRITES_LO_X01,X
-        LDA SPRITES_POS_Y00
+        LDA SPRITES_Y00
         CLC
         ADC f3627,Y
-        STA SPRITES_POS_Y01,X
+        STA SPRITES_Y01,X
         LDA SPRITES_HI_X00
         STA SPRITES_HI_X01,X
         LDA #$01     ;#%00000001
-        STA a048E,X
+        STA SPRITES_CLASS01,X
         LDA #$90     ;Bullet frame
         STA SPRITES_PTR01,X
         LDA #$00     ;#%00000000
@@ -5379,7 +5379,7 @@ _L01    LDA #$00     ;Hero up anim
         STA HERO_ANIM_IDX
         LDA #$FF     ;1 pixel up
         STA SPRITES_DELTA_Y00
-        LDA SPRITES_POS_Y00
+        LDA SPRITES_Y00
         CMP #$5A     ;Hero Y pos?
         BEQ _L02
         JMP SETUP_HERO_ANIMATION
@@ -5414,14 +5414,14 @@ _L00    LDA #$00     ;#%00000000
 
         LDA #$01     ;#%00000001
         STA a04EE
-        LDA SPRITES_POS_Y00
+        LDA SPRITES_Y00
         CMP #$6E     ;#%01101110        Hero reached top to move up?
         BCC _L03
         LDA #$FF     ;Sprite move up 1 pixel
         STA SPRITES_DELTA_Y00
         JMP _L03
 
-_L01    LDA SPRITES_POS_Y00
+_L01    LDA SPRITES_Y00
         CMP #$A4     ;#%10100100
         BCC _L02
         LDA #$FF     ;#%11111111
@@ -5436,7 +5436,7 @@ _L03    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game down)
         BNE _L04
         LDA #$08     ;Anim index for SOLIDER_ANIM_FRAMES (down)
         STA HERO_ANIM_IDX
-        LDA SPRITES_POS_Y00
+        LDA SPRITES_Y00
         CMP #$C1     ;#%11000001
         BCS _L04
         LDA #$01     ;#%00000001
@@ -5555,7 +5555,7 @@ b3BCC   JSR s35CE
         STA a04F2
 b3BF8   PLA
         STA a04F0
-        LDA SPRITES_POS_Y00
+        LDA SPRITES_Y00
         CLC
         ADC SPRITES_DELTA_Y00
         CLC
@@ -5609,7 +5609,7 @@ b3BF8   PLA
         ADC V_SCROLL_DELTA
         CLC
         ADC #$0C     ;#%00001100
-        STA SPRITES_POS_Y00
+        STA SPRITES_Y00
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X00
         STA SPRITES_DELTA_Y00
@@ -5618,11 +5618,11 @@ b3C7D   LDA (p2A),Y
         AND #$02     ;#%00000010
         BEQ b3C89
         LDA #$FF     ;#%11111111
-        STA a043D
+        STA SPRITES_BKG_PRI00
         RTS
 
 b3C89   LDA #$00     ;#%00000000
-        STA a043D
+        STA SPRITES_BKG_PRI00
         RTS
 
 b3C8F   LDA IS_ANIM_EXIT_DOOR
@@ -5670,7 +5670,7 @@ SET_CASTLE_ON_FIRE      ;$3CD0
 _L00    LDA f3D27,X
         STA SPRITES_LO_X04,X
         LDA f3D3D,X
-        STA SPRITES_POS_Y04,X
+        STA SPRITES_Y04,X
         LDA f3D32,X
         STA SPRITES_HI_X04,X
         LDA #$EE     ;#%11101110
@@ -5678,7 +5678,7 @@ _L00    LDA f3D27,X
         LDA #$02     ;red
         STA SPRITES_COLOR04,X
         LDA #$00     ;#%00000000
-        STA a0442,X
+        STA SPRITES_BKG_PRI04,X
         INX
         CPX #$0B     ;Number of sprites to set
         BNE _L00
@@ -5724,15 +5724,15 @@ s3D48   LDA SPRITES_LO_X00
         STA SPRITES_HI_X00
 b3D61   PLA
         STA SPRITES_LO_X00
-        LDA SPRITES_POS_Y00
+        LDA SPRITES_Y00
         CLC
         ADC SPRITES_DELTA_Y00
-        STA SPRITES_POS_Y00
+        STA SPRITES_Y00
         STA f04C2
         LDX #$01     ;#%00000001
-b3D74   LDA SPRITES_POS_Y00,X
+b3D74   LDA SPRITES_Y00,X
         STA f04C2,X
-        LDA a048D,X
+        LDA SPRITES_CLASS00,X
         BEQ b3DAA
         LDA SPRITES_LO_X00,X
         CLC
@@ -5747,23 +5747,23 @@ b3D74   LDA SPRITES_POS_Y00,X
         STA SPRITES_HI_X00,X
 b3D98   PLA
         STA SPRITES_LO_X00,X
-        LDA SPRITES_POS_Y00,X
+        LDA SPRITES_Y00,X
         CLC
         ADC SPRITES_DELTA_Y00,X
         SEC
         SBC V_SCROLL_DELTA
-        STA SPRITES_POS_Y00,X
+        STA SPRITES_Y00,X
 b3DAA   INX
         CPX #$10     ;#%00010000
         BNE b3D74
         RTS
 
         LDA #$00     ;#%00000000
-        STA a048D,X
+        STA SPRITES_CLASS00,X
         STA SPRITES_DELTA_X00,X
         STA SPRITES_DELTA_Y00,X
         LDA f1435,X
-        STA SPRITES_POS_Y00,X
+        STA SPRITES_Y00,X
         LDA #$64     ;#%01100100
         STA SPRITES_LO_X00,X
         LDA #$FF     ;#%11111111
@@ -5778,7 +5778,7 @@ s3DD3   LDX #$00     ;#%00000000
 _L00    LDA #$64     ;#%01100100
         STA SPRITES_LO_X00,X
         LDA f1435,X
-        STA SPRITES_POS_Y00,X
+        STA SPRITES_Y00,X
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X00,X
         STA SPRITES_DELTA_Y00,X
@@ -5786,8 +5786,8 @@ _L00    LDA #$64     ;#%01100100
         STA SPRITES_HI_X00,X
         STA SPRITES_PTR00,X
         LDA #$00     ;#%00000000
-        STA a043D,X
-        STA a048D,X
+        STA SPRITES_BKG_PRI00,X
+        STA SPRITES_CLASS00,X
         INX
         CPX #$10     ;#%00010000
         BNE _L00
@@ -5801,7 +5801,7 @@ SETUP_LEVEL             ;$3DFE
         LDA #$97     ;#%10010111
         STA SPRITES_LO_X00
         LDA #$B4     ;#%10110100
-        STA SPRITES_POS_Y00
+        STA SPRITES_Y00
         LDA #$98     ;#%10011000
         STA SPRITES_PTR00
         LDA #$06     ;blue
@@ -5812,7 +5812,7 @@ SETUP_LEVEL             ;$3DFE
         STA SPRITES_DELTA_Y00
         STA a04E1
         STA HERO_ANIM_IDX
-        STA a043D
+        STA SPRITES_BKG_PRI00
         STA IS_HERO_DEAD
         LDA LEVEL_NR
         AND #$03     ;#%00000011
@@ -5912,9 +5912,9 @@ f3EEF   .BYTE >f3EDA
 b3EF6   LDX #$00     ;#%00000000
         STX a00D7,b
 b3EFB   LDY f004C,b,X
-        LDA SPRITES_POS_Y00,Y
+        LDA SPRITES_Y00,Y
         LDY f004B,b,X
-        CMP SPRITES_POS_Y00,Y
+        CMP SPRITES_Y00,Y
         BCS b3F19
         LDY f004B,b,X
         LDA f004C,b,X
@@ -5949,10 +5949,10 @@ b3F46   LDA a003F,b
         STA a0041,b
         LDX a0041,b
         LDY f004B,b,X
-        LDA SPRITES_POS_Y00,Y
+        LDA SPRITES_Y00,Y
         LDX a003F,b
         LDY f004B,b,X
-        CMP SPRITES_POS_Y00,Y
+        CMP SPRITES_Y00,Y
         BCS b3F84
         LDX a003F,b
         LDY a0041,b
@@ -6320,7 +6320,7 @@ _L0     LDX f004B,b,Y
         AND f4487,Y
         ORA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D010    ;Sprites 0-7 MSB of X coordinate
-        LDA a043D,X
+        LDA SPRITES_BKG_PRI00,X
         AND f4487,Y
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
@@ -6387,7 +6387,7 @@ IRQ_D   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND a448E
         ORA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D010    ;Sprites 0-7 MSB of X coordinate
-        LDA a043D,X
+        LDA SPRITES_BKG_PRI00,X
         AND a448E
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
@@ -6404,7 +6404,7 @@ IRQ_D   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND a448D
         ORA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D010    ;Sprites 0-7 MSB of X coordinate
-        LDA a043D,X
+        LDA SPRITES_BKG_PRI00,X
         AND a448D
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
@@ -6421,7 +6421,7 @@ IRQ_D   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND a448C
         ORA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D010    ;Sprites 0-7 MSB of X coordinate
-        LDA a043D,X
+        LDA SPRITES_BKG_PRI00,X
         AND a448C
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
@@ -6438,7 +6438,7 @@ IRQ_D   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND a448B
         ORA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D010    ;Sprites 0-7 MSB of X coordinate
-        LDA a043D,X
+        LDA SPRITES_BKG_PRI00,X
         AND a448B
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
@@ -6489,7 +6489,7 @@ IRQ_E   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND a448A
         ORA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D010    ;Sprites 0-7 MSB of X coordinate
-        LDA a043D,X
+        LDA SPRITES_BKG_PRI00,X
         AND a448A
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
@@ -6506,7 +6506,7 @@ IRQ_E   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND a4489
         ORA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D010    ;Sprites 0-7 MSB of X coordinate
-        LDA a043D,X
+        LDA SPRITES_BKG_PRI00,X
         AND a4489
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
@@ -6523,7 +6523,7 @@ IRQ_E   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND a4488
         ORA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D010    ;Sprites 0-7 MSB of X coordinate
-        LDA a043D,X
+        LDA SPRITES_BKG_PRI00,X
         AND a4488
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
@@ -6540,7 +6540,7 @@ IRQ_E   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND f4487
         ORA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D010    ;Sprites 0-7 MSB of X coordinate
-        LDA a043D,X
+        LDA SPRITES_BKG_PRI00,X
         AND f4487
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
@@ -6587,7 +6587,7 @@ a448E   .BYTE $80,$FE
         AND a4488
         ORA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D010    ;Sprites 0-7 MSB of X coordinate
-        LDA a043D,X
+        LDA SPRITES_BKG_PRI00,X
         AND a4488
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
