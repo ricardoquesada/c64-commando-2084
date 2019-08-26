@@ -5391,84 +5391,84 @@ HANDLE_JOY2         ;$3AAA
         LDA IS_ANIM_EXIT_DOOR
         BNE HERO_ANIM_EXIT_DOOR
         LDA ENEMIES_INSIDE
-        BNE b3ABC
+        BNE _L00
         LDA a04F4
-        BNE b3ABC
+        BNE _L00
         JMP HERO_START_ANIM_EXIT_DOOR
 
-b3ABC   LDA #$00     ;#%00000000
+_L00    LDA #$00     ;#%00000000
         STA SPRITE_HERO_DELTA_X
         STA SPRITE_HERO_DELTA_Y
         STA V_SCROLL_DELTA
 
         LDA $DC00    ;CIA1: Data Port Register A (riq: in-game up)
         AND #$01     ;#%00000001
-        BNE b3B00
+        BNE _L03
         LDA #$00     ;Anim index for SOLDIER_ANIM_FRAMES (up)
         STA HERO_ANIM_IDX
         LDA V_SCROLL_ROW_IDX
-        BNE b3AEC
+        BNE _L01
 
         LDA #$01     ;#%00000001
         STA a04EE
         LDA SPRITE_HERO_Y
         CMP #$6E     ;#%01101110
-        BCC b3B00
-        LDA #$FF     ;#%11111111
+        BCC _L03
+        LDA #$FF     ;Sprite move up 1 pixel
         STA SPRITE_HERO_DELTA_Y
-        JMP b3B00
+        JMP _L03
 
-b3AEC   LDA SPRITE_HERO_Y
+_L01    LDA SPRITE_HERO_Y
         CMP #$A4     ;#%10100100
-        BCC b3AFB
+        BCC _L02
         LDA #$FF     ;#%11111111
         STA SPRITE_HERO_DELTA_Y
-        JMP b3B00
+        JMP _L03
 
-b3AFB   LDA #$FF     ;#%11111111
+_L02    LDA #$FF     ;Scroll up 1 pixel
         STA V_SCROLL_DELTA
 
-b3B00   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game down)
+_L03    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game down)
         AND #$02     ;#%00000010
-        BNE b3B18
+        BNE _L04
         LDA #$08     ;Anim index for SOLIDER_ANIM_FRAMES (down)
         STA HERO_ANIM_IDX
         LDA SPRITE_HERO_Y
         CMP #$C1     ;#%11000001
-        BCS b3B18
+        BCS _L04
         LDA #$01     ;#%00000001
         STA SPRITE_HERO_DELTA_Y
 
-b3B18   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game left)
+_L04    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game left)
         AND #$04     ;#%00000100
-        BNE b3B35
+        BNE _L06
         LDA #$0C     ;Anim index for SOLDIER_ANIM_FRAMES (left)
         STA HERO_ANIM_IDX
         LDA SPRITE_HERO_X_HI
-        BNE b3B30
+        BNE _L05
         LDA SPRITE_HERO_X_LO
         CMP #$18     ;#%00011000
-        BCC b3B35
-b3B30   LDA #$FE     ;#%11111110
+        BCC _L06
+_L05    LDA #$FE     ;#%11111110
         STA SPRITE_HERO_DELTA_X
 
-b3B35   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game right)
+_L06    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game right)
         AND #$08     ;#%00001000
-        BNE b3B52
+        BNE _L08
         LDA #$04     ;Anim index for SOLDIER_ANIM_FRAMES (right)
         STA HERO_ANIM_IDX
         LDA SPRITE_HERO_X_HI
-        BEQ b3B4D
+        BEQ _L07
         LDA SPRITE_HERO_X_LO
         CMP #$41     ;#%01000001
-        BCS b3B52
-b3B4D   LDA #$02     ;#%00000010
+        BCS _L08
+_L07    LDA #$02     ;#%00000010
         STA SPRITE_HERO_DELTA_X
 
-b3B52   LDA $DC00    ;CIA1: Data Port Register A (riq: multiple directions)
+_L08    LDA $DC00    ;CIA1: Data Port Register A (riq: multiple directions)
         ORA #$10     ;#%00010000
         CMP #$76     ;#%01110110        up-right
-        BNE b3B6A
+        BNE _L09
 
         LDX #$02     ;Anim index for SOLDIER_ANIM_FRAMES (up-right)
         STX HERO_ANIM_IDX
@@ -5479,8 +5479,8 @@ b3B52   LDA $DC00    ;CIA1: Data Port Register A (riq: multiple directions)
         ;FIXME: unintended fallthrough.
         ;       a jump must be placed here
 
-b3B6A   CMP #$75     ;#%01110101        down-right
-        BNE b3B7D
+_L09    CMP #$75     ;#%01110101        down-right
+        BNE _L10
         LDX #$06     ;Anim index for SOLDIER_ANIM_FRAMES (down-right)
         STX HERO_ANIM_IDX
         LDA #<HERO_FRAMES_DOWN_RIGHT  ;#%10110000
@@ -5490,8 +5490,8 @@ b3B6A   CMP #$75     ;#%01110101        down-right
         ;FIXME: unintended fallthrough.
         ;       a jump must be placed here
 
-b3B7D   CMP #$79     ;#%01111001        down-left
-        BNE b3B90
+_L10    CMP #$79     ;#%01111001        down-left
+        BNE _L11
         LDX #$0A     ;Anim index for SOLDER_ANIM_FRAMES (down-left)
         STX HERO_ANIM_IDX
         LDA #<HERO_FRAMES_DOWN_LEFT  ;#%10110100
@@ -5501,8 +5501,8 @@ b3B7D   CMP #$79     ;#%01111001        down-left
         ;FIXME: unintended fallthrough.
         ;       a jump must be placed here
 
-b3B90   CMP #$7A     ;#%01111010        up-left
-        BNE b3BA3
+_L11    CMP #$7A     ;#%01111010        up-left
+        BNE _L12
         LDX #$0E     ;Anim index for SOLDIER_ANIM_FRAMES (up-left)
         STX HERO_ANIM_IDX
         LDA #<HERO_FRAMES_UP_LEFT  ;#%10111100
@@ -5510,7 +5510,7 @@ b3B90   CMP #$7A     ;#%01111010        up-left
         LDA #>HERO_FRAMES_UP_LEFT  ;#%00111100
         STA a001A,b
 
-b3BA3   LDA $DC00    ;CIA1: Data Port Register A (riq: in-game direction changed)
+_L12    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game direction changed)
         AND #$0F     ;#%00001111
         CMP #$0F     ;#%00001111
         BEQ b3BCC
