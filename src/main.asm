@@ -107,19 +107,19 @@ a00FD = $00FD
 a00FE = $00FE
 a0400 = $0400
 a0401 = $0401
-V_SCROLL_BIT_IDX = $0402                ;pixels scrolled vertically: 0-7
-V_SCROLL_ROW_IDX = $0403                ;index to the row in the level: 0 means end of scroll (top of map)
-V_SCROLL_DELTA = $0404                  ;How many pixels needs to get scrolled. $0: no scroll needed, $ff: -1 one pixel
+V_SCROLL_BIT_IDX = $0402        ;pixels scrolled vertically: 0-7
+V_SCROLL_ROW_IDX = $0403        ;index to the row in the level: 0 means end of scroll (top of map)
+V_SCROLL_DELTA = $0404          ;How many pixels needs to get scrolled. $0: no scroll needed, $ff: -1 one pixel
 a0405 = $0405
 IRQ_ADDR_LO = $0406
 IRQ_ADDR_HI = $0407
-a040A = $040A
-a040B = $040B
-SPRITES_HI_X00 = $040D                ;MSB for X pos
+GAME_TICK = $040A               ;Incremented from main loop
+RASTER_TICK = $040B             ;Incremeted from raster routine
+SPRITES_HI_X00 = $040D          ;MSB for X pos
 SPRITES_HI_X01 = $040E
 SPRITES_HI_X04 = $0411
 SPRITES_HI_X05 = $0412
-SPRITES_LO_X00 = $041D                ;LSB for X pos
+SPRITES_LO_X00 = $041D          ;LSB for X pos
 SPRITES_LO_X01 = $041E
 SPRITES_LO_X04 = $0421
 SPRITES_LO_X05 = $0422
@@ -131,19 +131,19 @@ SPRITES_BKG_PRI00 = $043D
 SPRITES_BKG_PRI01 = $043E
 SPRITES_BKG_PRI04 = $0441
 SPRITES_BKG_PRI05 = $0442
-SPRITES_COLOR00 = $044D                 ;primary color of sprite
+SPRITES_COLOR00 = $044D         ;primary color of sprite
 SPRITES_COLOR01 = $044E
 SPRITES_COLOR04 = $0451
 SPRITES_COLOR05 = $0452
-SPRITES_PTR00 = $045D                   ;frame to be used by sprite
+SPRITES_PTR00 = $045D           ;frame to be used by sprite
 SPRITES_PTR01 = $045E
 SPRITES_PTR04 = $0461
 SPRITES_PTR05 = $0462
-SPRITES_DELTA_X00 = $046D             ;pixels to move horizontally for hero (neg or pos)
+SPRITES_DELTA_X00 = $046D       ;pixels to move horizontally for hero (neg or pos)
 SPRITES_DELTA_X01 = $046E
 SPRITES_DELTA_X04 = $0471
 SPRITES_DELTA_X05 = $0472
-SPRITES_DELTA_Y00 = $047D             ;pixels to move vertically for hero (neg or pos)
+SPRITES_DELTA_Y00 = $047D       ;pixels to move vertically for hero (neg or pos)
 SPRITES_DELTA_Y01 = $047E
 SPRITES_DELTA_Y04 = $0481
 SPRITES_DELTA_Y05 = $0482
@@ -152,7 +152,7 @@ SPRITES_CLASS01 = $048E
 SPRITES_CLASS04 = $0491
 SPRITES_CLASS05 = $0492
 COUNTER0 = $049D
-a04A0 = $04A0
+a04A0 = $04A0                   ;unused. only referenced in throw grenade
 FIRE_COOLDOWN = $04DF           ;reset with $ff
 HERO_ANIM_IDX = $04E0           ;Type of animation for hero: left,right,up,down,diagoanlly,etc.
                                 ; See: SOLDIER_ANIM_FRAMES_HI/LO
@@ -349,7 +349,7 @@ GAME_LOOP            ;$08CB
         INC a04E9
         JMP GAME_LOOP
 
-_L00    INC a040A
+_L00    INC GAME_TICK
         JSR s3D48
         JSR s3F24
         JSR TRY_THROW_GRENADE
@@ -3325,7 +3325,7 @@ s2924   JSR s28A3
         JSR s290E
         LDA SPRITES_DELTA_X05,X
         BPL b2942
-        LDA a040A
+        LDA GAME_TICK
         AND #$08     ;#%00001000
         LSR A
         LSR A
@@ -3335,7 +3335,7 @@ s2924   JSR s28A3
         STA SPRITES_PTR05,X
         RTS
 
-b2942   LDA a040A
+b2942   LDA GAME_TICK
         AND #$08     ;#%00001000
         LSR A
         LSR A
@@ -3389,7 +3389,7 @@ b299B   LDA f04AC,X
         STA a00FB,b
         LDA SOLDIER_ANIM_FRAMES_HI,Y
         STA a00FC,b
-        LDA a040A
+        LDA GAME_TICK
         AND #$0C     ;#%00001100
         LSR A
         LSR A
@@ -3442,7 +3442,7 @@ b2A04   CMP #$14     ;#%00010100
         STA a00FB,b
         LDA SOLDIER_ANIM_FRAMES_HI,Y
         STA a00FC,b
-        LDA a040A
+        LDA GAME_TICK
         AND #$0C     ;#%00001100
         LSR A
         LSR A
@@ -3463,7 +3463,7 @@ s2A34   INC f04B7,X
         STA a00FB,b
         LDA SOLDIER_ANIM_FRAMES_HI,Y
         STA a00FC,b
-        LDA a040A
+        LDA GAME_TICK
         AND #$0C     ;#%00001100
         LSR A
         LSR A
@@ -3523,7 +3523,7 @@ s2A78   LDA SPRITES_HI_X00
         JSR s500F
 b2AC7   LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
-        LDA a040A
+        LDA GAME_TICK
         AND #$08     ;#%00001000
         BEQ b2AD4
         RTS
@@ -3536,7 +3536,7 @@ s2ADA   INC f04B7,X
         LDA f04B7,X
         CMP #$64     ;#%01100100
         BEQ b2AF4
-        LDA a040A
+        LDA GAME_TICK
         AND #$08     ;#%00001000
         LSR A
         LSR A
@@ -3559,7 +3559,7 @@ s2AF9   INC f04B7,X
 
 b2B04   JMP s358E
 
-s2B07   LDA a040A
+s2B07   LDA GAME_TICK
         AND #$08     ;#%00001000
         LSR A
         LSR A
@@ -3579,7 +3579,7 @@ b2B27   RTS
 FRAME_POW_RUN       ;$2B28 (POW == Prisoner of War)
         .BYTE $C2,$C3
 
-s2B2A   LDA a040A
+s2B2A   LDA GAME_TICK
         AND #$08     ;#%00001000
         LSR A
         LSR A
@@ -4205,7 +4205,7 @@ b3084   BCS b30A6
         STA a00FB,b
         LDA SOLDIER_ANIM_FRAMES_HI,Y
         STA a00FC,b
-        LDA a040A
+        LDA GAME_TICK
         AND #$0C     ;#%00001100
         LSR A
         LSR A
@@ -4247,7 +4247,7 @@ s30DD   INC f04B7,X
         STA a00FB,b
         LDA SOLDIER_ANIM_FRAMES_HI,Y
         STA a00FC,b
-        LDA a040A
+        LDA GAME_TICK
         AND #$0C     ;#%00001100
         LSR A
         LSR A
@@ -4402,7 +4402,7 @@ s3205   INC f04B7,X
         STA a00FB,b
         LDA SOLDIER_ANIM_FRAMES_HI,Y
         STA a00FC,b
-        LDA a040A
+        LDA GAME_TICK
         AND #$0C     ;#%00001100
         LSR A
         LSR A
@@ -4420,7 +4420,7 @@ j3237   JSR s28A3
         LDA f04B7,X
         AND #$1F     ;#%00011111
         BEQ j3255
-        LDA a040A
+        LDA GAME_TICK
         AND #$1F     ;#%00011111
         BNE b3254
         JSR s3128
@@ -4827,7 +4827,7 @@ SETUP_VIC_BANK          ;$35AD
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s35CE   LDA a040A
+s35CE   LDA GAME_TICK
         LDA a04E1
         AND #$0F     ;#%00001111
         CMP HERO_ANIM_IDX
@@ -6063,8 +6063,8 @@ s401D   LDA $D012    ;Raster Position
 ; Waits until raster reaches $d5 vertical position
 ; triggered by IRQ_A
 WAIT_RASTER_AT_BOTTOM   ;$402A
-        LDA a040B
-_L00    CMP a040B
+        LDA RASTER_TICK
+_L00    CMP RASTER_TICK
         BEQ _L00
         RTS
 
@@ -6215,7 +6215,7 @@ _L0     LDA #$FF     ;#%11111111
         ORA #$04     ;#%00000100    bitmap at $c000 / charset at 010 = $D000
         STA $D018    ;VIC Memory Control Register
 
-        INC a040B
+        INC RASTER_TICK
         LDA #$DE     ;#%11011110
         STA $D012    ;Raster Position
 
