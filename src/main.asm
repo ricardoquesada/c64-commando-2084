@@ -2859,14 +2859,20 @@ b24D2   LDA SPRITES_CLASS05,X
 
 s24EF   JMP (a00FB)
 
+        ; Anim classes
 f24F3   =*+1
-f24F2   .ADDR s2CD9
-        .ADDR CLASS_ANIM_HERO_BULLET
-        .ADDR CLASS_ANIM_HERO_GRENADE
-        .ADDR CLASS_ANIM_HERO_BULLET_END
-        .ADDR CLASS_ANIM_HERO_GRENADE_END
-        .ADDR s3205,s3561,s2FC2
-        .ADDR s2F37,s2F8D,s305B,s2EBF
+f24F2   .ADDR s2CD9                             ;$00
+        .ADDR CLASS_ANIM_HERO_BULLET            ;$01
+        .ADDR CLASS_ANIM_HERO_GRENADE           ;$02
+        .ADDR CLASS_ANIM_HERO_BULLET_END        ;$03
+        .ADDR CLASS_ANIM_HERO_GRENADE_END       ;$04
+        .ADDR s3205                             ;$05
+        .ADDR CLASS_ANIM_SOLDIER_DIE            ;$06
+        .ADDR s2FC2                             ;$07
+        .ADDR CLASS_ANIM_SOLDIER_BULLET         ;$08
+        .ADDR CLASS_ANIM_SOLDIER_BULLET_END     ;$09
+        .ADDR s305B                             ;$0A
+        .ADDR s2EBF                             ;$0B
         .ADDR s388B,s2BDF,s2F0B,s2B4D
         .ADDR s2596,s2B2A,s2B07,s2AF9
         .ADDR s2ADA,s30DD,s2A78,s2A34
@@ -4046,7 +4052,9 @@ b2F31   RTS
 
 f2F32   .BYTE $D2,$D1,$D0,$D1,$D2
 
-s2F37   INC f04B7,X
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+CLASS_ANIM_SOLDIER_BULLET       ;$2F37
+        INC f04B7,X
         LDA f04B7,X
         CMP #$46     ;#%01000110
         BEQ b2F67
@@ -4088,19 +4096,21 @@ s2F7F   INC f04B7,X
 
 b2F8A   JMP s2EEB
 
-s2F8D   INC f04B7,X
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+CLASS_ANIM_SOLDIER_BULLET_END   ;$2F8D
+        INC f04B7,X
         LDA f04B7,X
         CMP #$09     ;#%00001001
-        BEQ b2F9F
+        BEQ _L00
         TAY
         LDA FRAME_BULLET_END,Y
         STA SPRITES_PTR05,X
         RTS
 
-b2F9F   JSR s2FA3
+_L00    JSR _L01
         RTS
 
-s2FA3   LDA #$00     ;#%00000000
+_L01    LDA #$00     ;#%00000000
         STA SPRITES_CLASS05,X
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
@@ -4113,6 +4123,7 @@ s2FA3   LDA #$00     ;#%00000000
         STA SPRITES_PTR05,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s2FC2   INC f04B7,X
         LDA SPRITES_Y05,X
         CMP #$82     ;#%10000010
@@ -4387,6 +4398,7 @@ b31EA   LDA #$0A     ;#%00001010
         STA f04AC,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s31F0   INC a04F4
         JSR s4006
         AND #$3F     ;#%00111111
@@ -4780,22 +4792,26 @@ b3557   LSR a00FB,b
         BPL b3557
         RTS
 
-s3561   INC f04B7,X
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Animation when regular soldier dies
+CLASS_ANIM_SOLDIER_DIE  ;$3561
+        INC f04B7,X
         LDA f04B7,X
         CMP #$18     ;#%00011000
-        BEQ b3573
+        BEQ _L00
         TAY
         LDA f3576,Y
         STA SPRITES_PTR05,X
         RTS
 
-b3573   JMP s358E
+_L00    JMP s358E
 
 f3576   .BYTE $BE,$FF,$BE,$FF,$BE,$FF,$BF,$FF
         .BYTE $BF,$FF,$BF,$FF,$BE,$FF,$BE,$FF
         .BYTE $BE,$FF,$BF,$FF,$BF
         .BYTE $FF,$BF,$FF
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s358E   LDA #$00     ;#%00000000
         STA SPRITES_CLASS05,X
         STA SPRITES_DELTA_X05,X
@@ -4881,7 +4897,7 @@ _L00    LDA SPRITES_Y01,X
         BCC _L02
         LDA SPRITES_HI_X01,X
         BEQ _L02
-_L01    JSR s371D
+_L01    JSR DISABLE_HERO_SPRITE
 _L02    LDA SPRITES_CLASS01,X
         ASL A
         TAY
@@ -4971,7 +4987,7 @@ CLASS_ANIM_HERO_BULLET_END      ;$36FE
         STA SPRITES_PTR01,X
         RTS
 
-_L00    JSR s371D
+_L00    JSR DISABLE_HERO_SPRITE
         RTS
 
 FRAME_BULLET_END             ;$3714
@@ -4979,8 +4995,9 @@ FRAME_BULLET_END             ;$3714
         .BYTE $FF
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; TODO: Hero Reset state (bullet, grenade, main) ?
-s371D   LDA #$00
+; Hero Reset state (bullet, grenade, main) and disable/hide
+DISABLE_HERO_SPRITE     ;$371D
+        LDA #$00
         STA SPRITES_CLASS01,X
         STA SPRITES_DELTA_X01,X
         STA SPRITES_DELTA_Y01,X
@@ -5262,7 +5279,7 @@ _L01    LDA SPRITES_CLASS05,Y
         CMP SPRITES_Y05,Y
         BCS _L02
         JSR s2405
-        JSR s371D
+        JSR DISABLE_HERO_SPRITE
 _L02    INY
         CPY #$0B     ;#%00001011
         BNE _L01
