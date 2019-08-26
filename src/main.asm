@@ -153,7 +153,7 @@ a0491 = $0491
 a0492 = $0492
 COUNTER0 = $049D
 a04A0 = $04A0
-a04DF = $04DF
+FIRE_COOLDOWN = $04DF           ;reset with $ff
 HERO_ANIM_IDX = $04E0           ;Type of animation for hero: left,right,up,down,diagoanlly,etc.
                                 ; See: SOLDIER_ANIM_FRAMES_HI/LO
 a04E1 = $04E1
@@ -167,7 +167,7 @@ a04E9 = $04E9
 a04EA = $04EA
 a04EC = $04EC
 a04ED = $04ED
-a04EE = $04EE
+a04EE = $04EE                   ;Hero is moving up (unused)
 ENEMIES_INSIDE = $04EF          ;How many enemies are inside the castle/warehouse
 a04F0 = $04F0
 a04F1 = $04F1
@@ -5287,24 +5287,27 @@ j39C9   LDA #$03     ;#%00000011
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Try fire shotgun ?
+; X=Sprite to update
 s39E1   LDA IS_HERO_DEAD
-        BNE b3A46
+        BNE _L02
         LDA ENEMIES_INSIDE
-        BNE _CHECK_FIRE
+        BNE _L00
         LDA a04F4
-        BEQ b3A46
+        BEQ _L02
 
-_CHECK_FIRE
-        LDA $DC00    ;CIA1: Data Port Register A (riq: in-game fire)
+_L00    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game fire)
         AND #$10     ;#%00010000
-        BNE b3A46
-        LDA a04DF
+        BNE _L02
+
+        LDA FIRE_COOLDOWN
         CMP #$08     ;#%00001000
-        BEQ _SKIP
-        INC a04DF
-        LDA a04DF
+        BEQ _L01
+        INC FIRE_COOLDOWN
+        LDA FIRE_COOLDOWN
         AND #$07     ;#%00000111
-        BNE _SKIP
+        BNE _L01
+
+        ;
 
         LDY a04E1
         LDA f35F7,Y
@@ -5323,16 +5326,16 @@ _CHECK_FIRE
         STA a040E,X
         LDA #$01     ;#%00000001
         STA a048E,X
-        LDA #$90     ;#%10010000
+        LDA #$90     ;Bullet frame
         STA SPRITES_PTR01,X
         LDA #$00     ;#%00000000
         STA COUNTER0,X
         LDA #$01     ;#%00000001
         STA a044E,X
-_SKIP   RTS
+_L01    RTS
 
-b3A46   LDA #$FF     ;#%11111111
-        STA a04DF
+_L02    LDA #$FF     ;#%11111111
+        STA FIRE_COOLDOWN
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -5412,7 +5415,7 @@ _L00    LDA #$00     ;#%00000000
         LDA #$01     ;#%00000001
         STA a04EE
         LDA SPRITE_HERO_Y
-        CMP #$6E     ;#%01101110
+        CMP #$6E     ;#%01101110        Hero reached top to move up?
         BCC _L03
         LDA #$FF     ;Sprite move up 1 pixel
         STA SPRITE_HERO_DELTA_Y
@@ -5871,7 +5874,7 @@ _L01    STA V_SCROLL_ROW_IDX
         LDA f3ED2,X
         STA a0504
         LDA #$00     ;#%00000000
-        STA a04DF
+        STA FIRE_COOLDOWN
 
         LDX #$00     ;Set sprite $ff as empty
 _L02    LDA #$00
