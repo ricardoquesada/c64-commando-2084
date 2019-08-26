@@ -1225,9 +1225,9 @@ _L00    LDA (p24),Y  ;End of trigger-rows?
         LDA (p28),Y     ;Object to init
         ASL A
         TAY
-        LDA INIT_OBJ_TBL_LO,Y   ;Prepare jump table for object creation
+        LDA ACTION_TBL_LO,Y   ;Prepare jump table for actions
         STA a00FB,b
-        LDA INIT_OBJ_TBL_HI,Y
+        LDA ACTION_TBL_HI,Y
         STA a00FC,b
 
         ; Find empty seat
@@ -2061,24 +2061,33 @@ _L03    LDA SPRITES_CLASS05,X
         ; It might be possible that a new sprite cannot be alloced
         RTS
 
-        ; Init new object.
-        ; At least one seat is available for the sprite but it might be possible
-        ; that the new object requires more than one  sprite (like the bike that
-        ; requires 2).
-        ; The obj idx does not correspond to the sprite class idx.
+        ; Create action.
+        ;
+        ; An action can to create a new enemy (obj), or things like open the door
+        ; that don't require any kind of object creation.
+        ;
+        ; For the case of new objects, one seat must be available for the sprite
+        ; creation but it might be possible that the new object uses an extra
+        ; sprite (like the bike that requires two) in case an extra seat is
+        ; available.
+        ;
+        ; It is possible that two different actions creates the same sprite
+        ; class. This happens when it wants to create the same sprite class, but
+        ; the sprite class must be init in a differnt way. E.g: one for placing
+        ; the sprite class at the left, and the other at the right of the screen.
 
 _L04    STY a00FD,b
         LDA (p28),Y
         ASL A
         TAY
-        LDA INIT_OBJ_TBL_LO,Y
+        LDA ACTION_TBL_LO,Y
         STA a00FB,b
-        LDA INIT_OBJ_TBL_HI,Y
+        LDA ACTION_TBL_HI,Y
         STA a00FC,b
         JMP (a00FB)
 
-INIT_OBJ_TBL_HI = *+1         ;$1C07
-INIT_OBJ_TBL_LO               ;$1C06
+ACTION_TBL_HI = *+1         ;$1C07
+ACTION_TBL_LO               ;$1C06
         .ADDR s2271                     ;$00
         .ADDR s22E4                     ;$01
         .ADDR s2329                     ;$02
@@ -2195,6 +2204,8 @@ s1E58   JSR s2271
         STA SPRITES_CLASS05,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Open door
 s1E61   LDA #$02     ;Draw open door
         JMP LEVEL_PATCH_DOOR
 
@@ -2481,7 +2492,9 @@ s20B1   LDA #$A0     ;#%10100000
         STA SPRITES_DELTA_X05,X
         RTS
 
-S20F6   LDA #$1E     ;#%00011110
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Create sprite class $18
+s20F6   LDA #$1E     ;#%00011110
         STA SPRITES_Y05,X
         LDA #$5A     ;#%01011010
         STA SPRITES_LO_X05,X
@@ -2505,6 +2518,8 @@ S20F6   LDA #$1E     ;#%00011110
         STA f04AC,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Create sprite class $16
 s212F   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_LO_X05,X
@@ -2525,6 +2540,8 @@ s212F   LDY a00FD,b
         STA SPRITES_CLASS05,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Create sprite class $12
 s215F   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_LO_X05,X
@@ -2777,6 +2794,9 @@ s2329   LDY a00FD,b
         STA f04AC,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Create sprite class $17
+; Sprite is placed at the left of screen
 s236E   LDA #$01     ;#%00000001
         STA SPRITES_LO_X05,X
         LDA #$00     ;#%00000000
@@ -2787,6 +2807,9 @@ s236E   LDA #$01     ;#%00000001
         STA f04AC,X
         JMP j2399
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Create sprite class $17
+; Sprite is placed at right of screen
 s2385   LDA #$5A     ;#%01011010
         STA SPRITES_LO_X05,X
         LDA #$FF     ;#%11111111
@@ -2795,6 +2818,7 @@ s2385   LDA #$5A     ;#%01011010
         STA SPRITES_DELTA_X05,X
         LDA #$0C     ;#%00001100
         STA f04AC,X
+
 j2399   LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y05,X
         LDA #$D5     ;#%11010101
