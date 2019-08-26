@@ -353,8 +353,8 @@ _L00    INC GAME_TICK
         JSR s3D48
         JSR s3F24
         JSR TRY_THROW_GRENADE
-        JSR s24B3
-        JSR s1BA9
+        JSR ANIM_ENEMIES
+        JSR NEW_SPRITE_IF_NEEDED
         JSR ANIM_HERO
 
         LDA IS_HERO_DEAD
@@ -1223,9 +1223,9 @@ _L00    LDA (p24),Y
         LDA (p28),Y
         ASL A
         TAY
-        LDA f1C06,Y
+        LDA INIT_CLASS_TBL_LO,Y
         STA a00FB,b
-        LDA f1C07,Y
+        LDA INIT_CLASS_TBL_HI,Y
         STA a00FC,b
         LDX #$00     ;#%00000000
 _L01    LDA SPRITES_CLASS05,X
@@ -1588,26 +1588,31 @@ INIT_LEVEL_DATA                 ; s1445
         ASL A
         TAY
         LDA f14AB,Y
-        STA a0024,b     ;Points to list of rows
+        STA a0024,b     ;Rows that trigger the creation of sprites
         LDA f14AC,Y
         STA a0025,b
+
         LDA f14A3,Y
-        STA a0022,b
+        STA a0022,b     ;X LSB of newly created sprite
         LDA f14A4,Y
         STA a0023,b
+
         LDA f14B3,Y
-        STA a0026,b
+        STA a0026,b     ; X MSB of newly created sprite
         LDA f14B4,Y
         STA a0027,b
+
         LDA f14BB,Y
-        STA a0028,b
+        STA a0028,b     ;Sprite class to create
         LDA f14BC,Y
         STA a0029,b
+
         LDA f14C3,Y
         STA a002A,b
         LDA f14C4,Y
         STA a002B,b
         STY a00FB,b
+
         LDA $D018    ;VIC Memory Control Register
         AND #$F0     ;#%11110000
         ORA a00FB,b  ;Set charset address
@@ -1616,15 +1621,30 @@ INIT_LEVEL_DATA                 ; s1445
 
         ; Data for levels 0-3, although level 3 does not exist
 f14A4   =*+1
-f14A3   .ADDR f1C67,f1D00,f1DE8,f1DE8
+f14A3   .ADDR LVL1_SPRITE_X_LO_TBL
+        .ADDR LVL2_SPRITE_X_LO_TBL
+        .ADDR LVL3_SPRITE_X_LO_TBL
+        .ADDR LVL3_SPRITE_X_LO_TBL
 f14AC   =*+1
-f14AB   .ADDR f1C3E,f1CDF,f1DC5,f1DC5
+f14AB   .ADDR LVL1_TRIGGER_ROW_TBL
+        .ADDR LVL2_TRIGGER_ROW_TBL
+        .ADDR LVL3_TRIGGER_ROW_TBL
+        .ADDR LVL3_TRIGGER_ROW_TBL
 f14B4   =*+1
-f14B3   .ADDR f1C8F,f1D20,f1E0A,f1E0A
+f14B3   .ADDR LVL1_SPRITE_X_HI_TBL
+        .ADDR LVL2_SPRITE_X_HI_TBL
+        .ADDR LVL3_SPRITE_X_HI_TBL
+        .ADDR LVL3_SPRITE_X_HI_TBL
 f14BC   =*+1
-f14BB   .ADDR f1CB7,f1D40,f1E2C,f1E2C
+f14BB   .ADDR f1CB7
+        .ADDR f1D40
+        .ADDR f1E2C
+        .ADDR f1E2C
 f14C4   =*+1
-f14C3   .ADDR f17A9,f18A9,f1AA9,f1AA9
+f14C3   .ADDR f17A9
+        .ADDR f18A9
+        .ADDR f1AA9
+        .ADDR f1AA9
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Patches the level data with the turrent destroyed/restored
@@ -1975,56 +1995,76 @@ f1AA9   .BYTE $00,$02,$02,$02,$02,$02,$02,$02
         .BYTE $00,$01,$01,$01,$01,$01,$01,$01
         .BYTE $01,$01,$01,$01,$00,$01,$02,$00
 
-s1BA9   LDY a04E8
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Which sprites to create acoording to the scroll Y position
+NEW_SPRITE_IF_NEEDED   ;$1BA9
+        LDY a04E8
         LDA (p24),Y
         CMP V_SCROLL_ROW_IDX
-        BEQ b1BB4
+        BEQ _L00
         RTS
 
-b1BB4   INC a04E8
+_L00    INC a04E8
+
+        ; Try to find an empty seat, when class is 0
         LDX #$0A     ;#%00001010
-b1BB9   LDA SPRITES_CLASS05,X
-        BEQ b1BF0
+_L01    LDA SPRITES_CLASS05,X
+        BEQ _L04
         DEX
-        BPL b1BB9
+        BPL _L01
+
+        ; TODO: Loop tried twice, probably a bug. Remove
+
         LDX #$0A     ;#%00001010
-b1BC3   LDA SPRITES_CLASS05,X
-        BEQ b1BF0
+_L02    LDA SPRITES_CLASS05,X
+        BEQ _L04
         DEX
-        BPL b1BC3
-        LDX #$0A     ;#%00001010
-b1BCD   LDA SPRITES_CLASS05,X
-        CMP #$08     ;#%00001000
-        BEQ b1BF0
-        CMP #$09     ;#%00001001
-        BEQ b1BF0
-        CMP #$13     ;#%00010011
-        BEQ b1BF0
-        CMP #$0C     ;#%00001100
-        BEQ b1BF0
-        CMP #$06     ;#%00000110
-        BEQ b1BF0
-        CMP #$0B     ;#%00001011
-        BEQ b1BF0
-        CMP #$05     ;#%00000101
-        BEQ b1BF0
+        BPL _L02
+
+        ; If an empty seat (class == 0) cannot be found, try reusing one with
+        ; lower priority
+
+        ; Lower priority ones:
+        ; $08, $09, $13, $0C, $06, $0B, $05
+        LDX #$0A
+_L03    LDA SPRITES_CLASS05,X
+        CMP #$08
+        BEQ _L04
+        CMP #$09
+        BEQ _L04
+        CMP #$13
+        BEQ _L04
+        CMP #$0C
+        BEQ _L04
+        CMP #$06
+        BEQ _L04
+        CMP #$0B
+        BEQ _L04
+        CMP #$05
+        BEQ _L04
         DEX
-        BPL b1BCD
+        BPL _L03
+
+        ; It might be possible that a new sprite cannot be alloced
         RTS
 
-b1BF0   STY a00FD,b
+        ; Init new sprite class
+
+_L04    STY a00FD,b
         LDA (p28),Y
         ASL A
         TAY
-        LDA f1C06,Y
+        LDA INIT_CLASS_TBL_LO,Y
         STA a00FB,b
-        LDA f1C07,Y
+        LDA INIT_CLASS_TBL_HI,Y
         STA a00FC,b
         JMP (a00FB)
 
-f1C07   =*+1
-f1C06   .ADDR s2271,s22E4,s2329,s223C
-        .ADDR s21C1,s2190,s215F,s212F
+INIT_CLASS_TBL_HI = *+1         ;$1C07
+INIT_CLASS_TBL_LO               ;$1C06
+        .ADDR s2271,s22E4,s2329,s223C
+        .ADDR CLASS_INIT_BIKE
+        .ADDR s2190,s215F,s212F
         .ADDR s236E,s2385,s20F6,s1E61
         .ADDR s23CC,s20B1,s22A9,s2053
         .ADDR s2082,s2001,s201d,s1F8F
@@ -2032,18 +2072,21 @@ f1C06   .ADDR s2271,s22E4,s2329,s223C
         .ADDR s1E66,s1E58,s1E4F,s1E4E
 
 ; Rows for lvl 1
-f1C3E   .BYTE $9E,$9B,$98,$90,$8E,$84,$81,$7E
+LVL1_TRIGGER_ROW_TBL    ;$1C3E
+        .BYTE $9E,$9B,$98,$90,$8E,$84,$81,$7E
         .BYTE $7B,$7B,$7B,$66,$64,$5B,$5B,$57
         .BYTE $56,$54,$53,$50,$4D,$4A,$46,$3E
         .BYTE $3E,$3E,$37,$34,$2E,$2E,$29,$26
         .BYTE $1E,$19,$19,$14,$11,$01,$00,$00
         .BYTE $FF
-f1C67   .BYTE $00,$00,$00,$14,$F0,$00,$00,$00
+LVL1_SPRITE_X_LO_TBL
+        .BYTE $00,$00,$00,$14,$F0,$00,$00,$00
         .BYTE $E6,$D2,$BE,$32,$1E,$00,$00,$50
         .BYTE $00,$50,$AE,$1E,$50,$76,$BE,$2B
         .BYTE $A5,$1D,$46,$28,$14,$2E,$2E,$28
         .BYTE $A4,$1E,$3C,$1E,$14,$00,$00,$00
-f1C8F   .BYTE $00,$00,$00,$FF,$00,$00,$00,$00
+LVL1_SPRITE_X_HI_TBL    ;$1C8F
+        .BYTE $00,$00,$00,$FF,$00,$00,$00,$00
         .BYTE $00,$00,$00,$FF,$FF,$00,$00,$58
         .BYTE $00,$58,$00,$00,$58,$00,$00,$00
         .BYTE $00,$FF,$00,$00,$FF,$FF,$00,$00
@@ -2055,16 +2098,19 @@ f1CB7   .BYTE $01,$01,$01,$00,$07,$02,$02,$02
         .BYTE $00,$00,$00,$00,$07,$0B,$0D,$1B
 
 ; Rows for lvl 2
-f1CDF   .BYTE $A5,$A2,$9D,$9B,$9B,$96,$95,$95
+LVL2_TRIGGER_ROW_TBL    ;$1CDF
+        .BYTE $A5,$A2,$9D,$9B,$9B,$96,$95,$95
         .BYTE $93,$8C,$8C,$8A,$88,$83,$7B,$7B
         .BYTE $7B,$74,$70,$68,$61,$5E,$52,$51
         .BYTE $46,$3D,$3D,$3A,$29,$1B,$01,$00
         .BYTE $FF
-f1D00   .BYTE $00,$32,$00,$DC,$0A,$00,$3C,$5A
+LVL2_SPRITE_X_LO_TBL    ;$1D00
+        .BYTE $00,$32,$00,$DC,$0A,$00,$3C,$5A
         .BYTE $F0,$96,$B4,$28,$32,$32,$D2,$F0
         .BYTE $14,$32,$C8,$00,$50,$50,$00,$00
         .BYTE $C8,$6E,$00,$00,$00,$00,$00,$00
-f1D20   .BYTE $00,$00,$00,$00,$FF,$00,$00,$00
+LVL2_SPRITE_X_HI_TBL    ;$1D20
+        .BYTE $00,$00,$00,$00,$FF,$00,$00,$00
         .BYTE $00,$00,$00,$FF,$FF,$00,$00,$00
         .BYTE $FF,$00,$00,$00,$63,$63,$00,$00
         .BYTE $00,$3F,$00,$00,$00,$00,$00,$00
@@ -2087,17 +2133,20 @@ f1D40   .BYTE $15,$07,$0E,$16,$0E,$13,$0E,$0E
         .BYTE $03,$1A,$0B,$0D,$1B
 
 ; Rows for lvl 3
-f1DC5   .BYTE $B4,$B3,$A4,$A3,$92,$8B,$8B,$83
+LVL3_TRIGGER_ROW_TBL    ;$1DC5
+        .BYTE $B4,$B3,$A4,$A3,$92,$8B,$8B,$83
         .BYTE $77,$74,$73,$61,$60,$5D,$58,$53
         .BYTE $50,$4E,$4C,$43,$3E,$3B,$3A,$26
         .BYTE $24,$1E,$1C,$18,$16,$0A,$0A,$02
         .BYTE $02,$00,$FF
-f1DE8   .BYTE $00,$00,$00,$00,$00,$28,$41,$50
+LVL3_SPRITE_X_LO_TBL    ;$1DE8
+        .BYTE $00,$00,$00,$00,$00,$28,$41,$50
         .BYTE $00,$00,$00,$00,$00,$00,$00,$00
         .BYTE $00,$00,$1E,$32,$00,$00,$00,$00
         .BYTE $00,$00,$1E,$00,$00,$47,$1E,$78
         .BYTE $E6,$00
-f1E0A   .BYTE $00,$00,$00,$00,$00,$00,$00,$00
+LVL3_SPRITE_X_HI_TBL    ;$1E0A
+        .BYTE $00,$00,$00,$00,$00,$00,$00,$00
         .BYTE $00,$00,$00,$00,$00,$00,$00,$00
         .BYTE $00,$00,$FF,$FF,$00,$00,$00,$00
         .BYTE $00,$00,$FF,$00,$00,$00,$FF,$00
@@ -2490,11 +2539,14 @@ s2190   LDY a00FD,b
         STA SPRITES_CLASS05,X
         RTS
 
-s21C1   LDA #$20     ;#%00100000
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Init class bike. From lvl1, the one that crosses the bridge
+CLASS_INIT_BIKE         ;$21C1
+        LDA #$20     ;#%00100000
         STA SPRITES_LO_X05,X
         LDA #$21     ;#%00100001
         STA SPRITES_Y05,X
-        LDA #$B0     ;#%10110000
+        LDA #$B0     ;Bike Front. Anim #0
         STA SPRITES_PTR05,X
         LDA #$09     ;brown
         STA SPRITES_COLOR05,X
@@ -2509,20 +2561,20 @@ s21C1   LDA #$20     ;#%00100000
         LDA #$0F     ;#%00001111
         STA SPRITES_CLASS05,X
         LDY #$00     ;#%00000000
-b21F1   LDA SPRITES_CLASS05,Y
-        BEQ b21FC
+_L00    LDA SPRITES_CLASS05,Y
+        BEQ _L01
         INY
         CPY #$0B     ;#%00001011
-        BNE b21F1
+        BNE _L00
         RTS
 
-b21FC   TYA
+_L01    TYA
         STA f04A1,X
         LDA #$38     ;#%00111000
         STA SPRITES_LO_X05,Y
         LDA #$21     ;#%00100001
         STA SPRITES_Y05,Y
-        LDA #$B1     ;#%10110001
+        LDA #$B1     ;Bike Back. Anim #0
         STA SPRITES_PTR05,Y
         LDA #$09     ;brown
         STA SPRITES_COLOR05,Y
@@ -2538,6 +2590,8 @@ b21FC   TYA
         STA SPRITES_CLASS05,Y
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; unused (?)
         LDY #$00     ;#%00000000
 b2231   LDA SPRITES_CLASS05,Y
         BEQ s223C
@@ -2546,6 +2600,7 @@ b2231   LDA SPRITES_CLASS05,Y
         BNE b2231
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s223C   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_LO_X05,X
@@ -2568,6 +2623,7 @@ s223C   LDY a00FD,b
         STA SPRITES_CLASS05,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s2271   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_LO_X05,X
@@ -2615,6 +2671,7 @@ s22A9   LDY a00FD,b
         STA SPRITES_CLASS05,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s22E4   LDY a00FD,b
         LDA #$9F     ;#%10011111
         SEC
@@ -2647,6 +2704,7 @@ s22E4   LDY a00FD,b
         STA f04AC,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s2329   LDY a00FD,b
         LDA #$86     ;#%10000110
         SEC
@@ -2830,7 +2888,9 @@ j24A7   LDA #$00     ;#%00000000
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s24B3   LDX #$00     ;#%00000000
+; Anim routine for enemies
+ANIM_ENEMIES    ;$24B3
+        LDX #$00     ;#%00000000
         STX a04F4
 b24B8   LDA SPRITES_Y05,X
         CMP #$1E     ;#%00011110
@@ -2846,9 +2906,9 @@ b24CF   JSR s358E
 b24D2   LDA SPRITES_CLASS05,X
         ASL A
         TAY
-        LDA f24F2,Y
+        LDA ANIM_CLASS_TBL_LO,Y
         STA a00FB,b
-        LDA f24F3,Y
+        LDA ANIM_CLASS_TBL_HI,Y
         STA a00FC,b
         INC a04E7
         JSR s24EF
@@ -2859,9 +2919,10 @@ b24D2   LDA SPRITES_CLASS05,X
 
 s24EF   JMP (a00FB)
 
-        ; Anim classes
-f24F3   =*+1
-f24F2   .ADDR s2CD9                             ;$00
+        ; Anim class table
+ANIM_CLASS_TBL_HI =*+1
+ANIM_CLASS_TBL_LO
+        .ADDR s2CD9                             ;$00
         .ADDR CLASS_ANIM_HERO_BULLET            ;$01
         .ADDR CLASS_ANIM_HERO_GRENADE           ;$02
         .ADDR CLASS_ANIM_HERO_BULLET_END        ;$03
@@ -2873,14 +2934,35 @@ f24F2   .ADDR s2CD9                             ;$00
         .ADDR CLASS_ANIM_SOLDIER_BULLET_END     ;$09
         .ADDR s305B                             ;$0A
         .ADDR s2EBF                             ;$0B
-        .ADDR s388B,s2BDF,s2F0B,s2B4D
-        .ADDR s2596,s2B2A,s2B07,s2AF9
-        .ADDR s2ADA,s30DD,s2A78,s2A34
-        .ADDR s29BB,s2956,s2924,s31F0
-        .ADDR s2876,s2860,s27E4,s2F7F
-        .ADDR s2724,s2F7F,s26DD,s2696
-        .ADDR s2697,s2675,s25F9,s25F0
-        .ADDR s2597
+        .ADDR s388B
+        .ADDR s2BDF
+        .ADDR s2F0B
+        .ADDR s2B4D
+        .ADDR s2596                             ;$10
+        .ADDR s2B2A
+        .ADDR s2B07
+        .ADDR s2AF9
+        .ADDR s2ADA
+        .ADDR s30DD
+        .ADDR s2A78
+        .ADDR s2A34
+        .ADDR s29BB                             ;$18
+        .ADDR s2956
+        .ADDR s2924
+        .ADDR s31F0
+        .ADDR s2876
+        .ADDR s2860
+        .ADDR s27E4
+        .ADDR s2F7F
+        .ADDR s2724                             ;$20
+        .ADDR s2F7F
+        .ADDR s26DD
+        .ADDR s2696
+        .ADDR s2697
+        .ADDR s2675
+        .ADDR s25F9
+        .ADDR s25F0
+        .ADDR s2597                             ;$28
 
 f2544   .BYTE $00,$00,$00,$00,$00,$03,$00,$02
         .BYTE $00,$00,$03,$00,$00,$02,$00,$00
@@ -4874,8 +4956,8 @@ f3617   .BYTE $04,$04,$04,$04,$00,$00,$02,$02
 f3627   .BYTE $00,$00,$02,$02,$00,$00,$02,$02
         .BYTE $00,$00,$02,$02,$00,$00,$07,$07
 
-HERO_ANIM_CLASSES_TBL_HI=*+1
-HERO_ANIM_CLASSES_TBL_LO
+HERO_ANIM_CLASS_TBL_HI=*+1
+HERO_ANIM_CLASS_TBL_LO
         .ADDR CLASS_ANIM_HERO_MAIN
         .ADDR CLASS_ANIM_HERO_BULLET
         .ADDR CLASS_ANIM_HERO_GRENADE
@@ -4901,9 +4983,9 @@ _L01    JSR DISABLE_HERO_SPRITE
 _L02    LDA SPRITES_CLASS01,X
         ASL A
         TAY
-        LDA HERO_ANIM_CLASSES_TBL_LO,Y
+        LDA HERO_ANIM_CLASS_TBL_LO,Y
         STA a00FB,b
-        LDA HERO_ANIM_CLASSES_TBL_HI,Y
+        LDA HERO_ANIM_CLASS_TBL_HI,Y
         STA a00FC,b
         JSR _L03
         INX
@@ -4976,7 +5058,7 @@ FRAME_GRENADE1      ;$36F3
 f36F9   .BYTE $A4,$A5,$DE,$98,$98
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; TODO: Hero Anim bullet end
+; Hero Anim bullet end
 CLASS_ANIM_HERO_BULLET_END      ;$36FE
         INC COUNTER0,X
         LDA COUNTER0,X
@@ -4996,6 +5078,8 @@ FRAME_BULLET_END             ;$3714
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Hero Reset state (bullet, grenade, main) and disable/hide
+; Not necessarily the hero in itself, but sprites associated with it like bullet
+; and grenade.
 DISABLE_HERO_SPRITE     ;$371D
         LDA #$00
         STA SPRITES_CLASS01,X
