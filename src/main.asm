@@ -154,7 +154,7 @@ SPRITES_CLASS05 = $0492
 COUNTER0 = $049D
 a04A0 = $04A0                   ;unused. only referenced in throw grenade
 FIRE_COOLDOWN = $04DF           ;reset with $ff
-HERO_ANIM_IDX = $04E0           ;Type of animation for hero: left,right,up,down,diagoanlly,etc.
+HERO_ANIM_MOV_IDX = $04E0       ;Movement anim for hero: left,right,up,down,diagoanlly,etc.
                                 ; See: SOLDIER_ANIM_FRAMES_HI/LO
 a04E1 = $04E1
 BKG_COLOR0 = $04E2
@@ -355,7 +355,7 @@ _L00    INC GAME_TICK
         JSR TRY_THROW_GRENADE
         JSR s24B3
         JSR s1BA9
-        JSR s3641
+        JSR ANIM_HERO
 
         LDA IS_HERO_DEAD
         BNE HERO_DIED
@@ -2860,8 +2860,12 @@ b24D2   LDA SPRITES_CLASS05,X
 s24EF   JMP (a00FB)
 
 f24F3   =*+1
-f24F2   .ADDR s2CD9,s3935,s367A,s36FE
-        .ADDR s373C,s3205,s3561,s2FC2
+f24F2   .ADDR s2CD9
+        .ADDR CLASS_ANIM_HERO_BULLET
+        .ADDR CLASS_ANIM_HERO_GRENADE
+        .ADDR CLASS_ANIM_HERO_BULLET_END
+        .ADDR CLASS_ANIM_HERO_GRENADE_END
+        .ADDR s3205,s3561,s2FC2
         .ADDR s2F37,s2F8D,s305B,s2EBF
         .ADDR s388B,s2BDF,s2F0B,s2B4D
         .ADDR s2596,s2B2A,s2B07,s2AF9
@@ -4827,20 +4831,20 @@ SETUP_VIC_BANK          ;$35AD
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s35CE   LDA GAME_TICK
+s35CE   LDA GAME_TICK   ;unused
         LDA a04E1
         AND #$0F     ;#%00001111
-        CMP HERO_ANIM_IDX
-        BEQ b35EE
+        CMP HERO_ANIM_MOV_IDX
+        BEQ _L02
         SEC
-        SBC HERO_ANIM_IDX
+        SBC HERO_ANIM_MOV_IDX
         AND #$0F     ;#%00001111
         CMP #$08     ;#%00001000
-        BCC b35EB
+        BCC _L01
         INC a04E1
         INC a04E1
-b35EB   DEC a04E1
-b35EE   LDA a04E1
+_L01    DEC a04E1
+_L02    LDA a04E1
         AND #$0F     ;#%00001111
         STA a04E1
         RTS
@@ -4854,40 +4858,49 @@ f3617   .BYTE $04,$04,$04,$04,$00,$00,$02,$02
 f3627   .BYTE $00,$00,$02,$02,$00,$00,$02,$02
         .BYTE $00,$00,$02,$02,$00,$00,$07,$07
 
-f3638   =*+1
-f3637   .ADDR s39E1,s3935,s367A,s36FE
-        .ADDR s373C
-
-s3641   LDX #$00     ;#%00000000
-b3643   LDA SPRITES_Y01,X
-        CMP #$1E     ;#%00011110
-        BCC b365A
-        CMP #$DC     ;#%11011100
-        BCS b365A
-        LDA SPRITES_LO_X01,X
-        CMP #$5B     ;#%01011011
-        BCC b365D
-        LDA SPRITES_HI_X01,X
-        BEQ b365D
-b365A   JSR s371D
-b365D   LDA SPRITES_CLASS01,X
-        ASL A
-        TAY
-        LDA f3637,Y
-        STA a00FB,b
-        LDA f3638,Y
-        STA a00FC,b
-        JSR s3677
-        INX
-        CPX #$04     ;#%00000100
-        BNE b3643
-        RTS
-
-s3677   JMP (a00FB)
+HERO_ANIM_CLASSES_TBL_HI=*+1
+HERO_ANIM_CLASSES_TBL_LO
+        .ADDR CLASS_ANIM_HERO_MAIN
+        .ADDR CLASS_ANIM_HERO_BULLET
+        .ADDR CLASS_ANIM_HERO_GRENADE
+        .ADDR CLASS_ANIM_HERO_BULLET_END
+        .ADDR CLASS_ANIM_HERO_GRENADE_END
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; TODO: Anim grenade
-s367A   INC COUNTER0,X
+; Calls the different hero-related animation, based on the sprite class assigned.
+; E.g: throw grenade, bullet start, bullet end, main anim, etc.
+ANIM_HERO       ;$3641
+        LDX #$00     ;#%00000000
+_L00    LDA SPRITES_Y01,X
+        CMP #$1E     ;#%00011110
+        BCC _L01
+        CMP #$DC     ;#%11011100
+        BCS _L01
+        LDA SPRITES_LO_X01,X
+        CMP #$5B     ;#%01011011
+        BCC _L02
+        LDA SPRITES_HI_X01,X
+        BEQ _L02
+_L01    JSR s371D
+_L02    LDA SPRITES_CLASS01,X
+        ASL A
+        TAY
+        LDA HERO_ANIM_CLASSES_TBL_LO,Y
+        STA a00FB,b
+        LDA HERO_ANIM_CLASSES_TBL_HI,Y
+        STA a00FC,b
+        JSR _L03
+        INX
+        CPX #$04     ;#%00000100
+        BNE _L00
+        RTS
+
+_L03    JMP (a00FB)
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Hero anim grenade
+CLASS_ANIM_HERO_GRENADE
+        INC COUNTER0,X
         LDA COUNTER0,X
         CMP #$0F     ;#%00001111
         BCS _L00
@@ -4947,8 +4960,9 @@ FRAME_GRENADE1      ;$36F3
 f36F9   .BYTE $A4,$A5,$DE,$98,$98
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; TODO: Anim bullet
-s36FE   INC COUNTER0,X
+; TODO: Hero Anim bullet end
+CLASS_ANIM_HERO_BULLET_END      ;$36FE
+        INC COUNTER0,X
         LDA COUNTER0,X
         CMP #$09     ;Frames for anim(?)
         BEQ _L00
@@ -4965,22 +4979,23 @@ FRAME_BULLET_END             ;$3714
         .BYTE $FF
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; TODO: Reset bullet state ?
+; TODO: Hero Reset state (bullet, grenade, main) ?
 s371D   LDA #$00
         STA SPRITES_CLASS01,X
         STA SPRITES_DELTA_X01,X
         STA SPRITES_DELTA_Y01,X
         LDA f1436,X
         STA SPRITES_Y01,X
-        LDA #$64     ;#%01100100
+        LDA #$64
         STA SPRITES_LO_X01,X
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_HI_X01,X
         STA SPRITES_PTR01,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s373C   INC COUNTER0,X
+CLASS_ANIM_HERO_GRENADE_END ;$373C
+        INC COUNTER0,X
         LDY #$00     ;#%00000000
 b3741   LDA SPRITES_CLASS05,Y
         STY a00FB,b
@@ -5121,19 +5136,20 @@ b3848   LDA SPRITES_LO_X05,Y
         SEC
         SBC #$0A     ;#%00001010
         STA SPRITES_Y05,Y
-        LDA #<$859A  ;FIXME: harcoded part of the map
+        LDA #<$859A  ;Turret location in lvl2 lo
         STA a00FB,b
-        LDA #>$859A  ;FIXME: harcoded part of the map
+        LDA #>$859A  ;Turrent location in lvl2 hi
         STA a00FC,b
         LDA #$06     ;#%00000110
         JSR LEVEL_PATCH_TURRET
         JSR LEVEL_DRAW_VIEWPORT
         JMP j3841
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s388B   INC f04B7,X
         LDA f04B7,X
         CMP #$14     ;#%00010100
-        BEQ b389F
+        BEQ _L00
         LSR A
         LSR A
         TAY
@@ -5141,7 +5157,7 @@ s388B   INC f04B7,X
         STA SPRITES_PTR05,X
         RTS
 
-b389F   LDA #$00     ;#%00000000
+_L00    LDA #$00     ;#%00000000
         STA SPRITES_CLASS05,X
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
@@ -5191,7 +5207,7 @@ _L00    LDA SPRITES_CLASS04
         STA SPRITES_CLASS04
         LDA #$00     ;#%00000000
         STA a04A0
-        STA HERO_ANIM_IDX
+        STA HERO_ANIM_MOV_IDX
         LDA #$A4     ;#%10100100
         STA SPRITES_PTR00
         SED
@@ -5206,48 +5222,50 @@ _L00    LDA SPRITES_CLASS04
 _SKIP   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s3935   INC COUNTER0,X
+; Hero Anim bullet
+CLASS_ANIM_HERO_BULLET  ;$3935
+        INC COUNTER0,X
         LDA COUNTER0,X
         CMP #$0F     ;#%00001111
-        BNE b3942
-        JMP j39C9
+        BNE _L00
+        JMP _L04
 
-b3942   LDY #$00     ;#%00000000
-b3944   LDA SPRITES_CLASS05,Y
+_L00    LDY #$00     ;#%00000000
+_L01    LDA SPRITES_CLASS05,Y
         STY a00FB,b
         TAY
         LDA f2544,Y
         LDY a00FB,b
         AND #$01     ;#%00000001
-        BEQ b398F
+        BEQ _L02
         LDA SPRITES_HI_X01,X
         CMP SPRITES_HI_X05,Y
-        BNE b398F
+        BNE _L02
         LDA SPRITES_LO_X01,X
         CLC
         ADC #$0A     ;#%00001010
         CMP SPRITES_LO_X05,Y
-        BCC b398F
+        BCC _L02
         LDA SPRITES_LO_X01,X
         SEC
         SBC #$0A     ;#%00001010
         CMP SPRITES_LO_X05,Y
-        BCS b398F
+        BCS _L02
         LDA SPRITES_Y01,X
         CLC
         ADC #$0C     ;#%00001100
         CMP SPRITES_Y05,Y
-        BCC b398F
+        BCC _L02
         LDA SPRITES_Y01,X
         SEC
         SBC #$0C     ;#%00001100
         CMP SPRITES_Y05,Y
-        BCS b398F
+        BCS _L02
         JSR s2405
         JSR s371D
-b398F   INY
+_L02    INY
         CPY #$0B     ;#%00001011
-        BNE b3944
+        BNE _L01
         LDA SPRITES_LO_X01,X
         STA a04F0
         LDA SPRITES_Y01,X
@@ -5262,19 +5280,19 @@ b398F   INY
         TAY
         LDA (p2A),Y
         AND #$01     ;#%00000001
-        BNE j39C9
+        BNE _L04
         LDA (p2A),Y
         AND #$02     ;#%00000010
-        BEQ b39C3
+        BEQ _L03
         LDA #$FF     ;#%11111111
         STA SPRITES_BKG_PRI01,X
         RTS
 
-b39C3   LDA #$00     ;#%00000000
+_L03    LDA #$00     ;#%00000000
         STA SPRITES_BKG_PRI01,X
         RTS
 
-j39C9   LDA #$03     ;#%00000011
+_L04    LDA #$03     ;#%00000011
         STA SPRITES_CLASS01,X
         LDA #$00     ;#%00000000
         STA COUNTER0,X
@@ -5286,9 +5304,10 @@ j39C9   LDA #$03     ;#%00000011
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Try fire shotgun ?
+; Animation for hero in "normal" state
 ; X=Sprite to update
-s39E1   LDA IS_HERO_DEAD
+CLASS_ANIM_HERO_MAIN
+        LDA IS_HERO_DEAD
         BNE _L02
         LDA ENEMIES_INSIDE
         BNE _L00
@@ -5357,7 +5376,7 @@ HERO_ANIM_EXIT_DOOR     ;b3A59
 
         ; Right
         LDA #$04     ;Hero right anim
-        STA HERO_ANIM_IDX
+        STA HERO_ANIM_MOV_IDX
         LDA #$02     ;2 pixels to the right
         STA SPRITES_DELTA_X00
         LDA #$00     ;#%00000000
@@ -5366,7 +5385,7 @@ HERO_ANIM_EXIT_DOOR     ;b3A59
 
         ; Left
 _L00    LDA #$0C     ;Hero left anim
-        STA HERO_ANIM_IDX
+        STA HERO_ANIM_MOV_IDX
         LDA #$FE     ;to pixels to the left
         STA SPRITES_DELTA_X00
         LDA #$00     ;#%00000000
@@ -5376,7 +5395,7 @@ _L00    LDA #$0C     ;Hero left anim
         ; Up
 _L01    LDA #$00     ;Hero up anim
         STA SPRITES_DELTA_X00
-        STA HERO_ANIM_IDX
+        STA HERO_ANIM_MOV_IDX
         LDA #$FF     ;1 pixel up
         STA SPRITES_DELTA_Y00
         LDA SPRITES_Y00
@@ -5408,7 +5427,7 @@ _L00    LDA #$00     ;#%00000000
         AND #$01     ;#%00000001
         BNE _L03
         LDA #$00     ;Anim index for SOLDIER_ANIM_FRAMES (up)
-        STA HERO_ANIM_IDX
+        STA HERO_ANIM_MOV_IDX
         LDA V_SCROLL_ROW_IDX
         BNE _L01
 
@@ -5435,7 +5454,7 @@ _L03    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game down)
         AND #$02     ;#%00000010
         BNE _L04
         LDA #$08     ;Anim index for SOLIDER_ANIM_FRAMES (down)
-        STA HERO_ANIM_IDX
+        STA HERO_ANIM_MOV_IDX
         LDA SPRITES_Y00
         CMP #$C1     ;#%11000001
         BCS _L04
@@ -5446,7 +5465,7 @@ _L04    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game left)
         AND #$04     ;#%00000100
         BNE _L06
         LDA #$0C     ;Anim index for SOLDIER_ANIM_FRAMES (left)
-        STA HERO_ANIM_IDX
+        STA HERO_ANIM_MOV_IDX
         LDA SPRITES_HI_X00
         BNE _L05
         LDA SPRITES_LO_X00
@@ -5459,7 +5478,7 @@ _L06    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game right)
         AND #$08     ;#%00001000
         BNE _L08
         LDA #$04     ;Anim index for SOLDIER_ANIM_FRAMES (right)
-        STA HERO_ANIM_IDX
+        STA HERO_ANIM_MOV_IDX
         LDA SPRITES_HI_X00
         BEQ _L07
         LDA SPRITES_LO_X00
@@ -5474,7 +5493,7 @@ _L08    LDA $DC00    ;CIA1: Data Port Register A (riq: multiple directions)
         BNE _L09
 
         LDX #$02     ;Anim index for SOLDIER_ANIM_FRAMES (up-right)
-        STX HERO_ANIM_IDX
+        STX HERO_ANIM_MOV_IDX
         LDA #<HERO_FRAMES_UP_RIGHT  ;#%10111000
         STA a0019,b
         LDA #>HERO_FRAMES_UP_RIGHT  ;#%00111100
@@ -5485,7 +5504,7 @@ _L08    LDA $DC00    ;CIA1: Data Port Register A (riq: multiple directions)
 _L09    CMP #$75     ;#%01110101        down-right
         BNE _L10
         LDX #$06     ;Anim index for SOLDIER_ANIM_FRAMES (down-right)
-        STX HERO_ANIM_IDX
+        STX HERO_ANIM_MOV_IDX
         LDA #<HERO_FRAMES_DOWN_RIGHT  ;#%10110000
         STA a0019,b
         LDA #>HERO_FRAMES_DOWN_RIGHT  ;#%00111100
@@ -5496,7 +5515,7 @@ _L09    CMP #$75     ;#%01110101        down-right
 _L10    CMP #$79     ;#%01111001        down-left
         BNE _L11
         LDX #$0A     ;Anim index for SOLDER_ANIM_FRAMES (down-left)
-        STX HERO_ANIM_IDX
+        STX HERO_ANIM_MOV_IDX
         LDA #<HERO_FRAMES_DOWN_LEFT  ;#%10110100
         STA a0019,b
         LDA #>HERO_FRAMES_DOWN_LEFT  ;#%00111100
@@ -5507,7 +5526,7 @@ _L10    CMP #$79     ;#%01111001        down-left
 _L11    CMP #$7A     ;#%01111010        up-left
         BNE _L12
         LDX #$0E     ;Anim index for SOLDIER_ANIM_FRAMES (up-left)
-        STX HERO_ANIM_IDX
+        STX HERO_ANIM_MOV_IDX
         LDA #<HERO_FRAMES_UP_LEFT  ;#%10111100
         STA a0019,b
         LDA #>HERO_FRAMES_UP_LEFT  ;#%00111100
@@ -5521,7 +5540,7 @@ _L12    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game direction changed
         ; Fall-through
 
 SETUP_HERO_ANIMATION            ;$3BAC
-        LDA HERO_ANIM_IDX
+        LDA HERO_ANIM_MOV_IDX
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
         STA a00FB,b
@@ -5811,7 +5830,7 @@ SETUP_LEVEL             ;$3DFE
         STA SPRITES_DELTA_X00
         STA SPRITES_DELTA_Y00
         STA a04E1
-        STA HERO_ANIM_IDX
+        STA HERO_ANIM_MOV_IDX
         STA SPRITES_BKG_PRI00
         STA IS_HERO_DEAD
         LDA LEVEL_NR
