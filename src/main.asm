@@ -4083,7 +4083,7 @@ f2CD5   .BYTE $00,$00,$FF,$FF
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_00
-; Logic that handles once the player reaches the top of the map.
+; Main logic
 s2CD9   LDA V_SCROLL_ROW_IDX
         BEQ _L00
         JMP _L05
