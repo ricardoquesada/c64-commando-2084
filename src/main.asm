@@ -2164,11 +2164,11 @@ LVL2_ACTION_TBL            ;$1D40
         .BYTE $0E,$0E,$07,$0C,$08,$09,$12,$11
         .BYTE $0E,$09,$0F,$0C,$10,$0F,$0B,$1B
 
-        ;
-        ; An unknown level. The code, all over the place, was designed
+        ; An unknown level data: The code, all over the place, was designed
         ; to support 4 levels. And this data reinforces the idea that
-        ; a 4th level was being made (this was probably level 3) but
-        ; was not released for... who knows.
+        ; a 4th level was being made but was not released for... who knows.
+        ; Based on the position of this data, it seems that this was
+        ; level 3.
 
         ; Trigger rows
         .BYTE $C6,$C4,$B5,$B4,$A7,$9D,$97,$95
@@ -2224,6 +2224,7 @@ s1E4E   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_1A
+; Create sprite class: $28
 s1E4F   JSR s223C
         LDA #$28     ;#%00101000
         STA SPRITES_CLASS05,X
@@ -3115,11 +3116,14 @@ POINTS_TBL      ;$256D
         .BYTE $03,$03,$14,$03,$02,$00,$0A,$00
         .BYTE $05,$00,$00,$0A,$0A,$00,$00,$05
         .BYTE $05
+
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_10
 f2596
 s2596   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_28
 s2597   INC f04B7,X
         LDA a04EA
         BEQ b25C4
@@ -3160,10 +3164,14 @@ b25CC   JSR s32ED
         STA SPRITES_CLASS05,Y
 b25EF   RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_27
 s25F0   INC f04B7,X
         JSR s300C
         JMP j33D0
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_26
 s25F9   INC f04B7,X
         LDA f04B7,X
         AND #$7F     ;#%01111111
@@ -3223,6 +3231,8 @@ b2633   LDA SPRITES_LO_X05,X
         TAX
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_25
 s2675   INC f04B7,X
         JSR s3128
         JSR j33D0
@@ -3241,8 +3251,12 @@ b2690   LDA #$FE     ;#%11111110
         STA SPRITES_DELTA_Y05,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_23
 s2696   RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_24
 s2697   INC f04B7,X
         LDA f04B7,X
         AND #$3F     ;#%00111111
@@ -3275,6 +3289,8 @@ b26AE   LDA SPRITES_LO_X05,X
         STA SPRITES_DELTA_X05,Y
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_22
 s26DD   INC f04B7,X
         LDY f04A1,X
         LDA f04B7,X
@@ -3308,6 +3324,8 @@ b270C   LDA #$0C     ;#%00001100
         STA SPRITES_PTR05,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_20
 s2724   INC f04B7,X
         LDA f04B7,X
         AND #$07     ;#%00000111
@@ -3396,6 +3414,8 @@ b27D5   LDA #$02     ;#%00000010
 FRAME_BAZOOKA_GUY       ;$27E0
         .BYTE $E5,$E6,$E7,$E6
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_1E
 s27E4   INC f04B7,X
         LDA f04B7,X
         AND #$1F     ;#%00011111
@@ -3453,6 +3473,8 @@ b2851   LDA #$02     ;#%00000010
         STA SPRITES_LO_X05,Y
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_1D
 s2860   INC f04B7,X
         LDA f04B7,X
         CMP #$0A     ;#%00001010
@@ -3466,6 +3488,8 @@ b286F   INC SPRITES_PTR05,X
 
 b2873   JMP s358E
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_1C
 s2876   INC f04B7,X
         LDA f04B7,X
         AND #$70     ;#%01110000
@@ -3551,6 +3575,8 @@ s290E   LDY #$00     ;#%00000000
         STA SPRITES_BKG_PRI05,X
 b2923   RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_1A
 s2924   JSR s28A3
         JSR s28D8
         JSR s290E
@@ -3581,6 +3607,8 @@ FRAME_BOSS1_RIGHT       ;$2952
 FRAME_BOSS1_LEFT        ;$2954
         .BYTE $EF,$F0
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_19
 s2956   INC f04B7,X
         LDA SPRITES_DELTA_X05,X
         ORA SPRITES_DELTA_Y05,X
@@ -3629,6 +3657,8 @@ b299B   LDA f04AC,X
         STA SPRITES_PTR05,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_18
 s29BB   INC f04B7,X
         LDA f04B7,X
         AND #$3F     ;#%00111111
@@ -3686,6 +3716,8 @@ b2A27   JSR s28A3
         JSR j33D0
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_17
 s2A34   INC f04B7,X
         LDA f04AC,X
         AND #$FE     ;#%11111110
@@ -3717,6 +3749,8 @@ b2A65   LDA #$08     ;#%00001000
         STA SPRITES_DELTA_Y05,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_16
 s2A78   LDA SPRITES_HI_X00
         CMP SPRITES_HI_X05,X
         BNE b2AC7
@@ -3763,6 +3797,8 @@ b2AD4   LDA #$08     ;orange
         STA SPRITES_COLOR05,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_14
 s2ADA   INC f04B7,X
         LDA f04B7,X
         CMP #$64     ;#%01100100
@@ -3782,6 +3818,8 @@ b2AF4   JMP s358E
 FRAME_POW_RESCUE    ;$2AF7 (Pow == Prisoner of War)
         .BYTE $C4,$C5
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_13
 s2AF9   INC f04B7,X
         LDA f04B7,X
         CMP #$41     ;#%01000001
@@ -3790,6 +3828,8 @@ s2AF9   INC f04B7,X
 
 b2B04   JMP s358E
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_12
 s2B07   LDA GAME_TICK
         AND #$08     ;#%00001000
         LSR A
@@ -3810,6 +3850,8 @@ b2B27   RTS
 FRAME_POW_RUN       ;$2B28 (POW == Prisoner of War)
         .BYTE $C2,$C3
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_11
 s2B2A   LDA GAME_TICK
         AND #$08     ;#%00001000
         LSR A
@@ -3830,6 +3872,8 @@ b2B4A   RTS
 FRAME_POW_GUARD     ;$2B4B
         .BYTE $C0,$C1
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_0F
 s2B4D   INC f04B7,X
         LDY f04A1,X
         LDA SPRITES_LO_X05,X
@@ -3894,6 +3938,8 @@ b2BCF   LDA SPRITES_LO_X05,X
         STA SPRITES_DELTA_X05,Y
 b2BDE   RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_0D
 s2BDF   INC f04B7,X
         LDA a04EA
         BEQ b2C0C
@@ -4001,6 +4047,7 @@ f2CD1   .BYTE $9B,$9B,$9B,$9B
 f2CD5   .BYTE $00,$00,$FF,$FF
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_00
 ; Logic that handles once the player reaches the top of the map.
 s2CD9   LDA V_SCROLL_ROW_IDX
         BEQ b2CE1
@@ -4212,6 +4259,8 @@ b2E5D   JSR s4006
 
 b2EBE   RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_0B
 s2EBF   INC f04B7,X
         LDA f04B7,X
         CMP #$50     ;#%01010000
@@ -4250,6 +4299,8 @@ s2EEB   LDA #$0C     ;#%00001100
         BNE b2F0A                               ;WTF
 b2F0A   RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_0E
 s2F0B   INC f04B7,X
         LDA f04B7,X
         CMP #$50     ;#%01010000
@@ -4274,6 +4325,7 @@ b2F31   RTS
 f2F32   .BYTE $D2,$D1,$D0,$D1,$D2
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_08
 CLASS_ANIM_SOLDIER_BULLET       ;$2F37
         INC f04B7,X
         LDA f04B7,X
@@ -4309,6 +4361,8 @@ b2F67   LDA #$09     ;#%00001001
         STA SPRITES_PTR05,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_1F / class_21
 s2F7F   INC f04B7,X
         LDA f04B7,X
         CMP #$5A     ;#%01011010
@@ -4318,6 +4372,7 @@ s2F7F   INC f04B7,X
 b2F8A   JMP s2EEB
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_09
 CLASS_ANIM_SOLDIER_BULLET_END   ;$2F8D
         INC f04B7,X
         LDA f04B7,X
@@ -4345,6 +4400,7 @@ _L01    LDA #$00     ;#%00000000
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_07
 s2FC2   INC f04B7,X
         LDA SPRITES_Y05,X
         CMP #$82     ;#%10000010
@@ -4415,6 +4471,8 @@ b3050   LDA #$08     ;#%00001000
         STA SPRITES_PTR05,X
 j305A   RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_0A
 s305B   INC f04B7,X
         LDA f04B7,X
         CMP #$1E     ;#%00011110
@@ -4475,6 +4533,8 @@ b30BF   LDA #$98     ;#%10011000
         STA SPRITES_CLASS05,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_15
 s30DD   INC f04B7,X
         LDA f04AC,X
         AND #$FE     ;#%11111110
@@ -4620,6 +4680,7 @@ b31EA   LDA #$0A     ;#%00001010
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_1B
 s31F0   INC a04F4
         JSR s4006
         AND #$3F     ;#%00111111
@@ -4628,6 +4689,11 @@ s31F0   INC a04F4
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
+
+        ; fall-through
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_05
 s3205   INC f04B7,X
         LDA SPRITES_DELTA_X05,X
         ORA SPRITES_DELTA_Y05,X
@@ -5014,6 +5080,7 @@ b3557   LSR a00FB,b
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_06
 ; Animation when regular soldier dies
 CLASS_ANIM_SOLDIER_DIE  ;$3561
         INC f04B7,X
@@ -5135,6 +5202,7 @@ _L02    LDA SPRITES_CLASS01,X
 _L03    JMP (a00FB)
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_02
 ; Hero anim grenade
 CLASS_ANIM_HERO_GRENADE
         INC COUNTER0,X
@@ -5197,6 +5265,7 @@ FRAME_GRENADE1      ;$36F3
 f36F9   .BYTE $A4,$A5,$DE,$98,$98
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_03
 ; Hero Anim bullet end
 CLASS_ANIM_HERO_BULLET_END      ;$36FE
         INC COUNTER0,X
@@ -5234,6 +5303,7 @@ DISABLE_HERO_SPRITE     ;$371D
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_04
 CLASS_ANIM_HERO_GRENADE_END ;$373C
         INC COUNTER0,X
         LDY #$00     ;#%00000000
@@ -5386,6 +5456,7 @@ b3848   LDA SPRITES_LO_X05,Y
         JMP j3841
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_0C
 s388B   INC f04B7,X
         LDA f04B7,X
         CMP #$14     ;#%00010100
@@ -5462,6 +5533,7 @@ _L00    LDA SPRITES_CLASS04
 _SKIP   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: class_01
 ; Hero Anim bullet
 CLASS_ANIM_HERO_BULLET  ;$3935
         INC COUNTER0,X
