@@ -1641,10 +1641,10 @@ f14B3   .ADDR LVL1_SPRITE_X_HI_TBL
         .ADDR LVL3_SPRITE_X_HI_TBL
         .ADDR LVL3_SPRITE_X_HI_TBL
 f14BC   =*+1
-f14BB   .ADDR LVL1_OBJ_TBL
-        .ADDR LVL2_OBJ_TBL
-        .ADDR LVL3_OBJ_TBL
-        .ADDR LVL3_OBJ_TBL
+f14BB   .ADDR LVL1_ACTION_TBL
+        .ADDR LVL2_ACTION_TBL
+        .ADDR LVL3_ACTION_TBL
+        .ADDR LVL3_ACTION_TBL
 f14C4   =*+1
 f14C3   .ADDR f17A9
         .ADDR f18A9
@@ -2092,14 +2092,30 @@ ACTION_TBL_LO               ;$1C06
         .ADDR s22E4                     ;$01
         .ADDR s2329                     ;$02
         .ADDR s223C                     ;$03
-        .ADDR OBJ_INIT_BIKE             ;$04
+        .ADDR ACTION_CREATE_BIKE        ;$04
         .ADDR s2190                     ;$05
-        .ADDR s215F,s212F
-        .ADDR s236E,s2385,s20F6,s1E61
-        .ADDR s23CC,s20B1,s22A9,s2053
-        .ADDR s2082,s2001,s201d,s1F8F
-        .ADDR s1EED,s1EAF,s1F5F,s1E73
-        .ADDR s1E66,s1E58,s1E4F,s1E4E
+        .ADDR s215F                     ;$06
+        .ADDR s212F                     ;$07
+        .ADDR s236E                     ;$08
+        .ADDR s2385                     ;$09
+        .ADDR s20F6                     ;$0A
+        .ADDR ACTION_OPEN_DOOR          ;$0B
+        .ADDR s23CC                     ;$0C
+        .ADDR s20B1                     ;$0D
+        .ADDR s22A9                     ;$0E
+        .ADDR s2053                     ;$0F
+        .ADDR s2082                     ;$10
+        .ADDR s2001                     ;$11
+        .ADDR s201D                     ;$12
+        .ADDR s1F8F                     ;$13
+        .ADDR s1EED                     ;$14
+        .ADDR s1EAF                     ;$15
+        .ADDR s1F5F                     ;$16
+        .ADDR s1E73                     ;$17
+        .ADDR s1E66                     ;$18
+        .ADDR s1E58                     ;$19
+        .ADDR s1E4F                     ;$1A
+        .ADDR s1E4E                     ;$1B
 
 ; Level 1 data
 LVL1_TRIGGER_ROW_TBL    ;$1C3E
@@ -2121,7 +2137,7 @@ LVL1_SPRITE_X_HI_TBL    ;$1C8F
         .BYTE $00,$58,$00,$00,$58,$00,$00,$00
         .BYTE $00,$FF,$00,$00,$FF,$FF,$00,$00
         .BYTE $00,$00,$00,$FF,$FF,$00,$00,$00
-LVL1_OBJ_TBL            ;$1CB7
+LVL1_ACTION_TBL            ;$1CB7
         .BYTE $01,$01,$01,$00,$07,$02,$02,$02
         .BYTE $05,$06,$05,$03,$07,$04,$0C,$08
         .BYTE $0C,$09,$00,$00,$08,$00,$00,$00
@@ -2145,26 +2161,39 @@ LVL2_SPRITE_X_HI_TBL    ;$1D20
         .BYTE $00,$00,$00,$FF,$FF,$00,$00,$00
         .BYTE $FF,$00,$00,$00,$63,$63,$00,$00
         .BYTE $00,$3F,$00,$00,$00,$00,$00,$00
-LVL2_OBJ_TBL            ;$1D40
+LVL2_ACTION_TBL            ;$1D40
         .BYTE $15,$07,$0E,$16,$0E,$13,$0E,$0E
         .BYTE $0E,$0E,$0E,$07,$0E,$0E,$0E,$0E
         .BYTE $0E,$0E,$07,$0C,$08,$09,$12,$11
         .BYTE $0E,$09,$0F,$0C,$10,$0F,$0B,$1B
 
-        ; TODO: unk. unused (?). investigate
+        ;
+        ; An unknown level. The code, all over the place, was designed
+        ; to support 4 levels. And this data reinforces the idea that
+        ; a 4th level was being made (this was probably level 3) but
+        ; was not released for... who knows.
+
+        ; Trigger rows
         .BYTE $C6,$C4,$B5,$B4,$A7,$9D,$97,$95
         .BYTE $87,$81,$68,$68,$5E,$5E,$50,$4B
         .BYTE $3C,$36,$32,$28,$09,$09,$01,$00
-        .BYTE $00,$FF,$F5,$3F,$21,$E9,$90,$38
-        .BYTE $1E,$AA,$E2,$5F,$00,$00,$50,$50
-        .BYTE $00,$00,$00,$00,$00,$00,$0E,$4A
-        .BYTE $00,$00,$00,$00,$00,$00,$00,$00
-        .BYTE $00,$FF,$00,$00,$00,$00,$00,$63
-        .BYTE $63,$00,$00,$00,$00,$00,$00,$FF
-        .BYTE $00,$00,$00,$00,$18,$18,$17,$17
-        .BYTE $18,$18,$07,$17,$18,$18,$04,$0C
-        .BYTE $08,$09,$14,$14,$16,$13,$16,$16
-        .BYTE $03,$1A,$0B,$0D,$1B
+        .BYTE $00,$FF
+
+        ; X lo values
+        .BYTE $F5,$3F,$21,$E9,$90,$38,$1E,$AA
+        .BYTE $E2,$5F,$00,$00,$50,$50,$00,$00
+        .BYTE $00,$00,$00,$00,$0E,$4A,$00,$00
+        .BYTE $00
+        ; X hi values
+        .BYTE $00,$00,$00,$00,$00,$00,$FF,$00
+        .BYTE $00,$00,$00,$00,$63,$63,$00,$00
+        .BYTE $00,$00,$00,$00,$FF,$00,$00,$00
+        .BYTE $00
+        ; Actions
+        .BYTE $18,$18,$17,$17,$18,$18,$07,$17
+        .BYTE $18,$18,$04,$0C,$08,$09,$14,$14
+        .BYTE $16,$13,$16,$16,$03,$1A,$0B,$0D
+        .BYTE $1B
 
 ; Level 3 data
 LVL3_TRIGGER_ROW_TBL    ;$1DC5
@@ -2185,36 +2214,48 @@ LVL3_SPRITE_X_HI_TBL    ;$1E0A
         .BYTE $00,$00,$FF,$FF,$00,$00,$00,$00
         .BYTE $00,$00,$FF,$00,$00,$00,$FF,$00
         .BYTE $00,$00
-LVL3_OBJ_TBL            ;$1E2C
+LVL3_ACTION_TBL         ;$1E2C
         .BYTE $12,$11,$12,$12,$11,$00,$00,$07
         .BYTE $13,$11,$12,$13,$12,$14,$14,$11
         .BYTE $12,$12,$07,$19,$11,$12,$11,$12
         .BYTE $12,$12,$07,$11,$11,$00,$00,$00
         .BYTE $00,$1B
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_1B
 s1E4E   RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_1A
 s1E4F   JSR s223C
         LDA #$28     ;#%00101000
         STA SPRITES_CLASS05,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_19
 s1E58   JSR s2271
         LDA #$27     ;#%00100111
         STA SPRITES_CLASS05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_0B
 ; Open door
-s1E61   LDA #$02     ;Draw open door
+ACTION_OPEN_DOOR    ;$1E61   
+        LDA #$02     ;Draw open door
         JMP LEVEL_PATCH_DOOR
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_18
 s1E66   LDA #$06     ;#%00000110
         STA f04AC,X
         LDA #$F5     ;Frame: Door right open?
         STA SPRITES_PTR05,X
         JMP j1E7D
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_17
 s1E73   LDA #$0A     ;#%00001010
         STA f04AC,X
         LDA #$F4     ;Frame: Door left open?
@@ -2241,6 +2282,8 @@ j1E7D   LDY a00FD,b
 
 f1EAD   .BYTE $78,$D2
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_15
 s1EAF   JSR s4006
         AND #$01     ;#%00000001
         TAY
@@ -2267,6 +2310,8 @@ s1EAF   JSR s4006
         JSR s500F
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_14
 s1EED   LDA #$3E     ;#%00111110
         STA SPRITES_LO_X05,X
         LDA #$64     ;#%01100100
@@ -2317,6 +2362,8 @@ b1F28   TYA
         STA f04A1,Y
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_16
 s1F5F   JSR s1F8F
         LDA #$1E     ;#%00011110
         STA SPRITES_LO_X05,X
@@ -2337,6 +2384,8 @@ s1F5F   JSR s1F8F
         STA SPRITES_DELTA_X05,Y
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_13
 s1F8F   LDY #$00     ;#%00000000
 b1F91   LDA SPRITES_CLASS05,Y
         BEQ b1F9C
@@ -2387,6 +2436,8 @@ b1F9C   TYA
         STA SPRITES_CLASS05,Y
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_11
 s2001   LDA #$46     ;#%01000110
         STA SPRITES_LO_X05,X
         LDA #$FF     ;#%11111111
@@ -2399,6 +2450,8 @@ s2001   LDA #$46     ;#%01000110
         STA f04AC,X
         JMP j2036
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_12
 s201D   LDA #$32     ;#%00110010
         STA SPRITES_LO_X05,X
         LDA #$00     ;#%00000000
@@ -2422,6 +2475,8 @@ j2036   LDA #$00     ;#%00000000
         STA SPRITES_CLASS05,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_0F
 s2053   LDA #$2C     ;#%00101100
         STA SPRITES_LO_X05,X
         LDA #$24     ;#%00100100
@@ -2442,6 +2497,8 @@ s2053   LDA #$2C     ;#%00101100
         STA SPRITES_CLASS05,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_10
 s2082   LDA #$30     ;#%00110000
         STA SPRITES_LO_X05,X
         LDA #$1E     ;#%00011110
@@ -2462,6 +2519,8 @@ s2082   LDA #$30     ;#%00110000
         STA SPRITES_CLASS05,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_0D
 s20B1   LDA #$A0     ;#%10100000
         STA SPRITES_LO_X05,X
         LDA #$50     ;#%01010000
@@ -2493,6 +2552,7 @@ s20B1   LDA #$A0     ;#%10100000
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_0A
 ; Create sprite class $18
 s20F6   LDA #$1E     ;#%00011110
         STA SPRITES_Y05,X
@@ -2519,6 +2579,7 @@ s20F6   LDA #$1E     ;#%00011110
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_07
 ; Create sprite class $16
 s212F   LDY a00FD,b
         LDA (p22),Y
@@ -2541,6 +2602,7 @@ s212F   LDY a00FD,b
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_06
 ; Create sprite class $12
 s215F   LDY a00FD,b
         LDA (p22),Y
@@ -2563,6 +2625,7 @@ s215F   LDY a00FD,b
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_05
 ; Create sprite class $11
 s2190   LDY a00FD,b
         LDA (p22),Y
@@ -2585,11 +2648,12 @@ s2190   LDY a00FD,b
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_04
 ; Init object bike (sprite classes $0f and $10)
 ; From lvl1, the one that crosses the bridge
 ; This object requires two different class sprites: front and back bike.
 ; Creates the back one only if there is space for it.
-OBJ_INIT_BIKE         ;$21C1
+ACTION_CREATE_BIKE         ;$21C1
         LDA #$20     ;#%00100000
         STA SPRITES_LO_X05,X
         LDA #$21     ;#%00100001
@@ -2652,6 +2716,7 @@ b2231   LDA SPRITES_CLASS05,Y
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_03
 ; Create sprite class: $0D
 s223C   LDY a00FD,b
         LDA (p22),Y
@@ -2676,6 +2741,7 @@ s223C   LDY a00FD,b
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_00
 ; Create sprite class: $07
 s2271   LDY a00FD,b
         LDA (p22),Y
@@ -2701,6 +2767,7 @@ s2271   LDY a00FD,b
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_0E
 ; Create sprite class: $1C
 s22A9   LDY a00FD,b
         LDA (p22),Y
@@ -2727,6 +2794,7 @@ s22A9   LDY a00FD,b
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_01
 ; Create sprite class: $0A
 s22E4   LDY a00FD,b
         LDA #$9F     ;#%10011111
@@ -2761,6 +2829,7 @@ s22E4   LDY a00FD,b
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_02
 ; Create sprite class: $0A
 s2329   LDY a00FD,b
         LDA #$86     ;#%10000110
@@ -2795,6 +2864,7 @@ s2329   LDY a00FD,b
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_08
 ; Create sprite class $17
 ; Sprite is placed at the left of screen
 s236E   LDA #$01     ;#%00000001
@@ -2808,6 +2878,7 @@ s236E   LDA #$01     ;#%00000001
         JMP j2399
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_09
 ; Create sprite class $17
 ; Sprite is placed at right of screen
 s2385   LDA #$5A     ;#%01011010
@@ -2844,6 +2915,8 @@ j2399   LDA #$00     ;#%00000000
         STA f04A1,X
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_0C
 s23CC   LDA #$1E     ;#%00011110
         STA SPRITES_Y05,X
         LDA #$5A     ;#%01011010
