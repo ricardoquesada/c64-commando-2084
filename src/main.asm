@@ -167,7 +167,7 @@ a04EA = $04EA
 a04EC = $04EC
 a04ED = $04ED
 a04EE = $04EE                   ;Hero is moving up (unused)
-ENEMIES_INSIDE = $04EF          ;How many enemies are inside the castle/warehouse
+ENEMIES_IN_FORT = $04EF         ;How many enemies are inside the fort/warehouse
 TMP_SPRITE_X_LO = $04F0         ;Temp sprite-X LSB for current sprite
 TMP_SPRITE_Y = $04F1            ;ditto for Y
 TMP_SPRITE_X_HI = $04F2         ;ditto for X MSB
@@ -377,7 +377,7 @@ _L01    LDA SPRITES_Y00
         ;Play animation at end of Level 3
         LDA #$09     ;#%00001001
         JSR s500F    ;SFX?
-        JSR SET_CASTLE_ON_FIRE
+        JSR SET_FORT_ON_FIRE
 
 _L02    LDA #$02     ;Song to play (Level complete)
         JSR MUSIC_INIT
@@ -3046,6 +3046,8 @@ j24A7   LDA #$00     ;#%00000000
 ANIM_ENEMIES    ;$24B3
         LDX #$00     ;#%00000000
         STX a04F4
+
+        ; If sprite is out of bounds, clean it up
 _L00    LDA SPRITES_Y05,X
         CMP #$1E     ;#%00011110
         BCC _L01
@@ -3057,6 +3059,7 @@ _L00    LDA SPRITES_Y05,X
         LDA SPRITES_X_HI05,X
         BEQ _L02
 _L01    JSR CLEANUP_SPRITE
+
 _L02    LDA SPRITES_CLASS05,X
         ASL A
         TAY
@@ -3069,6 +3072,7 @@ _L02    LDA SPRITES_CLASS05,X
         INX
         CPX #$0B     ;#%00001011
         BNE _L00
+
         RTS
 
 JMP_FB              ;$24EF
@@ -4081,28 +4085,28 @@ f2CD5   .BYTE $00,$00,$FF,$FF
 ; ref: class_00
 ; Logic that handles once the player reaches the top of the map.
 s2CD9   LDA V_SCROLL_ROW_IDX
-        BEQ b2CE1
-        JMP j2D81
+        BEQ _L00
+        JMP _L05
 
-b2CE1   LDA ENEMIES_INSIDE
+_L00    LDA ENEMIES_IN_FORT
         BEQ b2CC0
         JSR s4006
         AND #$7F     ;#%01111111
         BNE b2CC0
         LDA #$3F     ;#%00111111
         STA a0504
-        DEC ENEMIES_INSIDE
-        BNE b2CF7       ;WFT?
-b2CF7   LDA LEVEL_NR
+        DEC ENEMIES_IN_FORT
+        BNE _L01        ;LOL!?!
+_L01    LDA LEVEL_NR
         AND #$03     ;#%00000011
         CMP #$03     ;#%00000011
-        BEQ b2D66
+        BEQ _L04
         CMP #$01     ;#%00000001
-        BNE b2D0B
+        BNE _L02
         JSR s4006
         AND #$01     ;#%00000001
-        BEQ b2D26
-b2D0B   JSR s4006
+        BEQ _L03
+_L02    JSR s4006
         AND #$3F     ;#%00111111
         CLC
         ADC #$8C     ;#%10001100
@@ -4112,9 +4116,9 @@ b2D0B   JSR s4006
         LDA #$1B     ;#%00011011
         STA SPRITES_CLASS05,X
         INC a04F4
-        JMP j2DBC
+        JMP _L06
 
-b2D26   JSR s4006
+_L03    JSR s4006
         AND #$03     ;#%00000011
         TAY
         LDA f2CC1,Y
@@ -4137,9 +4141,9 @@ b2D26   JSR s4006
         STA SPRITES_PTR05,X
         LDA #$1B     ;#%00011011
         STA SPRITES_CLASS05,X
-        JMP j2DD8
+        JMP _L07
 
-b2D66   JSR s4006
+_L04    JSR s4006
         AND #$3F     ;#%00111111
         CLC
         ADC #$8C     ;#%10001100
@@ -4149,14 +4153,14 @@ b2D66   JSR s4006
         LDA #$1B     ;#%00011011
         STA SPRITES_CLASS05,X
         INC a04F4
-        JMP j2DBC
+        JMP _L06
 
-j2D81   JSR s4006
+_L05    JSR s4006
         AND #$03     ;#%00000011
-        BNE b2DEA
+        BNE _L08
         JSR s4006
         AND #$FF     ;#%11111111
-        BNE b2DEB
+        BNE _L09
         JSR s4006
         STA TMP_SPRITE_X_LO
         LDA #<a0028  ;#%00101000
@@ -4168,14 +4172,14 @@ j2D81   JSR s4006
         LDA (pFC),Y
         TAY
         LDA (p2A),Y
-        BNE b2DEB
+        BNE _L09
         LDA TMP_SPRITE_X_LO
         STA SPRITES_X_LO05,X
         LDA TMP_SPRITE_Y
         STA SPRITES_Y05,X
         LDA #$05     ;#%00000101
         STA SPRITES_CLASS05,X
-j2DBC   LDA #$01     ;#%00000001
+_L06    LDA #$01     ;#%00000001
         STA SPRITES_DELTA_Y05,X
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X05,X
@@ -4186,23 +4190,23 @@ j2DBC   LDA #$01     ;#%00000001
         STA SPRITES_PTR05,X
         LDA #$00     ;#%00000000
         STA SPRITES_X_HI05,X
-j2DD8   LDA #$0B     ;dark grey
+_L07    LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
         JSR s4006
         AND #$1F     ;#%00011111
         STA SPRITES_TICK05,X
         LDA #$00     ;#%00000000
         STA SPRITES_BKG_PRI05,X
-b2DEA   RTS
+_L08    RTS
 
-b2DEB   JSR s4006
+_L09    JSR s4006
         AND #$FF     ;#%11111111
-        BEQ b2DF3
+        BEQ _L10
         RTS
 
-b2DF3   JSR s4006
+_L10    JSR s4006
         AND #$01     ;#%00000001
-        BNE b2E5D
+        BNE _L12
         JSR s4006
         AND #$7F     ;#%01111111
         CLC
@@ -4217,10 +4221,10 @@ b2DF3   JSR s4006
         LDA (pFC),Y
         TAY
         LDA (p2A),Y
-        BEQ b2E1C
+        BEQ _L11
         RTS
 
-b2E1C   LDA TMP_SPRITE_X_LO
+_L11    LDA TMP_SPRITE_X_LO
         STA SPRITES_X_LO05,X
         LDA TMP_SPRITE_Y
         STA SPRITES_Y05,X
@@ -4247,7 +4251,7 @@ b2E1C   LDA TMP_SPRITE_X_LO
         STA a04AC,X
         RTS
 
-b2E5D   JSR s4006
+_L12    JSR s4006
         AND #$7F     ;#%01111111
         CLC
         ADC #$3C     ;#%00111100
@@ -4260,7 +4264,7 @@ b2E5D   JSR s4006
         LDY #$00     ;#%00000000
         LDA (pFC),Y
         CMP #$30     ;#%00110000
-        BNE b2EBE
+        BNE _L13
         LDA TMP_SPRITE_X_LO
         STA SPRITES_X_LO05,X
         LDA TMP_SPRITE_Y
@@ -4288,7 +4292,7 @@ b2E5D   JSR s4006
         STA a04AC,X
         RTS
 
-b2EBE   RTS
+_L13    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_0B
@@ -5523,7 +5527,7 @@ _L00    LDA #$00     ;#%00000000
 TRY_THROW_GRENADE               ;$38c3
         LDA IS_HERO_DEAD
         BNE _SKIP
-        LDA ENEMIES_INSIDE
+        LDA ENEMIES_IN_FORT
         BNE _L00
         LDA a04F4
         BEQ _SKIP
@@ -5657,7 +5661,7 @@ _L04    LDA #$03     ;#%00000011
 CLASS_ANIM_HERO_MAIN
         LDA IS_HERO_DEAD
         BNE _L02
-        LDA ENEMIES_INSIDE
+        LDA ENEMIES_IN_FORT
         BNE _L00
         LDA a04F4
         BEQ _L02
@@ -5760,7 +5764,7 @@ _L02    LDA #$01
 HANDLE_JOY2         ;$3AAA
         LDA IS_ANIM_EXIT_DOOR
         BNE HERO_ANIM_EXIT_DOOR
-        LDA ENEMIES_INSIDE
+        LDA ENEMIES_IN_FORT
         BNE _L00
         LDA a04F4
         BNE _L00
@@ -6030,8 +6034,8 @@ SOLDIER_ANIM_FRAMES_LO                  ;$3CC0
         .ADDR HERO_FRAMES_UP_LEFT
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Set castle on fire animation (when you beat the game)
-SET_CASTLE_ON_FIRE      ;$3CD0
+; Set fort on fire animation (lvl3, when you beat the game)
+SET_FORT_ON_FIRE      ;$3CD0
         JSR CLEANUP_SPRITES
         LDX #$00     ;#%00000000
 _L00    LDA f3D27,X
@@ -6204,8 +6208,8 @@ _L01    STA V_SCROLL_ROW_IDX
         LDA #$00     ;#%00000000
         STA V_SCROLL_BIT_IDX
         STA a04EE
-        LDA #$14     ;Number of enemites that leaves the final castle/warehouse
-        STA ENEMIES_INSIDE
+        LDA #$14     ;Number of enemies that leaves the final fort/warehouse
+        STA ENEMIES_IN_FORT
         JSR INIT_LEVEL_DATA
         LDA #$00     ;Closed door
         JSR LEVEL_PATCH_DOOR
