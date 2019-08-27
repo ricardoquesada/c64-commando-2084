@@ -354,7 +354,7 @@ _L00    INC GAME_TICK
         JSR s3F24
         JSR TRY_THROW_GRENADE
         JSR ANIM_ENEMIES
-        JSR NEW_SPRITE_IF_NEEDED
+        JSR PROCESS_ACTIONS
         JSR ANIM_HERO
 
         LDA IS_HERO_DEAD
@@ -1208,9 +1208,9 @@ f1074   .BYTE $00,$00,$00,$00,$00,$01,$00,$00
         .BYTE $01,$01,$01,$01,$01,$01,$00
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Recreate enemies based on the row index. Called when the level is restared.
+; Re-execute actions based on the row index. Called when the level is restared.
 ; E.g: after losing a life.
-REINIT_OBJS             ;$109B   
+REPROCESS_ACTIONS             ;$109B
         LDY #$00     ;#%00000000
 _L00    LDA (p24),Y  ;End of trigger-rows?
         CMP #$FF
@@ -2006,11 +2006,21 @@ f1AA9   .BYTE $00,$02,$02,$02,$02,$02,$02,$02
         .BYTE $01,$01,$01,$01,$00,$01,$02,$00
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Which sprites to create acoording to the scroll Y position
-; It supports multiple sprites per row, but it seems to be limited
-; to 8 (since 8 pixels per row).
-; TODO: find out the limitation
-NEW_SPRITE_IF_NEEDED   ;$1BA9
+; Execute actions according to the scroll Y position
+; An action can to create a new enemy (obj), or things like open the door
+; that don't require any kind of object creation.
+;
+; For the case of new objects, one seat must be available for the sprite
+; creation but it might be possible that the new object uses an extra
+; sprite (like the bike that requires two) in case an extra seat is
+; available.
+;
+; It is possible that two different actions creates the same sprite
+; class. This happens when it wants to create the same sprite class, but
+; the sprite class must be init in a differnt way. E.g: one for placing
+; the sprite class at the left, and the other at the right of the screen.
+; TODO: How many actions per row are possible? 8?
+PROCESS_ACTIONS   ;$1BA9
         LDY TRIGGER_ROW_IDX
         LDA (p24),Y
         CMP V_SCROLL_ROW_IDX
@@ -2061,20 +2071,7 @@ _L03    LDA SPRITES_CLASS05,X
         ; It might be possible that a new sprite cannot be alloced
         RTS
 
-        ; Create action.
-        ;
-        ; An action can to create a new enemy (obj), or things like open the door
-        ; that don't require any kind of object creation.
-        ;
-        ; For the case of new objects, one seat must be available for the sprite
-        ; creation but it might be possible that the new object uses an extra
-        ; sprite (like the bike that requires two) in case an extra seat is
-        ; available.
-        ;
-        ; It is possible that two different actions creates the same sprite
-        ; class. This happens when it wants to create the same sprite class, but
-        ; the sprite class must be init in a differnt way. E.g: one for placing
-        ; the sprite class at the left, and the other at the right of the screen.
+        ; Create the action
 
 _L04    STY a00FD,b
         LDA (p28),Y
@@ -2242,7 +2239,7 @@ s1E58   JSR s2271
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_0B
 ; Open door
-ACTION_OPEN_DOOR    ;$1E61   
+ACTION_OPEN_DOOR    ;$1E61
         LDA #$02     ;Draw open door
         JMP LEVEL_PATCH_DOOR
 
@@ -3111,7 +3108,7 @@ f2544   .BYTE $00,$00,$00,$00,$00,$03,$00,$02
         .BYTE $02
 
         ; Points to score for each sprite class killed
-POINTS_TBL      ;$256D   
+POINTS_TBL      ;$256D
         .BYTE $00,$00,$00,$00,$00,$03,$00,$03
         .BYTE $00,$00,$03,$00,$00,$05,$00,$00
         .BYTE $00,$0A,$00,$00,$00,$03,$00,$03
@@ -6146,7 +6143,7 @@ _L02    LDA #$00
         BNE _L02
 
         JSR s3F24
-        JSR REINIT_OBJS
+        JSR REPROCESS_ACTIONS
 
         ; Make sure player has at least 5 grenades
         LDA GRENADES
