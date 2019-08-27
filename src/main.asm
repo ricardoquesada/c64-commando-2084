@@ -2085,18 +2085,18 @@ _L04    STY a00FD,b
 
 ACTION_TBL_HI = *+1         ;$1C07
 ACTION_TBL_LO               ;$1C06
-        .ADDR s2271                     ;$00
-        .ADDR s22E4                     ;$01
-        .ADDR s2329                     ;$02
-        .ADDR s223C                     ;$03
-        .ADDR ACTION_CREATE_BIKE        ;$04
+        .ADDR ACT_NEW_SOLDIER_IN_TRENCH ;$00
+        .ADDR ACT_NEW_JUMPING_SOLDIER_R ;$01
+        .ADDR ACT_NEW_JUMPING_SOLDIER_L ;$02
+        .ADDR ACT_NEW_MORTAR_ENEMY      ;$03
+        .ADDR ACT_NEW_BIKE              ;$04
         .ADDR s2190                     ;$05
         .ADDR s215F                     ;$06
         .ADDR s212F                     ;$07
         .ADDR s236E                     ;$08
         .ADDR s2385                     ;$09
         .ADDR s20F6                     ;$0A
-        .ADDR ACTION_OPEN_DOOR          ;$0B
+        .ADDR ACT_OPEN_DOOR             ;$0B
         .ADDR s23CC                     ;$0C
         .ADDR s20B1                     ;$0D
         .ADDR s22A9                     ;$0E
@@ -2112,7 +2112,7 @@ ACTION_TBL_LO               ;$1C06
         .ADDR s1E66                     ;$18
         .ADDR s1E58                     ;$19
         .ADDR s1E4F                     ;$1A
-        .ADDR s1E4E                     ;$1B
+        .ADDR ACT_VOID                  ;$1B
 
 ; Level 1 data
 LVL1_TRIGGER_ROW_TBL    ;$1C3E
@@ -2220,19 +2220,20 @@ LVL3_ACTION_TBL         ;$1E2C
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_1B
-s1E4E   RTS
+ACT_VOID        ;$1E4E
+        RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_1A
 ; Create sprite class: $28
-s1E4F   JSR s223C
+s1E4F   JSR ACT_NEW_MORTAR_ENEMY
         LDA #$28     ;#%00101000
         STA SPRITES_CLASS05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_19
-s1E58   JSR s2271
+s1E58   JSR ACT_NEW_SOLDIER_IN_TRENCH
         LDA #$27     ;#%00100111
         STA SPRITES_CLASS05,X
         RTS
@@ -2240,7 +2241,7 @@ s1E58   JSR s2271
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_0B
 ; Open door
-ACTION_OPEN_DOOR    ;$1E61
+ACT_OPEN_DOOR    ;$1E61
         LDA #$02     ;Draw open door
         JMP LEVEL_PATCH_DOOR
 
@@ -2651,7 +2652,7 @@ s2190   LDY a00FD,b
 ; From lvl1, the one that crosses the bridge
 ; This object requires two different class sprites: front and back bike.
 ; Creates the back one only if there is space for it.
-ACTION_CREATE_BIKE         ;$21C1
+ACT_NEW_BIKE         ;$21C1
         LDA #$20     ;#%00100000
         STA SPRITES_LO_X05,X
         LDA #$21     ;#%00100001
@@ -2707,7 +2708,7 @@ _L01    TYA
 ; unused (?)
         LDY #$00     ;#%00000000
 b2231   LDA SPRITES_CLASS05,Y
-        BEQ s223C
+        BEQ ACT_NEW_MORTAR_ENEMY
         INY
         CPY #$0B     ;#%00001011
         BNE b2231
@@ -2715,8 +2716,9 @@ b2231   LDA SPRITES_CLASS05,Y
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_03
-; Create sprite class: $0D
-s223C   LDY a00FD,b
+; Create the red mortar guy (sprite class: $0D)
+ACT_NEW_MORTAR_ENEMY    ;$223C
+        LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_LO_X05,X
         LDA #$21     ;#%00100001
@@ -2740,8 +2742,9 @@ s223C   LDY a00FD,b
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_00
-; Create sprite class: $07
-s2271   LDY a00FD,b
+; Create soldier in trench (sprite class: $07)
+ACT_NEW_SOLDIER_IN_TRENCH       ;$2271
+        LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_LO_X05,X
         LDA #$26     ;#%00100110
@@ -2793,8 +2796,9 @@ s22A9   LDY a00FD,b
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_01
-; Create sprite class: $0A
-s22E4   LDY a00FD,b
+; Create jumping sprite from right margin (sprite class: $0A)
+ACT_NEW_JUMPING_SOLDIER_R       ;$22E4
+        LDY a00FD,b
         LDA #$9F     ;#%10011111
         SEC
         SBC (p24),Y
@@ -2828,8 +2832,9 @@ s22E4   LDY a00FD,b
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_02
-; Create sprite class: $0A
-s2329   LDY a00FD,b
+; Create jumping sprite from left margin (sprite class: $0A)
+ACT_NEW_JUMPING_SOLDIER_L       ;$2329
+        LDY a00FD,b
         LDA #$86     ;#%10000110
         SEC
         SBC (p24),Y
