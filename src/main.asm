@@ -50,7 +50,6 @@ f004C = $004C
 f00A2 = $00A2
 f04A1 = $04A1
 f04AC = $04AC
-f04B7 = $04B7
 f04C2 = $04C2
 f0506 = $0506
 fD040 = $D040
@@ -151,8 +150,9 @@ SPRITES_CLASS00 = $048D
 SPRITES_CLASS01 = $048E
 SPRITES_CLASS04 = $0491
 SPRITES_CLASS05 = $0492
-COUNTER0 = $049D
-a04A0 = $04A0                   ;unused. only referenced in throw grenade
+SPRITES_COUNTER00 = $049D       ;TICK and COUNTER are the same, but using different names since they are not contiguous in memory
+SPRITES_COUNTER03 = $04A0       ;referenced in throw grenade
+SPRITES_TICK05 = $04B7
 FIRE_COOLDOWN = $04DF           ;reset with $ff
 HERO_ANIM_MOV_IDX = $04E0       ;Movement anim for hero: left,right,up,down,diagoanlly,etc.
                                 ; See: SOLDIER_ANIM_FRAMES_HI/LO
@@ -857,7 +857,7 @@ f0D09   .BYTE $20,$20,$20,$20,$20,$75,$75,$75
 s0D59   LDA a0505
         BEQ b0D81
         LDA SPRITES_Y01
-        CMP COUNTER0
+        CMP SPRITES_COUNTER00
         BCC b0D67
         RTS
 
@@ -897,7 +897,7 @@ b0D89   LDA #$00     ;#%00000000
         STA SPRITES_COLOR01
         STA a0505
         LDA SPRITES_Y05
-        STA COUNTER0
+        STA SPRITES_COUNTER00
         LDA a0510
         LDY #$00     ;#%00000000
         STA (pF7),Y
@@ -1111,7 +1111,7 @@ _L00    LDA #$48     ;Sprite Y position
         STA $D026    ;Sprite Multi-Color Register 1
         JSR PRINT_CREDITS
         LDA #$00     ;#%00000000
-        STA COUNTER0
+        STA SPRITES_COUNTER00
 
 _L01    LDA #$FF     ;#%11111111
         STA COUNTER1
@@ -1126,7 +1126,7 @@ _WAIT_FIRE
         ; Change background image
         LDA #$09     ;#%00001001
         STA BKG_COLOR0
-        LDX COUNTER0
+        LDX SPRITES_COUNTER00
         LDA _SCROLL_IDX,X
         STA V_SCROLL_ROW_IDX
         LDA _LEVEL_IDX,X
@@ -1134,8 +1134,8 @@ _WAIT_FIRE
         JSR INIT_LEVEL_DATA
         JSR SET_LEVEL_COLOR_RAM
         JSR LEVEL_DRAW_VIEWPORT
-        INC COUNTER0
-        LDA COUNTER0
+        INC SPRITES_COUNTER00
+        LDA SPRITES_COUNTER00
         CMP #$08     ;Total number of screens to display
         BNE _L01
 
@@ -2272,7 +2272,7 @@ j1E7D   LDY a00FD,b
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
         JSR s4006
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         LDA #$FF     ;#%11111111
         STA SPRITES_BKG_PRI05,X
         LDA #$26     ;#%00100110
@@ -2300,7 +2300,7 @@ s1EAF   JSR s4006
         STA SPRITES_HI_X05,X
         STA SPRITES_BKG_PRI05,X
         STA SPRITES_DELTA_X05,X
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         LDA #$08     ;#%00001000
         STA f04AC,X
         LDA #$25     ;#%00100101
@@ -2325,7 +2325,7 @@ s1EED   LDA #$3E     ;#%00111110
         STA SPRITES_DELTA_X05,X
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y05,X
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$23     ;#%00100011
         STA SPRITES_CLASS05,X
@@ -2353,7 +2353,7 @@ b1F28   TYA
         STA SPRITES_DELTA_X05,Y
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y05,Y
-        STA f04B7,Y
+        STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
         LDA #$24     ;#%00100100
         STA SPRITES_CLASS05,Y
@@ -2409,7 +2409,7 @@ b1F9C   TYA
         STA SPRITES_DELTA_X05,X
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y05,X
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$22     ;#%00100010
         STA SPRITES_CLASS05,X
@@ -2429,7 +2429,7 @@ b1F9C   TYA
         STA SPRITES_DELTA_X05,Y
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y05,Y
-        STA f04B7,Y
+        STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
         LDA #$10     ;#%00010000
         STA SPRITES_CLASS05,Y
@@ -2468,7 +2468,7 @@ j2036   LDA #$00     ;#%00000000
         LDA #$06     ;blue
         STA SPRITES_COLOR05,X
         LDA #$00     ;#%00000000
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$20     ;#%00100000
         STA SPRITES_CLASS05,X
@@ -2537,7 +2537,7 @@ s20B1   LDA #$A0     ;#%10100000
         STA SPRITES_HI_X05,X
         JSR s4006
         AND #$1F     ;#%00011111
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         LDA #$00     ;#%00000000
         STA SPRITES_BKG_PRI05,X
         LDA #$1A     ;#%00011010
@@ -2568,7 +2568,7 @@ s20F6   LDA #$1E     ;#%00011110
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
         LDA #$00     ;#%00000000
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$18     ;#%00011000
         STA SPRITES_CLASS05,X
@@ -2594,7 +2594,7 @@ s212F   LDY a00FD,b
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$16     ;#%00010110
         STA SPRITES_CLASS05,X
@@ -2616,7 +2616,7 @@ s215F   LDY a00FD,b
         STA SPRITES_HI_X05,X
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$12     ;#%00010010
         STA SPRITES_CLASS05,X
@@ -2639,7 +2639,7 @@ s2190   LDY a00FD,b
         STA SPRITES_HI_X05,X
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         STA a04EC
         LDA #$11     ;#%00010001
@@ -2667,7 +2667,7 @@ ACT_NEW_BIKE         ;$21C1
         STA SPRITES_DELTA_X05,X
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y05,X
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$0F
         STA SPRITES_CLASS05,X
@@ -2698,7 +2698,7 @@ _L01    TYA
         STA SPRITES_DELTA_X05,Y
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y05,Y
-        STA f04B7,Y
+        STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
         LDA #$10     ;#%00010000
         STA SPRITES_CLASS05,Y
@@ -2732,7 +2732,7 @@ ACT_NEW_MORTAR_ENEMY    ;$223C
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         STA a04EA
         LDA #$FF     ;#%11111111
         STA SPRITES_BKG_PRI05,X
@@ -2758,7 +2758,7 @@ ACT_NEW_SOLDIER_IN_TRENCH       ;$2271
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$08     ;#%00001000
         STA f04A1,X
@@ -2786,7 +2786,7 @@ s22A9   LDY a00FD,b
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_BKG_PRI05,X
         JSR s4006
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         LDA #$08     ;#%00001000
         STA f04A1,X
         STA f04AC,X
@@ -2821,7 +2821,7 @@ ACT_NEW_JUMPING_SOLDIER_R       ;$22E4
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
         LDA #$00     ;#%00000000
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$0A     ;#%00001010
         STA SPRITES_CLASS05,X
@@ -2857,7 +2857,7 @@ ACT_NEW_JUMPING_SOLDIER_L       ;$2329
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
         LDA #$00     ;#%00000000
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$0A     ;#%00001010
         STA SPRITES_CLASS05,X
@@ -2900,7 +2900,7 @@ j2399   LDA #$00     ;#%00000000
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
         LDA #$00     ;#%00000000
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$17     ;#%00010111
         STA SPRITES_CLASS05,X
@@ -2935,7 +2935,7 @@ s23CC   LDA #$1E     ;#%00011110
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
         LDA #$00     ;#%00000000
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$19     ;#%00011001
         STA SPRITES_CLASS05,X
@@ -2998,7 +2998,7 @@ b2444   LDA SPRITES_CLASS05,Y
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         PLA
         TAX
         JMP j24A7
@@ -3023,7 +3023,7 @@ b24A2   LDA #$06     ;#%00000110
         STA SPRITES_CLASS05,Y
 
 j24A7   LDA #$00     ;#%00000000
-        STA f04B7,Y
+        STA SPRITES_TICK05,Y
         STA SPRITES_DELTA_X05,Y
         STA SPRITES_DELTA_Y05,Y
         RTS
@@ -3076,10 +3076,10 @@ ANIM_CLASS_TBL_LO
         .ADDR CLASS_ANIM_SOLDIER_BULLET_END     ;$09
         .ADDR s305B                             ;$0A
         .ADDR s2EBF                             ;$0B
-        .ADDR s388B
-        .ADDR s2BDF
-        .ADDR s2F0B
-        .ADDR s2B4D
+        .ADDR s388B                             ;$0C
+        .ADDR s2BDF                             ;$0D
+        .ADDR s2F0B                             ;$0E
+        .ADDR s2B4D                             ;$0F
         .ADDR s2596                             ;$10
         .ADDR s2B2A
         .ADDR s2B07
@@ -3129,10 +3129,10 @@ s2596   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_28
-s2597   INC f04B7,X
+s2597   INC SPRITES_TICK05,X
         LDA a04EA
         BEQ b25C4
-        LDA f04B7,X
+        LDA SPRITES_TICK05,X
         AND #$1F     ;#%00011111
         CMP #$03     ;#%00000011
         BNE b25AD
@@ -3148,7 +3148,7 @@ b25B6   CMP #$14     ;#%00010100
         STA SPRITES_PTR05,X
         LDA #$00     ;#%00000000
         STA a04EA
-b25C4   LDA f04B7,X
+b25C4   LDA SPRITES_TICK05,X
         AND #$3F     ;#%00111111
         BEQ b25CC
         RTS
@@ -3163,7 +3163,7 @@ b25CC   JSR s32ED
         LDA #$00     ;black
         STA SPRITES_COLOR05,Y
         LDA #$00     ;#%00000000
-        STA f04B7,Y
+        STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
         LDA #$0E     ;#%00001110
         STA SPRITES_CLASS05,Y
@@ -3171,21 +3171,21 @@ b25EF   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_27
-s25F0   INC f04B7,X
+s25F0   INC SPRITES_TICK05,X
         JSR s300C
         JMP j33D0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_26
-s25F9   INC f04B7,X
-        LDA f04B7,X
+s25F9   INC SPRITES_TICK05,X
+        LDA SPRITES_TICK05,X
         AND #$7F     ;#%01111111
         BNE b2608
         LDA #$FF     ;#%11111111
         STA SPRITES_DELTA_Y05,X
 b2608   LDA SPRITES_DELTA_Y05,X
         BEQ b261A
-        LDA f04B7,X
+        LDA SPRITES_TICK05,X
         AND #$1F     ;#%00011111
         CMP #$0F     ;#%00001111
         BEQ b2621
@@ -3220,7 +3220,7 @@ b2633   LDA SPRITES_LO_X05,X
         LDA SPRITES_HI_X05,X
         STA SPRITES_HI_X05,Y
         LDA #$00     ;#%00000000
-        STA f04B7,Y
+        STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
         TXA
         PHA
@@ -3238,10 +3238,10 @@ b2633   LDA SPRITES_LO_X05,X
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_25
-s2675   INC f04B7,X
+s2675   INC SPRITES_TICK05,X
         JSR s3128
         JSR j33D0
-        LDA f04B7,X
+        LDA SPRITES_TICK05,X
         CMP #$46     ;#%01000110
         BEQ b268A
         CMP #$8C     ;#%10001100
@@ -3262,8 +3262,8 @@ s2696   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_24
-s2697   INC f04B7,X
-        LDA f04B7,X
+s2697   INC SPRITES_TICK05,X
+        LDA SPRITES_TICK05,X
         AND #$3F     ;#%00111111
         BNE s2696
         LDY #$00     ;#%00000000
@@ -3287,7 +3287,7 @@ b26AE   LDA SPRITES_LO_X05,X
         LDA #$08     ;dark grey
         STA SPRITES_COLOR05,Y
         LDA #$1D     ;#%00011101
-        STA f04B7,Y
+        STA SPRITES_TICK05,Y
         LDA #$00     ;#%00000000
         STA SPRITES_BKG_PRI05,Y
         LDA #$01     ;#%00000001
@@ -3296,9 +3296,9 @@ b26AE   LDA SPRITES_LO_X05,X
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_22
-s26DD   INC f04B7,X
+s26DD   INC SPRITES_TICK05,X
         LDY f04A1,X
-        LDA f04B7,X
+        LDA SPRITES_TICK05,X
         AND #$0F     ;#%00001111
         BNE b26F3
         INC SPRITES_Y05,X
@@ -3311,8 +3311,8 @@ b26F3   CMP #$10     ;#%00010000
         STA SPRITES_Y05,Y
 b2700   RTS
 
-        INC f04B7,X
-        LDA f04B7,X
+        INC SPRITES_TICK05,X
+        LDA SPRITES_TICK05,X
         CMP #$3C     ;#%00111100
         BEQ b270C
         RTS
@@ -3321,7 +3321,7 @@ b2700   RTS
 b270C   LDA #$0C     ;#%00001100
         STA SPRITES_CLASS05,X
         LDA #$00     ;#%00000000
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
         TAY
@@ -3331,11 +3331,11 @@ b270C   LDA #$0C     ;#%00001100
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_20
-s2724   INC f04B7,X
-        LDA f04B7,X
+s2724   INC SPRITES_TICK05,X
+        LDA SPRITES_TICK05,X
         AND #$07     ;#%00000111
         BNE b274C
-        LDA f04B7,X
+        LDA SPRITES_TICK05,X
         AND #$18     ;#%00011000
         LSR A
         LSR A
@@ -3348,7 +3348,7 @@ s2724   INC f04B7,X
         STA SPRITES_DELTA_X05,X
         LDA f32DD,Y
         STA SPRITES_DELTA_Y05,X
-b274C   LDA f04B7,X
+b274C   LDA SPRITES_TICK05,X
         AND #$1F     ;#%00011111
         BEQ b2754
 b2753   RTS
@@ -3382,7 +3382,7 @@ b2769   LDA #$00     ;#%00000000
         LDA SPRITES_HI_X05,X
         STA SPRITES_HI_X05,Y
         LDA #$00     ;#%00000000
-        STA f04B7,Y
+        STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
         LDA #$02     ;#%00000010
         STA SPRITES_DELTA_Y05,Y
@@ -3421,8 +3421,8 @@ FRAME_BAZOOKA_GUY       ;$27E0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_1E
-s27E4   INC f04B7,X
-        LDA f04B7,X
+s27E4   INC SPRITES_TICK05,X
+        LDA SPRITES_TICK05,X
         AND #$1F     ;#%00011111
         BEQ b27EF
         RTS
@@ -3451,7 +3451,7 @@ b2804   LDA SPRITES_LO_X05,X
         LDA SPRITES_HI_X05,X
         STA SPRITES_HI_X05,Y
         LDA #$00     ;#%00000000
-        STA f04B7,Y
+        STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
         LDA #$01     ;#%00000001
         STA SPRITES_DELTA_Y05,Y
@@ -3480,8 +3480,8 @@ b2851   LDA #$02     ;#%00000010
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_1D
-s2860   INC f04B7,X
-        LDA f04B7,X
+s2860   INC SPRITES_TICK05,X
+        LDA SPRITES_TICK05,X
         CMP #$0A     ;#%00001010
         BEQ b286F
         CMP #$14     ;#%00010100
@@ -3495,8 +3495,8 @@ b2873   JMP s358E
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_1C
-s2876   INC f04B7,X
-        LDA f04B7,X
+s2876   INC SPRITES_TICK05,X
+        LDA SPRITES_TICK05,X
         AND #$70     ;#%01110000
         LSR A
         LSR A
@@ -3614,17 +3614,17 @@ FRAME_BOSS1_LEFT        ;$2954
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_19
-s2956   INC f04B7,X
+s2956   INC SPRITES_TICK05,X
         LDA SPRITES_DELTA_X05,X
         ORA SPRITES_DELTA_Y05,X
         BEQ b2968
-        LDA f04B7,X
+        LDA SPRITES_TICK05,X
         CMP #$64     ;#%01100100
         BNE b299B
 b2968   LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
-        LDA f04B7,X
+        LDA SPRITES_TICK05,X
         CMP #$C8     ;#%11001000
         BCS b298E
         AND #$0F     ;#%00001111
@@ -3664,8 +3664,8 @@ b299B   LDA f04AC,X
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_18
-s29BB   INC f04B7,X
-        LDA f04B7,X
+s29BB   INC SPRITES_TICK05,X
+        LDA SPRITES_TICK05,X
         AND #$3F     ;#%00111111
         BNE b29D3
         LDA #$00     ;#%00000000
@@ -3723,7 +3723,7 @@ b2A27   JSR s28A3
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_17
-s2A34   INC f04B7,X
+s2A34   INC SPRITES_TICK05,X
         LDA f04AC,X
         AND #$FE     ;#%11111110
         TAY
@@ -3740,7 +3740,7 @@ s2A34   INC f04B7,X
         STA SPRITES_PTR05,X
         JSR s28A3
         JSR s290E
-        LDA f04B7,X
+        LDA SPRITES_TICK05,X
         CMP f04A1,X
         BEQ b2A65
         RTS
@@ -3804,8 +3804,8 @@ b2AD4   LDA #$08     ;orange
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_14
-s2ADA   INC f04B7,X
-        LDA f04B7,X
+s2ADA   INC SPRITES_TICK05,X
+        LDA SPRITES_TICK05,X
         CMP #$64     ;#%01100100
         BEQ b2AF4
         LDA GAME_TICK
@@ -3825,8 +3825,8 @@ FRAME_POW_RESCUE    ;$2AF7 (Pow == Prisoner of War)
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_13
-s2AF9   INC f04B7,X
-        LDA f04B7,X
+s2AF9   INC SPRITES_TICK05,X
+        LDA SPRITES_TICK05,X
         CMP #$41     ;#%01000001
         BEQ b2B04
         RTS
@@ -3879,7 +3879,7 @@ FRAME_POW_GUARD     ;$2B4B
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_0F
-s2B4D   INC f04B7,X
+s2B4D   INC SPRITES_TICK05,X
         LDY f04A1,X
         LDA SPRITES_LO_X05,X
         CMP #$A5     ;#%10100101
@@ -3891,14 +3891,14 @@ s2B4D   INC f04B7,X
         STA SPRITES_PTR05,X
         LDA #$B3     ;Bike Back (throw grenade #0)
         STA SPRITES_PTR05,Y
-        LDA f04B7,X
+        LDA SPRITES_TICK05,X
         AND #$10     ;#%00010000
         BEQ b2B7D
         LDA #$B4     ;Bike Front (throw grenade #1)
         STA SPRITES_PTR05,X
         LDA #$B5     ;Bike Back (throw grenade #1)
         STA SPRITES_PTR05,Y
-b2B7D   LDA f04B7,X
+b2B7D   LDA SPRITES_TICK05,X
         AND #$1F     ;#%00011111
         BNE b2B88
         JSR s32ED
@@ -3945,10 +3945,10 @@ b2BDE   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_0D
-s2BDF   INC f04B7,X
+s2BDF   INC SPRITES_TICK05,X
         LDA a04EA
         BEQ b2C0C
-        LDA f04B7,X
+        LDA SPRITES_TICK05,X
         AND #$1F     ;#%00011111
         CMP #$03     ;#%00000011
         BNE b2BF5
@@ -3973,14 +3973,14 @@ b2C0C   LDA SPRITES_Y05,X
         STA SPRITES_DELTA_X05,X
         STA f04A1,X
         STA f04AC,X
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         LDA #$FF     ;#%11111111
         STA SPRITES_DELTA_Y05,X
         LDA #$05     ;#%00000101
         STA SPRITES_CLASS05,X
         RTS
 
-b2C31   LDA f04B7,X
+b2C31   LDA SPRITES_TICK05,X
         AND #$3F     ;#%00111111
         BEQ b2C39
         RTS
@@ -4038,7 +4038,7 @@ b2C97   STA SPRITES_DELTA_X05,Y
         LDA #$00     ;black
         STA SPRITES_COLOR05,Y
         LDA #$00     ;#%00000000
-        STA f04B7,Y
+        STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
         LDA #$0E     ;#%00001110
         STA SPRITES_CLASS05,Y
@@ -4164,7 +4164,7 @@ j2DD8   LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
         JSR s4006
         AND #$1F     ;#%00011111
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         LDA #$00     ;#%00000000
         STA SPRITES_BKG_PRI05,X
 b2DEA   RTS
@@ -4210,7 +4210,7 @@ b2E1C   LDA a04F0
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
         LDA #$14     ;#%00010100
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         LDA #$18     ;#%00011000
         STA SPRITES_CLASS05,X
         JSR s4006
@@ -4251,7 +4251,7 @@ b2E5D   JSR s4006
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
         LDA #$14     ;#%00010100
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         LDA #$18     ;#%00011000
         STA SPRITES_CLASS05,X
         JSR s4006
@@ -4266,14 +4266,14 @@ b2EBE   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_0B
-s2EBF   INC f04B7,X
-        LDA f04B7,X
+s2EBF   INC SPRITES_TICK05,X
+        LDA SPRITES_TICK05,X
         CMP #$50     ;#%01010000
         BNE b2ECD
         JSR s2EEB
         RTS
 
-b2ECD   LDA f04B7,X
+b2ECD   LDA SPRITES_TICK05,X
         LSR A
         LSR A
         LSR A
@@ -4281,7 +4281,7 @@ b2ECD   LDA f04B7,X
         TAY
         LDA FRAME_GRENADE0,Y
         STA SPRITES_PTR05,X
-        LDA f04B7,X
+        LDA SPRITES_TICK05,X
         AND #$0F     ;#%00001111
         BNE b2EE5
         INC SPRITES_DELTA_Y05,X
@@ -4293,7 +4293,7 @@ FRAME_GRENADE0       ;$2EE6
 s2EEB   LDA #$0C     ;#%00001100
         STA SPRITES_CLASS05,X
         LDA #$00     ;#%00000000
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
         LDA #$AF     ;#%10101111
@@ -4306,14 +4306,14 @@ b2F0A   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_0E
-s2F0B   INC f04B7,X
-        LDA f04B7,X
+s2F0B   INC SPRITES_TICK05,X
+        LDA SPRITES_TICK05,X
         CMP #$50     ;#%01010000
         BNE b2F19
         JSR s2EEB
         RTS
 
-b2F19   LDA f04B7,X
+b2F19   LDA SPRITES_TICK05,X
         LSR A
         LSR A
         LSR A
@@ -4321,7 +4321,7 @@ b2F19   LDA f04B7,X
         TAY
         LDA f2F32,Y
         STA SPRITES_PTR05,X
-        LDA f04B7,X
+        LDA SPRITES_TICK05,X
         AND #$0F     ;#%00001111
         BNE b2F31
         INC SPRITES_DELTA_Y05,X
@@ -4332,11 +4332,11 @@ f2F32   .BYTE $D2,$D1,$D0,$D1,$D2
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_08
 CLASS_ANIM_SOLDIER_BULLET       ;$2F37
-        INC f04B7,X
-        LDA f04B7,X
+        INC SPRITES_TICK05,X
+        LDA SPRITES_TICK05,X
         CMP #$46     ;#%01000110
         BEQ b2F67
-        LDA f04B7,X
+        LDA SPRITES_TICK05,X
         CMP #$16     ;#%00010110
         BCC b2F66
         JSR s28A3
@@ -4358,7 +4358,7 @@ b2F66   RTS
 b2F67   LDA #$09     ;#%00001001
         STA SPRITES_CLASS05,X
         LDA #$00     ;#%00000000
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
         TAY
@@ -4368,8 +4368,8 @@ b2F67   LDA #$09     ;#%00001001
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_1F / class_21
-s2F7F   INC f04B7,X
-        LDA f04B7,X
+s2F7F   INC SPRITES_TICK05,X
+        LDA SPRITES_TICK05,X
         CMP #$5A     ;#%01011010
         BEQ b2F8A
         RTS
@@ -4379,8 +4379,8 @@ b2F8A   JMP s2EEB
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_09
 CLASS_ANIM_SOLDIER_BULLET_END   ;$2F8D
-        INC f04B7,X
-        LDA f04B7,X
+        INC SPRITES_TICK05,X
+        LDA SPRITES_TICK05,X
         CMP #$09     ;#%00001001
         BEQ _L00
         TAY
@@ -4406,7 +4406,7 @@ _L01    LDA #$00     ;#%00000000
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_07
-s2FC2   INC f04B7,X
+s2FC2   INC SPRITES_TICK05,X
         LDA SPRITES_Y05,X
         CMP #$82     ;#%10000010
         BCC b3002
@@ -4417,7 +4417,7 @@ s2FC2   INC f04B7,X
         LDA #$00     ;#%00000000
         STA f04A1,X
         STA f04AC,X
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         LDA #$FF     ;#%11111111
         STA SPRITES_DELTA_Y05,X
         JSR s4006
@@ -4478,8 +4478,8 @@ j305A   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_0A
-s305B   INC f04B7,X
-        LDA f04B7,X
+s305B   INC SPRITES_TICK05,X
+        LDA SPRITES_TICK05,X
         CMP #$1E     ;#%00011110
         BNE b3084
         LDA #$FE     ;#%11111110
@@ -4513,7 +4513,7 @@ b3084   BCS b30A6
         STA SPRITES_PTR05,X
         RTS
 
-b30A6   LDA f04B7,X
+b30A6   LDA SPRITES_TICK05,X
         CMP #$23     ;#%00100011
         BNE b30B0
         INC SPRITES_PTR05,X
@@ -4531,7 +4531,7 @@ b30BF   LDA #$98     ;#%10011000
         STA SPRITES_DELTA_X05,X
         STA f04A1,X
         STA f04AC,X
-        STA f04B7,X
+        STA SPRITES_TICK05,X
         LDA #$FF     ;#%11111111
         STA SPRITES_DELTA_Y05,X
         LDA #$05     ;#%00000101
@@ -4540,7 +4540,7 @@ b30BF   LDA #$98     ;#%10011000
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_15
-s30DD   INC f04B7,X
+s30DD   INC SPRITES_TICK05,X
         LDA f04AC,X
         AND #$FE     ;#%11111110
         TAY
@@ -4555,10 +4555,10 @@ s30DD   INC f04B7,X
         TAY
         LDA (pFB),Y
         STA SPRITES_PTR05,X
-        LDA f04B7,X
+        LDA SPRITES_TICK05,X
         BNE b3109
         LDA #$10     ;#%00010000
-        STA f04B7,X
+        STA SPRITES_TICK05,X
 b3109   CMP #$0F     ;#%00001111
         BCC b3116
         JSR s28A3
@@ -4567,7 +4567,7 @@ b3109   CMP #$0F     ;#%00001111
 b3116   JSR s4006
         AND #$07     ;#%00000111
         BEQ s3128
-        LDA f04B7,X
+        LDA SPRITES_TICK05,X
         AND #$1F     ;#%00011111
         BNE b3127
         JMP j3255
@@ -4699,7 +4699,7 @@ s31F0   INC a04F4
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_05
-s3205   INC f04B7,X
+s3205   INC SPRITES_TICK05,X
         LDA SPRITES_DELTA_X05,X
         ORA SPRITES_DELTA_Y05,X
         BEQ b3232
@@ -4725,7 +4725,7 @@ j3237   JSR s28A3
         JSR s28D8
         JSR s290E
         JSR j33D0
-        LDA f04B7,X
+        LDA SPRITES_TICK05,X
         AND #$1F     ;#%00011111
         BEQ j3255
         LDA GAME_TICK
@@ -4822,7 +4822,7 @@ b3304   TXA
         LDA #$0E     ;light blue
         STA SPRITES_COLOR05,Y
         LDA #$00     ;#%00000000
-        STA f04B7,Y
+        STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
         LDA #$0B     ;#%00001011
         STA SPRITES_CLASS05,Y
@@ -4891,7 +4891,7 @@ j33B8   LDA a00FB,b
         TAX
         RTS
 
-j33D0   LDA f04B7,X
+j33D0   LDA SPRITES_TICK05,X
         AND a0504
         BNE b33E4
         LDY #$00     ;#%00000000
@@ -5066,7 +5066,7 @@ j34E1   STX a00FB,b
         LDA #$01     ;white
         STA SPRITES_COLOR05,Y
         LDA #$00     ;#%00000000
-        STA f04B7,Y
+        STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
         LDA #$08     ;#%00001000
         STA SPRITES_CLASS05,Y
@@ -5088,8 +5088,8 @@ b3557   LSR a00FB,b
 ; ref: class_06
 ; Animation when regular soldier dies
 CLASS_ANIM_SOLDIER_DIE  ;$3561
-        INC f04B7,X
-        LDA f04B7,X
+        INC SPRITES_TICK05,X
+        LDA SPRITES_TICK05,X
         CMP #$18     ;#%00011000
         BEQ _L00
         TAY
@@ -5210,8 +5210,8 @@ _L03    JMP (a00FB)
 ; ref: class_02
 ; Hero anim grenade
 CLASS_ANIM_HERO_GRENADE
-        INC COUNTER0,X
-        LDA COUNTER0,X
+        INC SPRITES_COUNTER00,X
+        LDA SPRITES_COUNTER00,X
         CMP #$0F     ;#%00001111
         BCS _L00
         LSR A
@@ -5219,17 +5219,17 @@ CLASS_ANIM_HERO_GRENADE
         TAY
         LDA f36F9,Y
         STA SPRITES_PTR00
-_L00    LDA COUNTER0,X
+_L00    LDA SPRITES_COUNTER00,X
         AND #$07     ;#%00000111
         BNE _L01
-        LDA COUNTER0,X
+        LDA SPRITES_COUNTER00,X
         LSR A
         LSR A
         LSR A
         TAY
         LDA FRAME_GRENADE1,Y
         STA SPRITES_PTR01,X
-        LDA COUNTER0,X
+        LDA SPRITES_COUNTER00,X
 _L01    CMP #$28     ;#%00101000
         BEQ _L03
         LDA SPRITES_LO_X01,X
@@ -5254,7 +5254,7 @@ _L02    RTS
 _L03    LDA #$04     ;#%00000100
         STA SPRITES_CLASS01,X
         LDA #$00     ;#%00000000
-        STA COUNTER0,X
+        STA SPRITES_COUNTER00,X
         STA SPRITES_DELTA_X01,X
         STA SPRITES_DELTA_Y01,X
         STA SPRITES_BKG_PRI01,X
@@ -5273,8 +5273,8 @@ f36F9   .BYTE $A4,$A5,$DE,$98,$98
 ; ref: class_03
 ; Hero Anim bullet end
 CLASS_ANIM_HERO_BULLET_END      ;$36FE
-        INC COUNTER0,X
-        LDA COUNTER0,X
+        INC SPRITES_COUNTER00,X
+        LDA SPRITES_COUNTER00,X
         CMP #$09     ;Frames for anim(?)
         BEQ _L00
         TAY
@@ -5309,8 +5309,9 @@ DISABLE_HERO_SPRITE     ;$371D
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_04
+; Exploding grenade animation
 CLASS_ANIM_HERO_GRENADE_END ;$373C
-        INC COUNTER0,X
+        INC SPRITES_COUNTER00,X
         LDY #$00     ;#%00000000
 b3741   LDA SPRITES_CLASS05,Y
         STY a00FB,b
@@ -5351,7 +5352,7 @@ b3790   JSR s2405
 b3793   INY
         CPY #$0B     ;#%00001011
         BNE b3741
-        LDA COUNTER0,X
+        LDA SPRITES_COUNTER00,X
         CMP #$14     ;#%00010100
         BEQ b37A9
         LSR A
@@ -5398,7 +5399,7 @@ j37CF   TXA
         LDA #$0C     ;#%00001100
         STA SPRITES_CLASS05,Y
         LDA #$00     ;#%00000000
-        STA f04B7,Y
+        STA SPRITES_TICK05,Y
         TAX
         LDA FRAME_EXPLOSION,X
         STA SPRITES_PTR05,Y
@@ -5441,7 +5442,7 @@ b3848   LDA SPRITES_LO_X05,Y
         LDA #$0C     ;#%00001100
         STA SPRITES_CLASS05,Y
         LDA #$00     ;#%00000000
-        STA f04B7,Y
+        STA SPRITES_TICK05,Y
         TAX
         LDA FRAME_EXPLOSION,X
         STA SPRITES_PTR05,Y
@@ -5462,8 +5463,8 @@ b3848   LDA SPRITES_LO_X05,Y
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_0C
-s388B   INC f04B7,X
-        LDA f04B7,X
+s388B   INC SPRITES_TICK05,X
+        LDA SPRITES_TICK05,X
         CMP #$14     ;#%00010100
         BEQ _L00
         LSR A
@@ -5522,7 +5523,7 @@ _L00    LDA SPRITES_CLASS04
         LDA #$02     ;#%00000010
         STA SPRITES_CLASS04
         LDA #$00     ;#%00000000
-        STA a04A0
+        STA SPRITES_COUNTER03
         STA HERO_ANIM_MOV_IDX
         LDA #$A4     ;#%10100100
         STA SPRITES_PTR00
@@ -5541,8 +5542,8 @@ _SKIP   RTS
 ; ref: class_01
 ; Hero Anim bullet
 CLASS_ANIM_HERO_BULLET  ;$3935
-        INC COUNTER0,X
-        LDA COUNTER0,X
+        INC SPRITES_COUNTER00,X
+        LDA SPRITES_COUNTER00,X
         CMP #$0F     ;#%00001111
         BNE _L00
         JMP _L04
@@ -5612,7 +5613,7 @@ _L03    LDA #$00     ;#%00000000
 _L04    LDA #$03     ;#%00000011
         STA SPRITES_CLASS01,X
         LDA #$00     ;#%00000000
-        STA COUNTER0,X
+        STA SPRITES_COUNTER00,X
         STA SPRITES_DELTA_X01,X
         STA SPRITES_DELTA_Y01,X
         TAY
@@ -5665,7 +5666,7 @@ _L00    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game fire)
         LDA #$90     ;Bullet frame
         STA SPRITES_PTR01,X
         LDA #$00     ;#%00000000
-        STA COUNTER0,X
+        STA SPRITES_COUNTER00,X
         LDA #$01     ;white
         STA SPRITES_COLOR01,X
 _L01    RTS
