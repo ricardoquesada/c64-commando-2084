@@ -2341,7 +2341,7 @@ _L00    LDA SPRITES_CLASS05,Y
         RTS
 
 _L01    TYA
-        STA a04A1,X                     ;connect Y with X
+        STA a04A1,X                     ;links Y with X
         LDA #$56
         STA SPRITES_LO_X05,Y
         LDA #$64
@@ -2361,7 +2361,7 @@ _L01    TYA
         LDA #$24
         STA SPRITES_CLASS05,Y
         TXA
-        STA a04A1,Y                     ;connect X with Y
+        STA a04A1,Y                     ;links X with Y
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -2688,7 +2688,7 @@ _L00    LDA SPRITES_CLASS05,Y
         RTS
 
 _L01    TYA
-        STA a04A1,X     ;Connect front with back
+        STA a04A1,X     ;links front with back
         LDA #$38     ;#%00111000
         STA SPRITES_LO_X05,Y
         LDA #$21     ;#%00100001
