@@ -163,7 +163,7 @@ BKG_COLOR2 = $04E4
 COUNTER1 = $04E6
 a04E7 = $04E7
 TRIGGER_ROW_IDX = $04E8         ;If equal to row index, create object
-a04E9 = $04E9
+a04E9 = $04E9                   ;unused
 a04EA = $04EA
 a04EC = $04EC
 a04ED = $04ED
@@ -234,6 +234,7 @@ eF00A = $F00A
 
         .BYTE $00,$0B,$08,$0A,$00,$9E,$32,$30
         .BYTE $36,$31,$00,$00,$00
+
         LDA #$00     ;#%00000000
         TAY
         STA aA5
@@ -244,7 +245,7 @@ eF00A = $F00A
         JSR eF00A   ; set charset: copy from e000-efff to d000-dfff
         JSR s083D
         JSR s0828
-        JMP j0850
+        JMP BOOT
 
 s0828   LDA #$01     ;#%00000001
         TAX
@@ -271,7 +272,9 @@ b083E   LDA a01
         .BYTE $E0,$09,$D0,$F5,$20,$AD,$35,$20
         .BYTE $57,$0A,$20
 
-j0850   SEI
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+BOOT    ;$0850
+        SEI
         LDA #<NMI_HANDLER
         STA $0318    ;NMI
         LDA #>NMI_HANDLER
@@ -295,7 +298,9 @@ _L01    TXA
         LDA #$00     ;#%00000000
         STA a0502
         STA a0501
-j0883   LDA #$A5     ;Set initial starting row
+
+START   ;$0883
+        LDA #$A5     ;Set initial starting row
         STA V_SCROLL_ROW_IDX
         JSR SETUP_LEVEL
         JSR SETUP_SCREEN
@@ -363,7 +368,7 @@ _L00    INC GAME_TICK
         JSR HANDLE_JOY2
         LDA IS_ANIM_EXIT_DOOR
         BNE _L01
-        JSR s100F
+        JSR CHECK_COLLISION
 _L01    LDA SPRITES_Y00
         CMP #$5A
         BNE GAME_LOOP
@@ -436,17 +441,17 @@ _L03    DEC LIVES
 
 GAME_OVER
         LDX #$06     ;#%00000110
-b09A6   TXA
+_L00    TXA
         ASL A
         TAY
         LDA SCORE_MSB
         CMP HISCORE_MSB,Y
-        BCC b09FD
-        BNE b09BB
+        BCC _L04
+        BNE _L01
         LDA SCORE_LSB
         CMP HISCORE_LSB,Y
-        BCC b09FD
-b09BB   TXA
+        BCC _L04
+_L01    TXA
         ASL A
         TAY
         LDA HISCORE_MSB,Y
@@ -458,28 +463,28 @@ b09BB   TXA
         ASL A
         ASL A
         TAY
-b09CF   LDA f0EEE,Y
+_L02    LDA f0EEE,Y
         STA f0EF6,Y
         INY
         TYA
         AND #$07     ;#%00000111
-        BNE b09CF
+        BNE _L02
         DEX
-        BPL b09A6
+        BPL _L00
         LDA SCORE_MSB
         STA HISCORE_MSB
         LDA SCORE_LSB
         STA HISCORE_LSB
         JSR SCREEN_ENTER_HI_SCORE
         LDY #$00     ;#%00000000
-b09EF   LDA a0506,Y
+_L03    LDA a0506,Y
         STA f0EEE,Y
         INY
         CPY #$08     ;#%00001000
-        BNE b09EF
-        JMP j0A2B
+        BNE _L03
+        JMP _L07
 
-b09FD   TXA
+_L04    TXA
         ASL A
         TAY
         LDA SCORE_MSB
@@ -487,10 +492,10 @@ b09FD   TXA
         LDA SCORE_LSB
         STA f0F39,Y
         CPX #$06     ;#%00000110
-        BNE b0A13
-        JMP j0883
+        BNE _L05
+        JMP START
 
-b0A13   TXA
+_L05    TXA
         PHA
         JSR SCREEN_ENTER_HI_SCORE
         PLA
@@ -499,25 +504,30 @@ b0A13   TXA
         ASL A
         TAX
         LDY #$00     ;#%00000000
-b0A1F   LDA a0506,Y
+_L06    LDA a0506,Y
         STA f0EF6,X
         INX
         INY
         CPY #$08     ;#%00001000
-        BNE b0A1F
-j0A2B   JSR CLEANUP_SPRITES
+        BNE _L06
+
+_L07    JSR CLEANUP_SPRITES
         JSR s0E0F
+
         LDY #$64     ;#%01100100
         JSR DELAY
+
+        ; Wait for 255 frames or joystick fire
+
         LDA #$FF     ;#%11111111
         STA COUNTER1
-b0A3B   LDA $DC00    ;CIA1: Data Port Register A  (TODO: who triggers it?)
+_L08    LDA $DC00    ;CIA1: Data Port Register A  (fire in Game Over scene)
         CMP #$6F     ;#%01101111
-        BEQ b0A4A
+        BEQ _L09
         JSR WAIT_RASTER_AT_BOTTOM
         DEC COUNTER1
-        BNE b0A3B
-b0A4A   JMP j0883
+        BNE _L08
+_L09    JMP START
 
 NMI_HANDLER
         RTI
@@ -526,7 +536,7 @@ NMI_HANDLER
         ;Can be safely removed once we don't care about the generating exaclty
         ;the same binary.
 RESET_ROUTINE       ;$0A4E
-        .ADDR j0850, j0850
+        .ADDR BOOT, BOOT
         .BYTE $C3,$C2,$CD,$38,$30
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -1157,37 +1167,38 @@ _SCROLL_IDX     ;$1008
         .BYTE $53,$7C,$3A,$01,$A9,$6E,$36
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s100F   LDY #$00     ;#%00000000
-b1011   LDA SPRITES_CLASS05,Y
+CHECK_COLLISION       ;$100F
+        LDY #$00     ;#%00000000
+_L00    LDA SPRITES_CLASS05,Y
         STY a00FB,b
         TAY
         LDA f1074,Y
         LDY a00FB,b
         AND #$01     ;#%00000001
-        BEQ b106E
+        BEQ _L01
         LDA SPRITES_X_HI00
         CMP SPRITES_X_HI05,Y
-        BNE b106E
+        BNE _L01
         LDA SPRITES_X_LO00
         CLC
         ADC #$04     ;#%00000100
         CMP SPRITES_X_LO05,Y
-        BCC b106E
+        BCC _L01
         LDA SPRITES_X_LO00
         SEC
         SBC #$04     ;#%00000100
         CMP SPRITES_X_LO05,Y
-        BCS b106E
+        BCS _L01
         LDA SPRITES_Y00
         CLC
         ADC #$08     ;#%00001000
         CMP SPRITES_Y05,Y
-        BCC b106E
+        BCC _L01
         LDA SPRITES_Y00
         SEC
         SBC #$08     ;#%00001000
         CMP SPRITES_Y05,Y
-        BCS b106E
+        BCS _L01
         LDA #$01     ;Hero was shot
         STA IS_HERO_DEAD
         STA COUNTER1
@@ -1197,11 +1208,13 @@ b1011   LDA SPRITES_CLASS05,Y
         STA SPRITES_DELTA_X00
         STA SPRITES_DELTA_Y00
         STA V_SCROLL_DELTA
-b106E   INY
+_L01    INY
         CPY #$0B     ;#%00001011
-        BNE b1011
+        BNE _L00
         RTS
 
+        ; Sprite classes that can collide with hero. Starts at $05
+        ; Classes flagged: $0A,$0D,$0F,$11,$1A,$1C-$20,$24-$2A
 f1074   .BYTE $00,$00,$00,$00,$00,$01,$00,$00
         .BYTE $01,$00,$01,$00,$01,$00,$00,$00
         .BYTE $00,$00,$00,$00,$00,$01,$00,$01
@@ -3152,33 +3165,33 @@ s2596   RTS
 ; ref: class_28
 s2597   INC SPRITES_TICK05,X
         LDA a04EA
-        BEQ b25C4
+        BEQ _L02
         LDA SPRITES_TICK05,X
         AND #$1F     ;#%00011111
         CMP #$03     ;#%00000011
-        BNE b25AD
+        BNE _L00
         LDA #$CF     ;Frame: guy falling in hole?
         STA SPRITES_PTR05,X
-b25AD   CMP #$0F     ;#%00001111
-        BNE b25B6
+_L00    CMP #$0F     ;#%00001111
+        BNE _L01
         LDA #$CE     ;#%11001110
         STA SPRITES_PTR05,X
-b25B6   CMP #$14     ;#%00010100
-        BNE b25C4
+_L01    CMP #$14     ;#%00010100
+        BNE _L02
         LDA #$CD     ;#%11001101
         STA SPRITES_PTR05,X
         LDA #$00     ;#%00000000
         STA a04EA
-b25C4   LDA SPRITES_TICK05,X
+_L02    LDA SPRITES_TICK05,X
         AND #$3F     ;#%00111111
-        BEQ b25CC
+        BEQ _L03
         RTS
 
-b25CC   JSR s32ED
+_L03    JSR s32ED
         LDA #$01     ;#%00000001
         STA a04EA
         CPY #$FF     ;#%11111111
-        BEQ b25EF
+        BEQ _L04
         LDA #$D0     ;#%11010000
         STA SPRITES_PTR05,Y
         LDA #$00     ;black
@@ -3188,7 +3201,7 @@ b25CC   JSR s32ED
         STA SPRITES_BKG_PRI05,Y
         LDA #$0E     ;#%00001110
         STA SPRITES_CLASS05,Y
-b25EF   RTS
+_L04    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_27
@@ -4610,6 +4623,7 @@ b3116   JSR s4006
 
 b3127   RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s3128   LDA SPRITES_X_HI05,X
         CMP SPRITES_X_HI00
         BCC b315C
@@ -4831,6 +4845,7 @@ f32CD   .BYTE $00,$01,$01,$01,$01,$01,$01,$01
 f32DD   .BYTE $FF,$FF,$FF,$00,$00,$00,$01,$01
         .BYTE $01,$01,$01,$00,$00,$00,$FF,$FF
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s32ED   LDA SPRITES_X_HI05,X
         CMP SPRITES_X_HI00
         BNE b3301
@@ -6340,17 +6355,17 @@ b3F19   INX
 s3F24   LDA #$0F     ;#%00001111
         STA a0014,b
         STA a00D7,b
-b3F2C   LSR a0014,b
-        BEQ b3F92
+_L00    LSR a0014,b
+        BEQ _L04
         LDA a00D7,b
         SEC
         SBC a0014,b
         STA a00C9,b
         LDA #$00     ;#%00000000
         STA a003D,b
-j3F40   LDA a003D,b
+_L01    LDA a003D,b
         STA a003F,b
-b3F46   LDA a003F,b
+_L02    LDA a003F,b
         CLC
         ADC a0014,b
         STA a0041,b
@@ -6360,7 +6375,7 @@ b3F46   LDA a003F,b
         LDX a003F,b
         LDY f004B,b,X
         CMP SPRITES_Y00,Y
-        BCS b3F84
+        BCS _L03
         LDX a003F,b
         LDY a0041,b
         LDA f004B,Y
@@ -6373,14 +6388,14 @@ b3F46   LDA a003F,b
         SEC
         SBC a0014,b
         STA a003F,b
-        BPL b3F46
-b3F84   INC a003D,b
+        BPL _L02
+_L03    INC a003D,b
         LDA a00C9,b
         CMP a003D,b
-        BCC b3F2C
-        JMP j3F40
+        BCC _L00
+        JMP _L01
 
-b3F92   RTS
+_L04    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Copies "current" map to screen RAM
