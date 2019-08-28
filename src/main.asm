@@ -185,12 +185,12 @@ a0501 = $0501
 a0502 = $0502
 IS_HERO_DEAD = $0503            ;0: hero alive, 1:was shot, 2:fell down in trench
 a0504 = $0504
-a0505 = $0505
+HISCORE_IS_BULLET_ANIM = $0505  ;1: if the bullet in hiscore is being animated
 HISCORE_NAME = $0506            ;8 chars reserved for the hiscore name ($0506-$050E)
 HISCORE_NAME_IDX = $050F        ;Index to the hiscore name
 HISCORE_SELECTED_CHAR = $0510   ;Selected char in hiscore
-a0511 = $0511
-a0512 = $0512
+HISCORE_IS_CHAR_ANIM = $0511    ;1: if the selected char in hiscore is being animated
+HISCORE_ANIM_CHAR_COUNTER = $0512       ;Counter to the selected char animation in hiscore
 aE34E = $E34E
 aE34F = $E34F
 aE350 = $E350
@@ -579,23 +579,26 @@ SIGHT_SPR_DATA      ;$0A7F
         .BYTE $A0,$0A,$AA,$80,$02,$AA,$00
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s0ABE   LDA a0511
+; Animates the selected char in hiscore
+HISCORE_ANIM_CHAR       ;$0ABE
+        LDA HISCORE_IS_CHAR_ANIM
         BEQ _SKIP
+
         LDY #$00     ;#%00000000
-        INC a0512
-        LDA a0512
+        INC HISCORE_ANIM_CHAR_COUNTER
+        LDA HISCORE_ANIM_CHAR_COUNTER
         CMP #$32     ;#%00110010
         BEQ _L02
         AND #$0F     ;#%00001111
         LSR A
         LSR A
-        AND #$03     ;#%00000011
+        AND #$03
         BEQ _L00
-        AND #$01     ;#%00000001
+        AND #$01
         BNE _L01
         LDA HISCORE_SELECTED_CHAR
         CLC
-        ADC #$20     ;#%00100000
+        ADC #$20     ;Select the flipped char
         STA (pF7),Y
         RTS
 
@@ -603,12 +606,12 @@ _L00    LDA HISCORE_SELECTED_CHAR
         STA (pF7),Y
         RTS
 
-_L01    LDA #$79     ;#%01111001
+_L01    LDA #$79     ;Select the regular char
         STA (pF7),Y
         RTS
 
 _L02    LDA #$00     ;#%00000000
-        STA a0511
+        STA HISCORE_IS_CHAR_ANIM
         LDA HISCORE_SELECTED_CHAR
         STA (pF7),Y
 _SKIP   RTS
@@ -726,16 +729,16 @@ HISCORE_SETUP_SPRITES   ;$0B94
         LDA #$01
         STA SPRITES_CLASS00
 
-        LDX #$07     ;#%00000111
-        LDA #$00     ;#%00000000
+        LDX #$07
+        LDA #$00
 _L00    STA HISCORE_NAME,X
         DEX
         BPL _L00
 
-        LDA #$00     ;#%00000000
-        STA a0505
+        LDA #$00
+        STA HISCORE_IS_BULLET_ANIM
         STA HISCORE_NAME_IDX
-        STA a0511
+        STA HISCORE_IS_CHAR_ANIM
 
         ; $F7/$F8 -> Screen RAM
         LDA #<pE000
@@ -750,40 +753,44 @@ _L00    STA HISCORE_NAME,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-HISCORE_READ_JOY
-        LDA $DC00    ;CIA1: Data Port Register A  (enter high score)
-        AND #$01     ;#%00000001
-        BNE b0C1D
+HISCORE_READ_JOY_MOV
+        LDA $DC00
+        AND #$01     ;#%00000001        up?
+        BNE _L00
         LDA SPRITES_Y05
-        CMP #$64     ;#%01100100
-        BCC b0C1D
-        LDA #$FE     ;#%11111110
+        CMP #$64     ;reached top?
+        BCC _L00
+        LDA #$FE     ;2 pixels up
         STA SPRITES_DELTA_Y05
-b0C1D   LDA $DC00    ;CIA1: Data Port Register A (enter high score)
-        AND #$02     ;#%00000010
-        BNE b0C30
+
+_L00    LDA $DC00
+        AND #$02     ;#%00000010        down?
+        BNE _L01
         LDA SPRITES_Y05
-        CMP #$78     ;#%01111000
-        BCS b0C30
-        LDA #$02     ;#%00000010
+        CMP #$78     ;reached bottom?
+        BCS _L01
+        LDA #$02     ;2 pixels down
         STA SPRITES_DELTA_Y05
-b0C30   LDA $DC00    ;CIA1: Data Port Register A (enter high score)
-        AND #$04     ;#%00000100
-        BNE b0C43
+
+_L01    LDA $DC00    ;CIA1: Data Port Register A (enter high score)
+        AND #$04     ;#%00000100        left?
+        BNE _L02
         LDA SPRITES_X_LO05
-        CMP #$64     ;#%01100100
-        BCC b0C43
-        LDA #$FE     ;#%11111110
+        CMP #$64     ;reached margin left?
+        BCC _L02
+        LDA #$FE     ;2 pixels to left
         STA SPRITES_DELTA_X05
-b0C43   LDA $DC00    ;CIA1: Data Port Register A (enter high score)
-        AND #$08     ;#%00001000
-        BNE b0C56
+
+_L02    LDA $DC00
+        AND #$08     ;#%00001000        right?
+        BNE _L03
         LDA SPRITES_X_LO05
-        CMP #$F0     ;#%11110000
-        BCS b0C56
-        LDA #$02     ;#%00000010
+        CMP #$F0     ;reached margin right?
+        BCS _L03
+        LDA #$02     ;2 pixels to right
         STA SPRITES_DELTA_X05
-b0C56   LDA SPRITES_X_LO05
+
+_L03    LDA SPRITES_X_LO05
         STA SPRITES_X_LO00
         AND #$1F     ;#%00011111
         LSR A
@@ -796,17 +803,18 @@ b0C56   LDA SPRITES_X_LO05
         STA SPRITES_X_HI00
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s0C6F   LDA SPRITES_X_LO05
         AND #$0F     ;#%00001111
-        BNE b0C7B
+        BNE _L00
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X05
-b0C7B   LDA SPRITES_Y05
+_L00    LDA SPRITES_Y05
         AND #$0F     ;#%00001111
-        BNE b0C87
+        BNE _L01
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y05
-b0C87   RTS
+_L01    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 SCREEN_ENTER_HI_SCORE   ;$0C88
@@ -861,9 +869,9 @@ _L03    JMP _L00
 _L04    JSR HISCORE_SETUP_SPRITES
 
 _L05    JSR WAIT_RASTER_AT_BOTTOM
-        JSR HISCORE_READ_JOY
-        JSR s0D59
-        JSR s0ABE
+        JSR HISCORE_READ_JOY_MOV
+        JSR HISCORE_READ_JOY_FIRE
+        JSR HISCORE_ANIM_CHAR
         JSR APPLY_DELTA_MOV
         JSR s3F24
         JSR s0C6F
@@ -885,9 +893,12 @@ f0D09   .BYTE $20,$20,$20,$20,$20,$75,$75,$75
         .BYTE $20,$76,$20,$77,$20,$78,$FF,$FE
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; riq
-s0D59   LDA a0505
+; Reads joystick fire, only if bullet is not being animated
+HISCORE_READ_JOY_FIRE       ;$0D59
+        LDA HISCORE_IS_BULLET_ANIM
         BEQ _L02
+
+        ; Bullet reached destination?
         LDA SPRITES_Y01
         CMP SPRITES_COUNTER00
         BCC _L00
@@ -897,18 +908,18 @@ _L00
         ; Cleanup bullet sprite
         LDA #$00
         STA SPRITES_CLASS01
-        STA a0505
-        LDA #$FF     ;Emtpy sprite
+        STA HISCORE_IS_BULLET_ANIM
+        LDA #$FF                ;Emtpy sprite
         STA SPRITES_PTR01
         LDA HISCORE_SELECTED_CHAR
-        CMP #$77     ;"backspace" char
+        CMP #$77                ;"backspace" char
         BEQ _L01
         LDA #$01
-        STA a0511
+        STA HISCORE_IS_CHAR_ANIM
 _L01    RTS
 
-_L02    LDA $DC00    ;CIA1: Data Port Register A (enter high score - fire)
-        AND #$10     ;#%00010000
+_L02    LDA $DC00               ;Fire pressed?
+        AND #$10                ;#%00010000
         BEQ _L03
         RTS
 
@@ -926,26 +937,26 @@ _L03
         STA SPRITES_X_HI01
         LDA #$01
         STA SPRITES_CLASS01
-        LDA #$90     ;Bullet frame
+        LDA #$90                ;Bullet frame
         STA SPRITES_PTR01
         STA SPRITES_BKG_PRI01
-        LDA #$01     ;white
+        LDA #$01                ;white
         STA SPRITES_COLOR01
-        STA a0505
+        STA HISCORE_IS_BULLET_ANIM
         LDA SPRITES_Y05
         STA SPRITES_COUNTER00
 
         LDA HISCORE_SELECTED_CHAR
-        LDY #$00     ;#%00000000
+        LDY #$00
         STA (pF7),Y
         JSR s0AFA
-        LDA #$0B        ;"Fire" SFX
+        LDA #$0B                ;"Fire" SFX
         JSR SFX_PLAY
 
         LDA HISCORE_SELECTED_CHAR
-        CMP #$78        ;"end" char
+        CMP #$78                ;"end" char
         BEQ _L05
-        CMP #$77        ;"backspace" char
+        CMP #$77                ;"backspace" char
         BNE _L04
 
         ; Delete char
@@ -953,16 +964,16 @@ _L03
         BEQ _L05
         DEC HISCORE_NAME_IDX
         LDX HISCORE_NAME_IDX
-        LDA #$75        ;"stop/dot" char
+        LDA #$75                ;"stop/dot" char
         STA HISCORE_NAME,X
-        STA fE087,X
+        STA fE087,X             ;update it in Screen RAM as well
         LDA #$00
-        STA a0511
-        STA a0512
+        STA HISCORE_IS_CHAR_ANIM
+        STA HISCORE_ANIM_CHAR_COUNTER
         JMP _L05
 
 _L04    LDA HISCORE_NAME_IDX
-        CMP #$08        ;strlen(name) == 8 ?
+        CMP #$08                ;strlen(name) == 8 ?
         BEQ _L05
 
         LDA HISCORE_SELECTED_CHAR
