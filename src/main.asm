@@ -2957,7 +2957,10 @@ s23CC   LDA #$1E     ;#%00011110
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s2405   TYA
+; Add score based on killed enemy, and convert enemy sprite class into
+; "enemy dying" sprite class.
+DIE_ANIM_AND_SCORE  ;$2405   
+        TYA
         PHA
         LDA SPRITES_CLASS05,Y
         TAY
@@ -2967,32 +2970,32 @@ s2405   TYA
         TAY
         LDA SPRITES_CLASS05,Y
         CMP #$07     ;#%00000111
-        BEQ b241E
+        BEQ _L00
         CMP #$1C     ;#%00011100
-        BNE b242B
-b241E   LDA #$1D     ;#%00011101
+        BNE _L01
+_L00    LDA #$1D     ;#%00011101
         STA SPRITES_CLASS05,Y
         LDA #$CB     ;#%11001011
         STA SPRITES_PTR05,Y
-        JMP j24A7
+        JMP _L06
 
-b242B   LDA SPRITES_CLASS05,Y
+_L01    LDA SPRITES_CLASS05,Y
         CMP #$1A     ;#%00011010
-        BNE b2444
+        BNE _L02
         LDA #$BC     ;#%10111100
         STA SPRITES_PTR05,Y
         LDA #$01     ;white
         STA SPRITES_COLOR05,Y
         LDA #$13     ;#%00010011
         STA SPRITES_CLASS05,Y
-        JMP j24A7
+        JMP _L06
 
-b2444   LDA SPRITES_CLASS05,Y
+_L02    LDA SPRITES_CLASS05,Y
         CMP #$11     ;#%00010001
-        BNE b2485
+        BNE _L03
         LDA SPRITES_CLASS01,X
         CMP #$04     ;#%00000100
-        BEQ b2485
+        BEQ _L03
         LDA #$BD     ;#%10111101
         STA SPRITES_PTR05,Y
         LDA #$0E     ;light blue
@@ -3002,7 +3005,7 @@ b2444   LDA SPRITES_CLASS05,Y
         INC a04EC
         LDA a04EC
         CMP #$02     ;#%00000010
-        BNE j24A7
+        BNE _L06
         TXA
         PHA
         LDX a04ED
@@ -3014,14 +3017,14 @@ b2444   LDA SPRITES_CLASS05,Y
         STA SPRITES_TICK05,X
         PLA
         TAX
-        JMP j24A7
+        JMP _L06
 
-b2485   LDA SPRITES_CLASS05,Y
+_L03    LDA SPRITES_CLASS05,Y
         CMP #$23     ;#%00100011
-        BEQ b2490
+        BEQ _L04
         CMP #$24     ;#%00100100
-        BNE b24A2
-b2490   TXA
+        BNE _L05
+_L04    TXA
         PHA
         LDX a04A1,Y
         JSR s2EEB
@@ -3030,12 +3033,12 @@ b2490   TXA
         JSR s2EEB
         PLA
         TAX
-        JMP j24A7
+        JMP _L06
 
-b24A2   LDA #$06     ;#%00000110
+_L05    LDA #$06     ;#%00000110
         STA SPRITES_CLASS05,Y
 
-j24A7   LDA #$00     ;#%00000000
+_L06    LDA #$00     ;#%00000000
         STA SPRITES_TICK05,Y
         STA SPRITES_DELTA_X05,Y
         STA SPRITES_DELTA_Y05,Y
@@ -5224,7 +5227,7 @@ _L00    LDA SPRITES_Y01,X
         BCC _L02
         LDA SPRITES_X_HI01,X
         BEQ _L02
-_L01    JSR DISABLE_HERO_SPRITE
+_L01    JSR CLEANUP_HERO_SPRITE
 _L02    LDA SPRITES_CLASS01,X
         ASL A
         TAY
@@ -5316,7 +5319,7 @@ CLASS_ANIM_HERO_BULLET_END      ;$36FE
         STA SPRITES_PTR01,X
         RTS
 
-_L00    JSR DISABLE_HERO_SPRITE
+_L00    JSR CLEANUP_HERO_SPRITE
         RTS
 
 FRAME_BULLET_END             ;$3714
@@ -5327,7 +5330,7 @@ FRAME_BULLET_END             ;$3714
 ; Hero Reset state (bullet, grenade, main) and disable/hide
 ; Not necessarily the hero in itself, but sprites associated with it like bullet
 ; and grenade.
-DISABLE_HERO_SPRITE     ;$371D
+CLEANUP_HERO_SPRITE     ;$371D
         LDA #$00
         STA SPRITES_CLASS01,X
         STA SPRITES_DELTA_X01,X
@@ -5382,10 +5385,11 @@ b3741   LDA SPRITES_CLASS05,Y
         BNE b3790
         JMP j37CF
 
-b3790   JSR s2405
+b3790   JSR DIE_ANIM_AND_SCORE
 b3793   INY
         CPY #$0B     ;#%00001011
         BNE b3741
+
         LDA SPRITES_COUNTER00,X
         CMP #$14     ;#%00010100
         BEQ b37A9
@@ -5613,11 +5617,12 @@ _L01    LDA SPRITES_CLASS05,Y
         SBC #$0C     ;#%00001100
         CMP SPRITES_Y05,Y
         BCS _L02
-        JSR s2405
-        JSR DISABLE_HERO_SPRITE
+        JSR DIE_ANIM_AND_SCORE
+        JSR CLEANUP_HERO_SPRITE
 _L02    INY
         CPY #$0B     ;#%00001011
         BNE _L01
+
         LDA SPRITES_X_LO01,X
         STA TMP_SPRITE_X_LO
         LDA SPRITES_Y01,X
