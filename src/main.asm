@@ -360,7 +360,7 @@ _L00    INC GAME_TICK
         JSR s3F24
         JSR TRY_THROW_GRENADE
         JSR ANIM_ENEMIES
-        JSR PROCESS_ACTIONS
+        JSR RUN_ACTIONS
         JSR ANIM_HERO
 
         LDA IS_HERO_DEAD
@@ -1292,7 +1292,7 @@ f1074   .BYTE $00,$00,$00,$00,$00,$01,$00,$00
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Re-execute actions based on the row index. Called when the level is restared.
 ; E.g: after losing a life.
-REPROCESS_ACTIONS             ;$109B
+RERUN_ACTIONS             ;$109B
         LDY #$00     ;#%00000000
 _L00    LDA (p24),Y  ;End of trigger-rows?
         CMP #$FF
@@ -2114,7 +2114,7 @@ f1AA9   .BYTE $00,$02,$02,$02,$02,$02,$02,$02
 ; the sprite class must be init in a differnt way. E.g: one for placing
 ; the sprite class at the left, and the other at the right of the screen.
 ; TODO: How many actions per row are possible? 8?
-PROCESS_ACTIONS   ;$1BA9
+RUN_ACTIONS   ;$1BA9
         LDY TRIGGER_ROW_IDX
         LDA (p24),Y
         CMP V_SCROLL_ROW_IDX
@@ -6379,7 +6379,7 @@ _L02    LDA #$00
         BNE _L02
 
         JSR s3F24
-        JSR REPROCESS_ACTIONS
+        JSR RERUN_ACTIONS
 
         ; Make sure player has at least 5 grenades
         LDA GRENADES
