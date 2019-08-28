@@ -446,26 +446,26 @@ _L00    TXA
         ASL A
         TAY
         LDA SCORE_MSB
-        CMP HISCORE_MSB,Y
+        CMP HISCORE_LSB00,Y
         BCC _L04
         BNE _L01
         LDA SCORE_LSB
-        CMP HISCORE_LSB,Y
+        CMP HISCORE_MSB00,Y
         BCC _L04
 _L01    TXA
         ASL A
         TAY
-        LDA HISCORE_MSB,Y
-        STA f0F38,Y
-        LDA HISCORE_LSB,Y
-        STA f0F39,Y
+        LDA HISCORE_LSB00,Y
+        STA HISCORE_LSB01,Y
+        LDA HISCORE_MSB00,Y
+        STA HISCORE_MSB01,Y
         TXA
         ASL A
         ASL A
         ASL A
         TAY
-_L02    LDA f0EEE,Y
-        STA f0EF6,Y
+_L02    LDA HISCORE_NAME00,Y
+        STA HISCORE_NAME01,Y
         INY
         TYA
         AND #$07     ;#%00000111
@@ -474,14 +474,14 @@ _L02    LDA f0EEE,Y
         BPL _L00
 
         LDA SCORE_MSB
-        STA HISCORE_MSB
+        STA HISCORE_LSB00
         LDA SCORE_LSB
-        STA HISCORE_LSB
+        STA HISCORE_MSB00
         JSR SCREEN_ENTER_HI_SCORE
 
         LDY #$00
 _L03    LDA HISCORE_NAME,Y
-        STA f0EEE,Y
+        STA HISCORE_NAME00,Y
         INY
         CPY #$08
         BNE _L03
@@ -491,9 +491,9 @@ _L04    TXA
         ASL A
         TAY
         LDA SCORE_MSB
-        STA f0F38,Y
+        STA HISCORE_LSB01,Y
         LDA SCORE_LSB
-        STA f0F39,Y
+        STA HISCORE_MSB01,Y
         CPX #$06     ;#%00000110
         BNE _L05
         JMP START
@@ -508,7 +508,7 @@ _L05    TXA
         TAX
         LDY #$00     ;#%00000000
 _L06    LDA HISCORE_NAME,Y
-        STA f0EF6,X
+        STA HISCORE_NAME01,X
         INX
         INY
         CPY #$08     ;#%00001000
@@ -999,12 +999,12 @@ DISPLAY_HI_SCORES       ;$0E0F
         STA a00FC,b
 
         LDX #$00
-_L00    JSR s0E68
+_L00    JSR HISCORE_PRINT_PREFIX
         LDA a00FB,b
         CLC
         ADC #$05
         STA a00FB,b
-        JSR s0E7D
+        JSR HISCORE_PRINT_NAME
         LDA a00FB,b
         CLC
         ADC #$0A
@@ -1032,19 +1032,22 @@ _L01    INX
 
         ; Wait for fire button
 
-_L02    LDA $DC00    ;CIA1: Data Port Register A (display high scores - fire)
+_L02    LDA $DC00
         CMP #$6F     ;#%01101111
         BNE _L02
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s0E68   TXA
+; Prints the hiscore prefix. E.g: "1st", "2nd",...
+; X=prefix to print
+HISCORE_PRINT_PREFIX    ;$0E68
+        TXA
         PHA
         ASL A
         ASL A
         TAX
         LDY #$00     ;#%00000000
-_L00    LDA f0ECE,X
+_L00    LDA HISCORE_PREFIX_TBL,X
         STA (pFB),Y
         INX
         INY
@@ -1055,14 +1058,17 @@ _L00    LDA f0ECE,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s0E7D   TXA
+; Print hiscore name. E.g: "john"
+; X=name to print
+HISCORE_PRINT_NAME      ;$0E7D
+        TXA
         PHA
         ASL A
         ASL A
         ASL A
         TAX
         LDY #$00     ;#%00000000
-_L00    LDA f0EEE,X
+_L00    LDA HISCORE_NAME00,X
         STA (pFB),Y
         INX
         INY
@@ -1078,7 +1084,7 @@ s0E93   TXA
         ASL A
         TAX
         LDY #$00     ;#%00000000
-        LDA HISCORE_MSB,X
+        LDA HISCORE_LSB00,X
         AND #$F0     ;#%11110000
         LSR A
         LSR A
@@ -1087,13 +1093,13 @@ s0E93   TXA
         ADC #$21     ;#%00100001
         STA (pFB),Y
         INY
-        LDA HISCORE_MSB,X
+        LDA HISCORE_LSB00,X
         AND #$0F     ;#%00001111
         CLC
         ADC #$21     ;#%00100001
         STA (pFB),Y
         INY
-        LDA HISCORE_LSB,X
+        LDA HISCORE_MSB00,X
         AND #$F0     ;#%11110000
         LSR A
         LSR A
@@ -1103,7 +1109,7 @@ s0E93   TXA
         ADC #$21     ;#%00100001
         STA (pFB),Y
         INY
-        LDA HISCORE_LSB,X
+        LDA HISCORE_MSB00,X
         AND #$0F     ;#%00001111
         CLC
         ADC #$21     ;#%00100001
@@ -1112,25 +1118,33 @@ s0E93   TXA
         TAX
         RTS
 
-f0ECE   .BYTE $22,$6D,$6E,$20,$23,$68,$5E,$20
-        .BYTE $24,$6C,$5E,$20,$25,$6E,$62,$20
-        .BYTE $26,$6E,$62,$20,$27,$6E,$62,$20
-        .BYTE $28,$6E,$62,$20,$29,$6E,$62,$20
-f0EEE   .BYTE $5D,$62,$6C,$63,$6D,$20,$20,$20
-f0EF6   .BYTE $6C,$69,$6C,$73,$20,$20,$20,$20
+HISCORE_PREFIX_TBL      ;$0ECE
+        .BYTE $22,$6D,$6E,$20           ;"1st "
+        .BYTE $23,$68,$5E,$20           ;"2nd "
+        .BYTE $24,$6C,$5E,$20           ;"3rd "
+        .BYTE $25,$6E,$62,$20           ;"4th "
+        .BYTE $26,$6E,$62,$20           ;"5th "
+        .BYTE $27,$6E,$62,$20           ;"6th "
+        .BYTE $28,$6E,$62,$20           ;"7th "
+        .BYTE $29,$6E,$62,$20           ;"8th "
+
+HISCORE_NAME00
+        .BYTE $5D,$62,$6C,$63,$6D,$20,$20,$20   ;name for 1st
+HISCORE_NAME01
+        .BYTE $6C,$69,$6C,$73,$20,$20,$20,$20   ;...2nd
         .BYTE $6E,$62,$5F,$20,$5E,$6F,$5E,$5F
         .BYTE $6D,$5B,$6C,$5B,$62,$20,$76,$20
         .BYTE $68,$63,$61,$5F,$66,$20,$20,$20
         .BYTE $65,$5F,$63,$6E,$62,$20,$20,$20
         .BYTE $5B,$5E,$69,$66,$60,$20,$20,$20
-        .BYTE $5E,$63,$66,$65,$20,$20,$20,$20
+        .BYTE $5E,$63,$66,$65,$20,$20,$20,$20   ;...8th
         .BYTE $20,$20,$20,$20,$20,$20,$20,$20
 
         ; High Scores
-HISCORE_MSB   .BYTE $00
-HISCORE_LSB   .BYTE $90         ; 9000
-f0F38   .BYTE $00
-f0F39   .BYTE $80               ; 8000
+HISCORE_LSB00   .BYTE $00                       ;9000
+HISCORE_MSB00   .BYTE $90
+HISCORE_LSB01   .BYTE $00                       ;8000
+HISCORE_MSB01   .BYTE $80
         .BYTE $00,$70,$00,$60,$00,$50,$00,$40   ; 7000...4000
         .BYTE $00,$30,$00,$20                   ; 3000,2000
         .BYTE $00,$00           ; 0?
@@ -1577,7 +1591,7 @@ SCREEN_REFRESH_SCORE
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 SCREEN_REFRESH_HISCORE
-        LDA HISCORE_MSB
+        LDA HISCORE_LSB00
         AND #$F0     ;#%11110000
         LSR A
         LSR A
@@ -1585,12 +1599,12 @@ SCREEN_REFRESH_HISCORE
         LSR A
         ADC #$21     ;#%00100001
         STA aE36A
-        LDA HISCORE_MSB
+        LDA HISCORE_LSB00
         AND #$0F     ;#%00001111
         CLC
         ADC #$21     ;#%00100001
         STA aE36B
-        LDA HISCORE_LSB
+        LDA HISCORE_MSB00
         AND #$F0     ;#%11110000
         LSR A
         LSR A
@@ -1599,7 +1613,7 @@ SCREEN_REFRESH_HISCORE
         CLC
         ADC #$21     ;#%00100001
         STA aE36C
-        LDA HISCORE_LSB
+        LDA HISCORE_MSB00
         AND #$0F     ;#%00001111
         CLC
         ADC #$21     ;#%00100001
