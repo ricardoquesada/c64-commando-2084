@@ -2093,7 +2093,7 @@ _L04    STY a00FD,b
 
 ACTION_TBL_HI = *+1         ;$1C07
 ACTION_TBL_LO               ;$1C06
-        .ADDR ACT_NEW_SOLDIER_IN_TRENCH ;$00
+        .ADDR ACT_NEW_SOLDIER_BEHIND_TRENCH ;$00
         .ADDR ACT_NEW_JUMPING_SOLDIER_R ;$01
         .ADDR ACT_NEW_JUMPING_SOLDIER_L ;$02
         .ADDR ACT_NEW_MORTAR_ENEMY      ;$03
@@ -2241,7 +2241,7 @@ s1E4F   JSR ACT_NEW_MORTAR_ENEMY
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_19
-s1E58   JSR ACT_NEW_SOLDIER_IN_TRENCH
+s1E58   JSR ACT_NEW_SOLDIER_BEHIND_TRENCH
         LDA #$27     ;#%00100111
         STA SPRITES_CLASS05,X
         RTS
@@ -2755,8 +2755,8 @@ ACT_NEW_MORTAR_ENEMY    ;$223C
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_00
-; Create soldier in trench (sprite class: $07)
-ACT_NEW_SOLDIER_IN_TRENCH       ;$2271
+; Create soldier behind trench (sprite class: $07)
+ACT_NEW_SOLDIER_BEHIND_TRENCH       ;$2271
         LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_X_LO05,X
