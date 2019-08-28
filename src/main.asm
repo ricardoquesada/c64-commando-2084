@@ -439,6 +439,7 @@ _L03    DEC LIVES
         BEQ GAME_OVER
         JMP RESTART
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 GAME_OVER
         LDX #$06     ;#%00000110
 _L00    TXA
@@ -512,7 +513,7 @@ _L06    LDA a0506,Y
         BNE _L06
 
 _L07    JSR CLEANUP_SPRITES
-        JSR s0E0F
+        JSR DISPLAY_HI_SCORES
 
         LDY #$64     ;#%01100100
         JSR DELAY
@@ -798,7 +799,7 @@ b0C87   RTS
 SCREEN_ENTER_HI_SCORE   ;$0C88
         LDA #$01     ;Song to play (high scores)
         JSR MUSIC_INIT
-        JSR s1334
+        JSR CLEAR_SCREEN
         JSR CLEANUP_SPRITES
         LDA #$00     ;#%00000000
         STA V_SCROLL_DELTA
@@ -942,21 +943,26 @@ b0DF8   LDA a050F
         INC a050F
 b0E0E   RTS
 
-s0E0F   JSR s1334
-        LDA #<pE082  ;#%10000010
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+DISPLAY_HI_SCORES       ;$0E0F
+        JSR CLEAR_SCREEN
+
+        ;  $FB/$FC -> Screen RAM: 3rd row, column 10
+        LDA #<pE082
         STA a00FB,b
-        LDA #>pE082  ;#%11100000
+        LDA #>pE082
         STA a00FC,b
-        LDX #$00     ;#%00000000
+
+        LDX #$00
 _L00    JSR s0E68
         LDA a00FB,b
         CLC
-        ADC #$05     ;#%00000101
+        ADC #$05
         STA a00FB,b
         JSR s0E7D
         LDA a00FB,b
         CLC
-        ADC #$0A     ;#%00001010
+        ADC #$0A
         STA a00FB,b
         JSR s0E93
         LDA a00FB,b
@@ -978,6 +984,9 @@ _L00    JSR s0E68
 _L01    INX
         CPX #$08     ;#%00001000
         BNE _L00
+
+        ; Wait for fire button
+
 _L02    LDA $DC00    ;CIA1: Data Port Register A (display high scores - fire)
         CMP #$6F     ;#%01101111
         BNE _L02
@@ -1084,7 +1093,7 @@ f0F39   .BYTE $80               ; 8000
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 SCREEN_MAIN_TITLE
         JSR CLEANUP_SPRITES
-        JSR s1334
+        JSR CLEAR_SCREEN
         LDA #$00     ;#%00000000
         STA BKG_COLOR0
         LDA #$02     ;#%00000010
@@ -1387,7 +1396,7 @@ b124B   LDA f1324,Y
 b128E   LDA #$02     ;#%00000010
         STA LEVEL_NR
         JSR CLEANUP_SPRITES
-        JSR s1334
+        JSR CLEAR_SCREEN
         LDA #$00     ;#%00000000
         STA BKG_COLOR0
         LDX #$00     ;#%00000000
@@ -1436,26 +1445,31 @@ f1324   .BYTE $22,$6D,$6E,$20
 f1328   .BYTE $23,$68,$5E,$20,$24,$6C,$5E,$20
         .BYTE $24,$6C,$5E,$20
 
-s1334   LDA #$00     ;#%00000000
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+CLEAR_SCREEN    ;$1334
+        ; $FB/$FC -> Screen RAM
+        ; $FD/$FE -> Color RAM
+        LDA #$00
         STA a00FB,b
         STA a00FD,b
-        LDA #$E0     ;#%11100000
+        LDA #$E0
         STA a00FC,b
-        LDA #$D8     ;#%11011000
+        LDA #$D8
         STA a00FE,b
-        LDY #$00     ;#%00000000
-b1348   LDA #$20     ;#%00100000
+
+        LDY #$00
+_L00    LDA #$20     ;space
         STA (pFB),Y
-        LDA #$01     ;#%00000001
+        LDA #$01     ;white
         STA (pFD),Y
         INC a00FB,b
         INC a00FD,b
-        BNE b1348
+        BNE _L00
         INC a00FC,b
         INC a00FE,b
         LDA a00FC,b
-        CMP #$E4     ;#%11100100
-        BNE b1348
+        CMP #$E4
+        BNE _L00
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
