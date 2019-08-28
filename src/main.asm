@@ -365,7 +365,7 @@ _L00    INC GAME_TICK
         BNE _L01
         JSR s100F
 _L01    LDA SPRITES_Y00
-        CMP #$5A     ;#%01011010
+        CMP #$5A
         BNE GAME_LOOP
 
         LDA #$14     ;Points won after beating lvl
@@ -2960,7 +2960,7 @@ s23CC   LDA #$1E     ;#%00011110
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Add score based on killed enemy, and convert enemy sprite class into
 ; "enemy dying" sprite class.
-DIE_ANIM_AND_SCORE  ;$2405   
+DIE_ANIM_AND_SCORE  ;$2405
         TYA
         PHA
         LDA SPRITES_CLASS05,Y
@@ -3544,7 +3544,8 @@ b2898   JMP j33D0
 f289B   .BYTE $EC,$ED,$C8,$C8,$C8,$ED,$EC,$EC
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-APPLY_DELTA_MOV     ;$28A3
+; Valid only for enemies: sprites 5-15
+UPDATE_ENEMY_PATH     ;$28A3
         ; X
         LDA SPRITES_X_LO05,X
         CLC
@@ -3615,8 +3616,8 @@ b2923   RTS
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_1A
 ; Animation for Level 1 Boss
-CLASS_ANIM_BOSS     ;$2924   
-        JSR APPLY_DELTA_MOV
+CLASS_ANIM_BOSS     ;$2924
+        JSR UPDATE_ENEMY_PATH
         JSR s28D8
         JSR s290E
         LDA SPRITES_DELTA_X05,X
@@ -3749,7 +3750,7 @@ b2A04   CMP #$14     ;#%00010100
         TAY
         LDA (pFB),Y
         STA SPRITES_PTR05,X
-b2A27   JSR APPLY_DELTA_MOV
+b2A27   JSR UPDATE_ENEMY_PATH
         JSR s28D8
         JSR s290E
         JSR j33D0
@@ -3772,7 +3773,7 @@ s2A34   INC SPRITES_TICK05,X
         TAY
         LDA (pFB),Y
         STA SPRITES_PTR05,X
-        JSR APPLY_DELTA_MOV
+        JSR UPDATE_ENEMY_PATH
         JSR s290E
         LDA SPRITES_TICK05,X
         CMP a04A1,X
@@ -4373,7 +4374,7 @@ CLASS_ANIM_SOLDIER_BULLET       ;$2F37
         LDA SPRITES_TICK05,X
         CMP #$16     ;#%00010110
         BCC b2F66
-        JSR APPLY_DELTA_MOV
+        JSR UPDATE_ENEMY_PATH
         LDY #$00     ;#%00000000
         LDA (pFC),Y
         TAY
@@ -4596,7 +4597,7 @@ s30DD   INC SPRITES_TICK05,X
         STA SPRITES_TICK05,X
 b3109   CMP #$0F     ;#%00001111
         BCC b3116
-        JSR APPLY_DELTA_MOV
+        JSR UPDATE_ENEMY_PATH
         JSR s28D8
         JSR s290E
 b3116   JSR s4006
@@ -4756,7 +4757,7 @@ s3205   INC SPRITES_TICK05,X
 
 b3232   LDA #$E4     ;#%11100100
         STA SPRITES_PTR05,X
-j3237   JSR APPLY_DELTA_MOV
+j3237   JSR UPDATE_ENEMY_PATH
         JSR s28D8
         JSR s290E
         JSR j33D0
@@ -5142,7 +5143,7 @@ f3576   .BYTE $BE,$FF,$BE,$FF,$BE,$FF,$BF,$FF
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Cleanup current sprite: init sprites and leaves the seat available
 ; X=sprite to cleanup
-CLEANUP_SPRITE      ;$358E   
+CLEANUP_SPRITE      ;$358E
         LDA #$00
         STA SPRITES_CLASS05,X
         STA SPRITES_DELTA_X05,X
@@ -5221,7 +5222,10 @@ HERO_ANIM_CLASS_TBL_LO
 ; Calls the different hero-related animation, based on the sprite class assigned.
 ; E.g: throw grenade, bullet start, bullet end, main anim, etc.
 ANIM_HERO       ;$3641
+        ; Sprites 1-5 are bullets / grenades
         LDX #$00     ;#%00000000
+
+        ; If bullet/grenade is outisde bounds, remove it
 _L00    LDA SPRITES_Y01,X
         CMP #$1E     ;#%00011110
         BCC _L01
@@ -5233,6 +5237,9 @@ _L00    LDA SPRITES_Y01,X
         LDA SPRITES_X_HI01,X
         BEQ _L02
 _L01    JSR CLEANUP_HERO_SPRITE
+
+        ; TODO: avoid the anim if the sprite has just been cleaned-up
+
 _L02    LDA SPRITES_CLASS01,X
         ASL A
         TAY
@@ -5242,8 +5249,9 @@ _L02    LDA SPRITES_CLASS01,X
         STA a00FC,b
         JSR _L03
         INX
-        CPX #$04     ;#%00000100
+        CPX #$04     ;For sprites 1-5
         BNE _L00
+
         RTS
 
 _L03    JMP (a00FB)
@@ -6095,7 +6103,10 @@ f3D3D   .BYTE $32,$32,$32,$32,$32,$32,$32,$6E
         .BYTE $6E,$6E,$6E
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s3D48   LDA SPRITES_X_LO00
+APPLY_DELTA_MOV         ;$3D48
+        ; For the hero (sprite 0)
+        ; Apply delta X
+        LDA SPRITES_X_LO00
         CLC
         ADC SPRITES_DELTA_X00
         PHA
@@ -6108,16 +6119,22 @@ s3D48   LDA SPRITES_X_LO00
         STA SPRITES_X_HI00
 _L00    PLA
         STA SPRITES_X_LO00
+
+        ; Apply delta Y
         LDA SPRITES_Y00
         CLC
         ADC SPRITES_DELTA_Y00
         STA SPRITES_Y00
         STA a04C2
-        LDX #$01     ;#%00000001
+
+        ; For the remaining sprites: 1-15
+        LDX #$01
 _L01    LDA SPRITES_Y00,X
         STA a04C2,X
         LDA SPRITES_CLASS00,X
         BEQ _L03
+
+        ; Apply delta X
         LDA SPRITES_X_LO00,X
         CLC
         ADC SPRITES_DELTA_X00,X
@@ -6131,6 +6148,8 @@ _L01    LDA SPRITES_Y00,X
         STA SPRITES_X_HI00,X
 _L02    PLA
         STA SPRITES_X_LO00,X
+
+        ; Apply delta Y
         LDA SPRITES_Y00,X
         CLC
         ADC SPRITES_DELTA_Y00,X
@@ -6161,7 +6180,7 @@ _L03    INX
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; CLEANUP_SPRITES
 ; All 16 sprites are init and make them invisible
-CLEANUP_SPRITES     ;$3DD3   
+CLEANUP_SPRITES     ;$3DD3
         LDX #$00     ;#%00000000
 _L00    LDA #$64     ;#%01100100
         STA SPRITES_X_LO00,X
