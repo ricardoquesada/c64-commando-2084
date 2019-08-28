@@ -186,9 +186,9 @@ a0502 = $0502
 IS_HERO_DEAD = $0503            ;0: hero alive, 1:was shot, 2:fell down in trench
 a0504 = $0504
 a0505 = $0505
-a0506 = $0506
-a050F = $050F
-a0510 = $0510
+HISCORE_NAME = $0506            ;8 chars reserved for the hiscore name ($0506-$050E)
+HISCORE_NAME_IDX = $050F        ;Index to the hiscore name
+HISCORE_SELECTED_CHAR = $0510   ;Selected char in hiscore
 a0511 = $0511
 a0512 = $0512
 aE34E = $E34E
@@ -382,7 +382,7 @@ _L01    LDA SPRITES_Y00
 
         ;Play animation at end of Level 3
         LDA #$09     ;#%00001001
-        JSR s500F    ;SFX?
+        JSR SFX_PLAY
         JSR SET_FORT_ON_FIRE
 
 _L02    LDA #$02     ;Song to play (Level complete)
@@ -472,16 +472,18 @@ _L02    LDA f0EEE,Y
         BNE _L02
         DEX
         BPL _L00
+
         LDA SCORE_MSB
         STA HISCORE_MSB
         LDA SCORE_LSB
         STA HISCORE_LSB
         JSR SCREEN_ENTER_HI_SCORE
-        LDY #$00     ;#%00000000
-_L03    LDA a0506,Y
+
+        LDY #$00
+_L03    LDA HISCORE_NAME,Y
         STA f0EEE,Y
         INY
-        CPY #$08     ;#%00001000
+        CPY #$08
         BNE _L03
         JMP _L07
 
@@ -505,7 +507,7 @@ _L05    TXA
         ASL A
         TAX
         LDY #$00     ;#%00000000
-_L06    LDA a0506,Y
+_L06    LDA HISCORE_NAME,Y
         STA f0EF6,X
         INX
         INY
@@ -541,7 +543,7 @@ RESET_ROUTINE       ;$0A4E
         .BYTE $C3,$C2,$CD,$38,$30
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Sets the sight "()" sprite for high scores as sprite $41
+; Sets the sight "()" sprite for high scores as sprite $41 (@ $D040)
 SET_SIGHT_SPRITE    ;$0A57
         ;TODO: probably it is safe to remove the stop/start timer since
         ;timer is not being used by code, and is already stop
@@ -591,13 +593,13 @@ s0ABE   LDA a0511
         BEQ _L00
         AND #$01     ;#%00000001
         BNE _L01
-        LDA a0510
+        LDA HISCORE_SELECTED_CHAR
         CLC
         ADC #$20     ;#%00100000
         STA (pF7),Y
         RTS
 
-_L00    LDA a0510
+_L00    LDA HISCORE_SELECTED_CHAR
         STA (pF7),Y
         RTS
 
@@ -607,7 +609,7 @@ _L01    LDA #$79     ;#%01111001
 
 _L02    LDA #$00     ;#%00000000
         STA a0511
-        LDA a0510
+        LDA HISCORE_SELECTED_CHAR
         STA (pF7),Y
 _SKIP   RTS
 
@@ -680,58 +682,69 @@ b0B11   STA a00FB,b
         STA a01
         LDY #$00     ;#%00000000
         LDA (pFC),Y
-        STA a0510
+        STA HISCORE_SELECTED_CHAR
         LDA a01
         ORA #$02     ;#%00000010
         STA a01
         CLI
         RTS
 
-s0B94   LDA #$64     ;#%01100100
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Sets up the hero and sight sprite, and cleans up name and other vars
+HISCORE_SETUP_SPRITES   ;$0B94
+        ; Sight sprite
+        LDA #$64     ;#%01100100
         AND #$F0     ;#%11110000
         STA SPRITES_X_LO05
         LDA #$64     ;#%01100100
         AND #$F0     ;#%11110000
         STA SPRITES_Y05
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_X_HI05
-        LDA #$41     ;#%01000001
+        LDA #$41     ;sight sprite
         STA SPRITES_PTR05
         LDA #$02     ;red
         STA SPRITES_COLOR05
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_BKG_PRI05
-        LDA #$01     ;#%00000001
+        LDA #$01
         STA SPRITES_CLASS05
         LDA SPRITES_X_LO05
+
+        ; Hero sprite
         STA SPRITES_X_LO00
-        LDA #$B4     ;#%10110100
+        LDA #$B4
         STA SPRITES_Y00
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_X_HI00
-        LDA #$98     ;#%10011000
+        LDA #$98     ;Hero going up
         STA SPRITES_PTR00
         LDA #$06     ;blue
         STA SPRITES_COLOR00
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_BKG_PRI00
-        LDA #$01     ;#%00000001
+        LDA #$01
         STA SPRITES_CLASS00
+
         LDX #$07     ;#%00000111
         LDA #$00     ;#%00000000
-b0BE3   STA a0506,X
+_L00    STA HISCORE_NAME,X
         DEX
-        BPL b0BE3
+        BPL _L00
+
         LDA #$00     ;#%00000000
         STA a0505
-        STA a050F
+        STA HISCORE_NAME_IDX
         STA a0511
-        LDA #<pE000  ;Screen RAM lo
+
+        ; $F7/$F8 -> Screen RAM
+        LDA #<pE000
         STA a00F7,b
-        LDA #>pE000  ;Screen RAM hi
+        LDA #>pE000
         STA a00F8,b
-        LDA #$20     ;#%00100000
-        STA a0510
+
+        LDA #$20
+        STA HISCORE_SELECTED_CHAR
         JSR APPLY_DELTA_MOV
         JSR s3F24
         RTS
@@ -807,50 +820,56 @@ SCREEN_ENTER_HI_SCORE   ;$0C88
         STA BKG_COLOR0
         LDA #$02     ;#%00000010
         STA LEVEL_NR
-        LDA #<pE082  ;Screen RAM Lo
+
+        ; $FB/$FC -> Screen RAM
+        ; $FD/$FE -> Color RAM
+        ; Row 3, Column 10
+        LDA #<pE082
         STA a00FB,b
-        LDA #>pE082  ;Screen RAM Hi
+        LDA #>pE082
         STA a00FC,b
-        LDA #<pD882  ;Color RAM Lo
+        LDA #<pD882
         STA a00FD,b
-        LDA #>pD882  ;Color RAM Hi
+        LDA #>pD882
         STA a00FE,b
-        LDX #$00     ;#%00000000
-j0CB9   LDY #$00     ;#%00000000
-j0CBB   LDA f0D09,X
+
+        LDX #$00
+_L00    LDY #$00
+_L01    LDA f0D09,X
         CMP #$FF     ;End of line?
-        BEQ b0CD1
+        BEQ _L02
         CMP #$FE     ;Finish printing?
-        BEQ b0CE9
+        BEQ _L04
         STA (pFB),Y
-        LDA #$01     ;#%00000001
+        LDA #$01     ;white
         STA (pFD),Y
         INX
         INY
-        JMP j0CBB
+        JMP _L01
 
-b0CD1   INX
+_L02    INX
         LDA a00FB,b
         CLC
         ADC #$28     ;Put "cursor" in next line
         STA a00FB,b
         STA a00FD,b
-        BCC b0CE6
+        BCC _L03
         INC a00FC,b
         INC a00FE,b
-b0CE6   JMP j0CB9
+_L03    JMP _L00
 
-b0CE9   JSR s0B94
-b0CEC   JSR WAIT_RASTER_AT_BOTTOM
+_L04    JSR HISCORE_SETUP_SPRITES
+
+_L05    JSR WAIT_RASTER_AT_BOTTOM
         JSR HISCORE_READ_JOY
         JSR s0D59
         JSR s0ABE
         JSR APPLY_DELTA_MOV
         JSR s3F24
         JSR s0C6F
-        LDA a0510
+        LDA HISCORE_SELECTED_CHAR
         CMP #$78     ;#%01111000
-        BNE b0CEC
+        BNE _L05
         RTS
 
         ;Alphabet for hiscore
@@ -866,33 +885,38 @@ f0D09   .BYTE $20,$20,$20,$20,$20,$75,$75,$75
         .BYTE $20,$76,$20,$77,$20,$78,$FF,$FE
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; riq
 s0D59   LDA a0505
-        BEQ b0D81
+        BEQ _L02
         LDA SPRITES_Y01
         CMP SPRITES_COUNTER00
-        BCC b0D67
+        BCC _L00
         RTS
 
-b0D67   LDA #$00     ;#%00000000
+_L00
+        ; Cleanup bullet sprite
+        LDA #$00
         STA SPRITES_CLASS01
         STA a0505
         LDA #$FF     ;Emtpy sprite
         STA SPRITES_PTR01
-        LDA a0510
-        CMP #$77     ;#%01110111
-        BEQ b0D80
-        LDA #$01     ;#%00000001
+        LDA HISCORE_SELECTED_CHAR
+        CMP #$77     ;"backspace" char
+        BEQ _L01
+        LDA #$01
         STA a0511
-b0D80   RTS
+_L01    RTS
 
-b0D81   LDA $DC00    ;CIA1: Data Port Register A (enter high score - fire)
+_L02    LDA $DC00    ;CIA1: Data Port Register A (enter high score - fire)
         AND #$10     ;#%00010000
-        BEQ b0D89
+        BEQ _L03
         RTS
 
-b0D89   LDA #$00     ;#%00000000
+_L03
+        ; Create bullet sprite class
+        LDA #$00
         STA SPRITES_DELTA_X01
-        LDA #$FA     ;#%11111010
+        LDA #$FA
         STA SPRITES_DELTA_Y01
         LDA SPRITES_X_LO00
         STA SPRITES_X_LO01
@@ -900,7 +924,7 @@ b0D89   LDA #$00     ;#%00000000
         STA SPRITES_Y01
         LDA SPRITES_X_HI00
         STA SPRITES_X_HI01
-        LDA #$01     ;#%00000001
+        LDA #$01
         STA SPRITES_CLASS01
         LDA #$90     ;Bullet frame
         STA SPRITES_PTR01
@@ -910,38 +934,43 @@ b0D89   LDA #$00     ;#%00000000
         STA a0505
         LDA SPRITES_Y05
         STA SPRITES_COUNTER00
-        LDA a0510
+
+        LDA HISCORE_SELECTED_CHAR
         LDY #$00     ;#%00000000
         STA (pF7),Y
         JSR s0AFA
-        LDA #$0B     ;#%00001011
-        JSR s500F
-        LDA a0510
-        CMP #$78     ;#%01111000
-        BEQ b0E0E
-        CMP #$77     ;#%01110111
-        BNE b0DF8
-        LDA a050F
-        BEQ b0E0E
-        DEC a050F
-        LDX a050F
-        LDA #$75     ;#%01110101
-        STA a0506,X
+        LDA #$0B        ;"Fire" SFX
+        JSR SFX_PLAY
+
+        LDA HISCORE_SELECTED_CHAR
+        CMP #$78        ;"end" char
+        BEQ _L05
+        CMP #$77        ;"backspace" char
+        BNE _L04
+
+        ; Delete char
+        LDA HISCORE_NAME_IDX
+        BEQ _L05
+        DEC HISCORE_NAME_IDX
+        LDX HISCORE_NAME_IDX
+        LDA #$75        ;"stop/dot" char
+        STA HISCORE_NAME,X
         STA fE087,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA a0511
         STA a0512
-        JMP b0E0E
+        JMP _L05
 
-b0DF8   LDA a050F
-        CMP #$08     ;#%00001000
-        BEQ b0E0E
-        LDA a0510
-        LDX a050F
-        STA a0506,X
-        STA fE087,X
-        INC a050F
-b0E0E   RTS
+_L04    LDA HISCORE_NAME_IDX
+        CMP #$08        ;strlen(name) == 8 ?
+        BEQ _L05
+
+        LDA HISCORE_SELECTED_CHAR
+        LDX HISCORE_NAME_IDX
+        STA HISCORE_NAME,X
+        STA fE087,X             ;update name in Screen RAM
+        INC HISCORE_NAME_IDX
+_L05    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 DISPLAY_HI_SCORES       ;$0E0F
@@ -1212,7 +1241,7 @@ _L00    LDA SPRITES_CLASS05,Y
         STA IS_HERO_DEAD
         STA COUNTER1
         LDA #$04     ;#%00000100
-        JSR s500F
+        JSR SFX_PLAY
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X00
         STA SPRITES_DELTA_Y00
@@ -1495,7 +1524,7 @@ SCORE_ADD   SED
         INC LIVES
         JSR SCREEN_REFRESH_LIVES
         LDA #$0C     ;#%00001100
-        JSR s500F
+        JSR SFX_PLAY
 _L00    CLD
         ; fall-through
 
@@ -2341,7 +2370,7 @@ s1EAF   JSR s4006
         LDA #$25     ;#%00100101
         STA SPRITES_CLASS05,X
         LDA #$05     ;#%00000101
-        JSR s500F
+        JSR SFX_PLAY
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -3852,7 +3881,7 @@ s2A78   LDA SPRITES_X_HI00
         JSR SCORE_ADD
         JSR CLEANUP_SPRITE
         LDA #$00     ;#%00000000
-        JSR s500F
+        JSR SFX_PLAY
 b2AC7   LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
         LDA GAME_TICK
@@ -5466,7 +5495,7 @@ j37CF   TXA
         LDA #$0A     ;#%00001010
         JSR SCORE_ADD
         LDA #$02     ;#%00000010
-        JSR s500F
+        JSR SFX_PLAY
         LDA a04AC,Y
         CMP #$0A     ;#%00001010
         BEQ b3848
@@ -5614,8 +5643,8 @@ _L00    LDA SPRITES_CLASS04
         STA GRENADES
         CLD
         JSR SCREEN_REFRESH_GRENADES
-        LDA #$01     ;#%00000001
-        JSR s500F
+        LDA #$01     ;Throw grenade SFX
+        JSR SFX_PLAY
 _SKIP   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -6003,7 +6032,7 @@ b3BF8   PLA
         LDA #$02     ;Hero fell in trench/water
         STA IS_HERO_DEAD
         LDA #$04     ;#%00000100
-        JSR s500F
+        JSR SFX_PLAY
         STA COUNTER1
         LDA TMP_SPRITE_X_LO
         CLC
