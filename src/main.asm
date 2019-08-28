@@ -617,7 +617,9 @@ _L02    LDA #$00     ;#%00000000
 _SKIP   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s0AFA   LDA SPRITES_X_LO05
+; Get the selected char with the sight in the hiscore scene
+HISCORE_GET_SELECTED_CHAR       ;$0AFA
+        LDA SPRITES_X_LO05
         AND #$F0     ;#%11110000
         SEC
         SBC #$10     ;#%00010000
@@ -626,12 +628,12 @@ s0AFA   LDA SPRITES_X_LO05
         LSR A
         LSR A
         PLP
-        BCC b0B11
+        BCC _L00
         LDY SPRITES_X_HI05
-        BEQ b0B11
+        BEQ _L00
         CLC
         ADC #$20     ;#%00100000
-b0B11   STA a00FB,b
+_L00    STA a00FB,b
         LDA #$00     ;#%00000000
         STA a00FC,b
         STA a00FD,b
@@ -681,14 +683,17 @@ b0B11   STA a00FB,b
         STA a00F8,b
         SEI
         LDA a01
-        AND #$FD     ;#%11111101
+        AND #$FD     ;Enable I/O to read from Screen RAM
         STA a01
+
         LDY #$00     ;#%00000000
         LDA (pFC),Y
         STA HISCORE_SELECTED_CHAR
+
         LDA a01
-        ORA #$02     ;#%00000010
+        ORA #$02
         STA a01
+
         CLI
         RTS
 
@@ -949,7 +954,7 @@ _L03
         LDA HISCORE_SELECTED_CHAR
         LDY #$00
         STA (pF7),Y
-        JSR s0AFA
+        JSR HISCORE_GET_SELECTED_CHAR
         LDA #$0B                ;"Fire" SFX
         JSR SFX_PLAY
 
