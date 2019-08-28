@@ -344,14 +344,14 @@ GAME_LOOP            ;$08CB
         DEC V_SCROLL_ROW_IDX
         LDA #$00     ;#%00000000
         STA a04E9
-        JSR s3D48
+        JSR APPLY_DELTA_MOV
         INC a04E9
         JSR LEVEL_DRAW_VIEWPORT
         INC a04E9
         JMP GAME_LOOP
 
 _L00    INC GAME_TICK
-        JSR s3D48
+        JSR APPLY_DELTA_MOV
         JSR s3F24
         JSR TRY_THROW_GRENADE
         JSR ANIM_ENEMIES
@@ -721,7 +721,7 @@ b0BE3   STA a0506,X
         STA a00F8,b
         LDA #$20     ;#%00100000
         STA a0510
-        JSR s3D48
+        JSR APPLY_DELTA_MOV
         JSR s3F24
         RTS
 
@@ -834,7 +834,7 @@ b0CEC   JSR WAIT_RASTER_AT_BOTTOM
         JSR HISCORE_READ_JOY
         JSR s0D59
         JSR s0ABE
-        JSR s3D48
+        JSR APPLY_DELTA_MOV
         JSR s3F24
         JSR s0C6F
         LDA a0510
@@ -1104,7 +1104,7 @@ _L00    LDA #$48     ;Sprite Y position
         CPX #$07     ;total number of sprites
         BNE _L00
 
-        JSR s3D48
+        JSR APPLY_DELTA_MOV
         JSR s3F24
         LDA #$00     ;#%00000000
         STA $D025    ;Sprite Multi-Color Register 0
@@ -6075,7 +6075,7 @@ _L00    LDA f3D27,X
         CPX #$0B     ;Number of sprites to set
         BNE _L00
 
-        JSR s3D48
+        JSR APPLY_DELTA_MOV
         JSR s3F24
         LDA #$FF     ;#%11111111
         STA COUNTER1
