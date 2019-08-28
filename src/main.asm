@@ -146,16 +146,17 @@ SPRITES_CLASS00 = $048D
 SPRITES_CLASS01 = $048E
 SPRITES_CLASS04 = $0491
 SPRITES_CLASS05 = $0492
-SPRITES_COUNTER00 = $049D       ;TICK and COUNTER are the same, but using different names since they are not contiguous in memory
+SPRITES_COUNTER00 = $049D       ;TICK and COUNTER are the same, but using different
+                                ; names since they are not contiguous in memory
 SPRITES_COUNTER03 = $04A0       ;referenced in throw grenade
 a04A1 = $04A1                   ;Used to link sprites together
 a04AC = $04AC
 SPRITES_TICK05 = $04B7
 a04C2 = $04C2
 FIRE_COOLDOWN = $04DF           ;reset with $ff
-HERO_ANIM_MOV_IDX = $04E0       ;Movement anim for hero: left,right,up,down,diagoanlly,etc.
+HERO_ANIM_MOV_IDX = $04E0       ;Movement anim for hero: left,right,up,down,diagoanly,etc.
                                 ; See: SOLDIER_ANIM_FRAMES_HI/LO
-a04E1 = $04E1
+a04E1 = $04E1                   ;Bullet speed idx (???)
 BKG_COLOR0 = $04E2
 BKG_COLOR1 = $04E3
 BKG_COLOR2 = $04E4
@@ -510,7 +511,7 @@ j0A2B   JSR CLEANUP_SPRITES
         JSR DELAY
         LDA #$FF     ;#%11111111
         STA COUNTER1
-b0A3B   LDA $DC00    ;CIA1: Data Port Register A  (riq: unk)
+b0A3B   LDA $DC00    ;CIA1: Data Port Register A  (TODO: who triggers it?)
         CMP #$6F     ;#%01101111
         BEQ b0A4A
         JSR WAIT_RASTER_AT_BOTTOM
@@ -726,7 +727,7 @@ b0BE3   STA a0506,X
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 HISCORE_READ_JOY
-        LDA $DC00    ;CIA1: Data Port Register A  (riq: enter high score)
+        LDA $DC00    ;CIA1: Data Port Register A  (enter high score)
         AND #$01     ;#%00000001
         BNE b0C1D
         LDA SPRITES_Y05
@@ -734,7 +735,7 @@ HISCORE_READ_JOY
         BCC b0C1D
         LDA #$FE     ;#%11111110
         STA SPRITES_DELTA_Y05
-b0C1D   LDA $DC00    ;CIA1: Data Port Register A (riq: enter high score)
+b0C1D   LDA $DC00    ;CIA1: Data Port Register A (enter high score)
         AND #$02     ;#%00000010
         BNE b0C30
         LDA SPRITES_Y05
@@ -742,7 +743,7 @@ b0C1D   LDA $DC00    ;CIA1: Data Port Register A (riq: enter high score)
         BCS b0C30
         LDA #$02     ;#%00000010
         STA SPRITES_DELTA_Y05
-b0C30   LDA $DC00    ;CIA1: Data Port Register A (riq: enter high score)
+b0C30   LDA $DC00    ;CIA1: Data Port Register A (enter high score)
         AND #$04     ;#%00000100
         BNE b0C43
         LDA SPRITES_X_LO05
@@ -750,7 +751,7 @@ b0C30   LDA $DC00    ;CIA1: Data Port Register A (riq: enter high score)
         BCC b0C43
         LDA #$FE     ;#%11111110
         STA SPRITES_DELTA_X05
-b0C43   LDA $DC00    ;CIA1: Data Port Register A (riq: enter high score)
+b0C43   LDA $DC00    ;CIA1: Data Port Register A (enter high score)
         AND #$08     ;#%00001000
         BNE b0C56
         LDA SPRITES_X_LO05
@@ -873,7 +874,7 @@ b0D67   LDA #$00     ;#%00000000
         STA a0511
 b0D80   RTS
 
-b0D81   LDA $DC00    ;CIA1: Data Port Register A (riq: enter high score - fire)
+b0D81   LDA $DC00    ;CIA1: Data Port Register A (enter high score - fire)
         AND #$10     ;#%00010000
         BEQ b0D89
         RTS
@@ -967,7 +968,7 @@ _L00    JSR s0E68
 _L01    INX
         CPX #$08     ;#%00001000
         BNE _L00
-_L02    LDA $DC00    ;CIA1: Data Port Register A (riq: display high scores - fire)
+_L02    LDA $DC00    ;CIA1: Data Port Register A (display high scores - fire)
         CMP #$6F     ;#%01101111
         BNE _L02
         RTS
@@ -1116,7 +1117,7 @@ _L00    LDA #$48     ;Sprite Y position
 _L01    LDA #$FF     ;#%11111111
         STA COUNTER1
 _WAIT_FIRE
-        LDA $DC00    ;CIA1: Data Port Register A (riq: main screen - fire)
+        LDA $DC00    ;CIA1: Data Port Register A (main screen - fire)
         CMP #$6F     ;#%01101111
         BEQ _END
         JSR WAIT_RASTER_AT_BOTTOM
@@ -5195,12 +5196,16 @@ _L02    LDA a04E1
         STA a04E1
         RTS
 
+        ; Bullet delta-X values
 f35F7   .BYTE $00,$03,$06,$07,$08,$07,$06,$03
         .BYTE $00,$FD,$FA,$F9,$F8,$F9,$FA,$FD
+        ; Bullet delta-Y values
 f3607   .BYTE $FA,$FB,$FC,$FE,$00,$02,$04,$05
         .BYTE $06,$05,$04,$02,$00,$FE,$FC,$FB
+        ; Bullet (?) X-lo values
 f3617   .BYTE $04,$04,$04,$04,$00,$00,$02,$02
         .BYTE $F9,$F9,$00,$00,$00,$00,$00,$00
+        ; Bullet (?) Y values
 f3627   .BYTE $00,$00,$02,$02,$00,$00,$02,$02
         .BYTE $00,$00,$02,$02,$00,$00,$07,$07
 
@@ -5539,7 +5544,7 @@ _L00    LDA SPRITES_CLASS04
         BNE _SKIP
         LDA GRENADES
         BEQ _SKIP
-        LDA $DC01    ;CIA1: Data Port Register B (riq: in-game grenades)
+        LDA $DC01    ;CIA1: Data Port Register B (in-game grenades)
         CMP #$EF     ;#%11101111
         BNE _SKIP
         LDA SPRITES_X_LO00
@@ -5582,39 +5587,39 @@ _SKIP   RTS
 CLASS_ANIM_HERO_BULLET  ;$3935
         INC SPRITES_COUNTER00,X
         LDA SPRITES_COUNTER00,X
-        CMP #$0F     ;#%00001111
+        CMP #$0F
         BNE _L00
         JMP _L04
 
-_L00    LDY #$00     ;#%00000000
+_L00    LDY #$00
 _L01    LDA SPRITES_CLASS05,Y
         STY a00FB,b
         TAY
         LDA f2544,Y
         LDY a00FB,b
-        AND #$01     ;#%00000001
+        AND #$01
         BEQ _L02
         LDA SPRITES_X_HI01,X
         CMP SPRITES_X_HI05,Y
         BNE _L02
         LDA SPRITES_X_LO01,X
         CLC
-        ADC #$0A     ;#%00001010
+        ADC #$0A
         CMP SPRITES_X_LO05,Y
         BCC _L02
         LDA SPRITES_X_LO01,X
         SEC
-        SBC #$0A     ;#%00001010
+        SBC #$0A
         CMP SPRITES_X_LO05,Y
         BCS _L02
         LDA SPRITES_Y01,X
         CLC
-        ADC #$0C     ;#%00001100
+        ADC #$0C
         CMP SPRITES_Y05,Y
         BCC _L02
         LDA SPRITES_Y01,X
         SEC
-        SBC #$0C     ;#%00001100
+        SBC #$0C
         CMP SPRITES_Y05,Y
         BCS _L02
         JSR DIE_ANIM_AND_SCORE
@@ -5671,7 +5676,7 @@ CLASS_ANIM_HERO_MAIN
         LDA a04F4
         BEQ _L02
 
-_L00    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game fire)
+_L00    LDA $DC00    ;CIA1: Data Port Register A (in-game fire)
         AND #$10     ;#%00010000
         BNE _L02
 
@@ -5694,17 +5699,20 @@ _L00    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game fire)
         CLC
         ADC f3617,Y
         STA SPRITES_X_LO01,X
+
         LDA SPRITES_Y00
         CLC
         ADC f3627,Y
         STA SPRITES_Y01,X
+
         LDA SPRITES_X_HI00
         STA SPRITES_X_HI01,X
-        LDA #$01     ;#%00000001
+
+        LDA #$01
         STA SPRITES_CLASS01,X
         LDA #$90     ;Bullet frame
         STA SPRITES_PTR01,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_COUNTER00,X
         LDA #$01     ;white
         STA SPRITES_COLOR01,X
@@ -5780,7 +5788,7 @@ _L00    LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y00
         STA V_SCROLL_DELTA
 
-        LDA $DC00    ;CIA1: Data Port Register A (riq: in-game up)
+        LDA $DC00    ;CIA1: Data Port Register A (in-game up)
         AND #$01     ;#%00000001
         BNE _L03
         LDA #$00     ;Anim index for SOLDIER_ANIM_FRAMES (up)
@@ -5807,7 +5815,7 @@ _L01    LDA SPRITES_Y00
 _L02    LDA #$FF     ;Scroll up 1 pixel
         STA V_SCROLL_DELTA
 
-_L03    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game down)
+_L03    LDA $DC00    ;CIA1: Data Port Register A (in-game down)
         AND #$02     ;#%00000010
         BNE _L04
         LDA #$08     ;Anim index for SOLIDER_ANIM_FRAMES (down)
@@ -5818,7 +5826,7 @@ _L03    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game down)
         LDA #$01     ;#%00000001
         STA SPRITES_DELTA_Y00
 
-_L04    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game left)
+_L04    LDA $DC00    ;CIA1: Data Port Register A (in-game left)
         AND #$04     ;#%00000100
         BNE _L06
         LDA #$0C     ;Anim index for SOLDIER_ANIM_FRAMES (left)
@@ -5831,7 +5839,7 @@ _L04    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game left)
 _L05    LDA #$FE     ;#%11111110
         STA SPRITES_DELTA_X00
 
-_L06    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game right)
+_L06    LDA $DC00    ;CIA1: Data Port Register A (in-game right)
         AND #$08     ;#%00001000
         BNE _L08
         LDA #$04     ;Anim index for SOLDIER_ANIM_FRAMES (right)
@@ -5844,7 +5852,7 @@ _L06    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game right)
 _L07    LDA #$02     ;#%00000010
         STA SPRITES_DELTA_X00
 
-_L08    LDA $DC00    ;CIA1: Data Port Register A (riq: multiple directions)
+_L08    LDA $DC00    ;CIA1: Data Port Register A (multiple directions)
         ORA #$10     ;#%00010000
         CMP #$76     ;#%01110110        up-right
         BNE _L09
@@ -5889,7 +5897,7 @@ _L11    CMP #$7A     ;#%01111010        up-left
         LDA #>HERO_FRAMES_UP_LEFT  ;#%00111100
         STA a001A,b
 
-_L12    LDA $DC00    ;CIA1: Data Port Register A (riq: in-game direction changed)
+_L12    LDA $DC00    ;CIA1: Data Port Register A (in-game direction changed)
         AND #$0F     ;#%00001111
         CMP #$0F     ;#%00001111
         BEQ b3BCC
@@ -6029,14 +6037,14 @@ HERO_FRAMES_UP_LEFT
 ; These frames are shared by the hero and the regular enemies
 SOLDIER_ANIM_FRAMES_HI   =*+1           ;$3CC1
 SOLDIER_ANIM_FRAMES_LO                  ;$3CC0
-        .ADDR HERO_FRAMES_UP
-        .ADDR HERO_FRAMES_UP_RIGHT
-        .ADDR HERO_FRAMES_RIGHT
-        .ADDR HERO_FRAMES_DOWN_RIGHT
-        .ADDR HERO_FRAMES_DOWN
-        .ADDR HERO_FRAMES_DOWN_LEFT
-        .ADDR HERO_FRAMES_LEFT
-        .ADDR HERO_FRAMES_UP_LEFT
+        .ADDR HERO_FRAMES_UP            ;0
+        .ADDR HERO_FRAMES_UP_RIGHT      ;1
+        .ADDR HERO_FRAMES_RIGHT         ;2
+        .ADDR HERO_FRAMES_DOWN_RIGHT    ;3
+        .ADDR HERO_FRAMES_DOWN          ;4
+        .ADDR HERO_FRAMES_DOWN_LEFT     ;5
+        .ADDR HERO_FRAMES_LEFT          ;6
+        .ADDR HERO_FRAMES_UP_LEFT       ;7
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Set fort on fire animation (lvl3, when you beat the game)
