@@ -1533,7 +1533,7 @@ _L00    LDA #$20     ;space
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Y = number of frames to wait
-DELAY   ; s1366
+DELAY   ;$1366
         JSR WAIT_RASTER_AT_BOTTOM
         DEY
         BPL DELAY
@@ -1541,7 +1541,8 @@ DELAY   ; s1366
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; A=Score to add
-SCORE_ADD   SED
+SCORE_ADD
+        SED
         CLC
         ADC SCORE_LSB
         STA SCORE_LSB
@@ -1674,7 +1675,7 @@ ORIG_SPRITE_Y05
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; $D018 points to right charset for level
 ; And sets a bunch of variables needed for the level
-INIT_LEVEL_DATA                 ; s1445
+INIT_LEVEL_DATA                 ;$1445
         LDA LEVEL_NR
         AND #$03     ;#%00000011
         TAY
