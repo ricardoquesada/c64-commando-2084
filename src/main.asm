@@ -1,3 +1,7 @@
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Main routine
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+
 ;
 ; **** ZP FIELDS ****
 ;
@@ -49,14 +53,10 @@ f004B = $004B
 f004C = $004C
 f00A2 = $00A2
 fD040 = $D040
-fD99A = $D99A
-fD9E9 = $D9E9
 fDB48 = $DB48
 fDB98 = $DB98
 fDBDA = $DBDA
 fE087 = $E087
-fE19A = $E19A
-fE1E9 = $E1E9
 fE348 = $E348
 fE398 = $E398
 fE3F8 = $E3F8
@@ -387,7 +387,7 @@ _L01    LDA SPRITES_Y00
 
 _L02    LDA #$02     ;Song to play (Level complete)
         JSR MUSIC_INIT
-        JSR s1240
+        JSR PRINT_LVL_COMPLETE
         INC LEVEL_NR
         LDA LEVEL_NR
         AND #$03     ;#%00000011
@@ -1009,7 +1009,7 @@ _L00    JSR HISCORE_PRINT_PREFIX
         CLC
         ADC #$0A
         STA a00FB,b
-        JSR s0E93
+        JSR HISCORE_PRINT_SCORE
         LDA a00FB,b
         CLC
         ADC #$04     ;#%00000100
@@ -1079,7 +1079,10 @@ _L00    LDA HISCORE_NAME00,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s0E93   TXA
+; Prints the score
+; X=score to print
+HISCORE_PRINT_SCORE     ;$0E93
+        TXA
         PHA
         ASL A
         TAX
@@ -1358,7 +1361,7 @@ PRINT_CREDITS       ;$10FC
         STA a00FE,b
         LDX #$00     ;#%00000000
 _L00    LDY #$00     ;#%00000000
-_L01    LDA MSG_CREDITS,X
+_L01    LDA CREDITS_TXT,X
         CMP #$FF     ;End of line?
         BEQ _L02
         CMP #$FE     ;End of message
@@ -1382,7 +1385,7 @@ _L02    INX
 _L03    JMP _L00
 _L04    RTS
 
-MSG_CREDITS         ;$1143
+CREDITS_TXT         ;$1143
         .BYTE $20,$20,$20,$20,$20,$20,$20,$20
         .BYTE $20,$20,$20,$5F,$66,$63,$6E,$5F
         .BYTE $20,$6A,$6C,$5F,$6D,$5F,$68,$6E
@@ -1417,72 +1420,84 @@ MSG_CREDITS         ;$1143
         .BYTE $5B,$6C,$6E,$FF,$FE
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s1240   LDA LEVEL_NR
+; Prints the "broke area... now rush... " msg
+PRINT_LVL_COMPLETE      ;$1240
+        LDA LEVEL_NR
         PHA
-        AND #$03     ;#%00000011
+        AND #$03
         ASL A
         ASL A
         TAY
-        LDX #$00     ;#%00000000
-b124B   LDA f1324,Y
+
+        LDX #$00
+_L00    LDA _TXT_1ST,Y
         STA f12E0,X
-        LDA f1328,Y
+        LDA _TXT_2ND,Y
         STA f12F5,X
         INY
         INX
-        CPX #$03     ;#%00000011
-        BNE b124B
-        LDA #<p12D6  ;#%11010110
-        STA a12A1
-        LDA #>p12D6  ;#%00010010
-        STA a12A2
-        LDA #<p12E8  ;#%11101000
-        STA a12B8
-        LDA #>p12E8  ;#%00010010
-        STA a12B9
+        CPX #$03
+        BNE _L00
+
+        LDA #<p12D6
+        STA _L02
+        LDA #>p12D6
+        STA _L03
+        LDA #<p12E8
+        STA _L05
+        LDA #>p12E8
+        STA _L06
+
         LDA LEVEL_NR
         AND #$03     ;#%00000011
         CMP #$03     ;#%00000011
-        BNE b128E
-        LDA #<p12FD  ;#%11111101
-        STA a12A1
-        LDA #>p12FD  ;#%00010010
-        STA a12A2
-        LDA #<p130F  ;#%00001111
-        STA a12B8
-        LDA #>p130F  ;#%00010011
-        STA a12B9
-b128E   LDA #$02     ;#%00000010
+        BNE _L01
+
+        LDA #<p12FD
+        STA _L02
+        LDA #>p12FD
+        STA _L03
+        LDA #<p130F
+        STA _L05
+        LDA #>p130F
+        STA _L06
+
+_L01    LDA #$02     ;#%00000010
         STA LEVEL_NR
         JSR CLEANUP_SPRITES
         JSR CLEAR_SCREEN
         LDA #$00     ;#%00000000
         STA BKG_COLOR0
-        LDX #$00     ;#%00000000
-a12A1   =*+$01
-a12A2   =*+$02
-b12A0   LDA f2596,X
-        STA fE19A,X
-        LDA #$01     ;#%00000001
-        STA fD99A,X
-        LDY #$05     ;#%00000101
+
+        ; Print "Broke the NNN area" msg
+        LDX #$00
+_L02    =*+$01
+_L03    =*+$02
+_L04    LDA f2596,X
+        STA $E000 + 40*10 + 10,X    ;Screen RAM
+        LDA #$01                    ;white
+        STA $D800 + 40*10 + 10,X    ;Color RAM
+        LDY #$05
         JSR DELAY
         INX
-        CPX #$12     ;#%00010010
-        BNE b12A0
-        LDX #$00     ;#%00000000
-a12B8   =*+$01
-a12B9   =*+$02
-b12B7   LDA f2596,X
-        STA fE1E9,X
-        LDA #$01     ;#%00000001
-        STA fD9E9,X
-        LDY #$05     ;#%00000101
+        CPX #$12        ;msg len
+        BNE _L04
+
+        ; Print "Now rush the NNN area" msg
+        LDX #$00
+_L05    =*+$01
+_L06    =*+$02
+_L07    LDA f2596,X
+        STA $E000 + 40*12 + 9,X     ;Screen RAM
+        LDA #$01                    ;white
+        STA $D800 + 40*12 + 9,X     ;Color RAM
+        LDY #$05
         JSR DELAY
         INX
-        CPX #$15     ;#%00010101
-        BNE b12B7
-        LDY #$78     ;#%01111000
+        CPX #$15        ;msg len
+        BNE _L07
+
+        LDY #$78
         JSR DELAY
         PLA
         STA LEVEL_NR
@@ -1500,9 +1515,13 @@ p12FD   .BYTE $20,$20,$5D,$69,$68,$61,$6C,$5B
 p130F   .BYTE $20,$20,$20,$67,$63,$6D,$6D,$63
         .BYTE $69,$68,$20,$5D,$69,$67,$6A,$66
         .BYTE $5F,$6E,$5F,$20,$20
-f1324   .BYTE $22,$6D,$6E,$20
-f1328   .BYTE $23,$68,$5E,$20,$24,$6C,$5E,$20
-        .BYTE $24,$6C,$5E,$20
+
+_TXT_1ST
+        .BYTE $22,$6D,$6E,$20       ;1st
+_TXT_2ND
+        .BYTE $23,$68,$5E,$20       ;2nd
+        .BYTE $24,$6C,$5E,$20       ;3rd
+        .BYTE $24,$6C,$5E,$20       ;3rd
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 CLEAR_SCREEN    ;$1334
