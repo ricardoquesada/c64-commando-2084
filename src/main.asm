@@ -4558,7 +4558,7 @@ _L01    LDA #$00
 s2FC2   INC SPRITES_TICK05,X
         LDA SPRITES_Y05,X
         CMP #$82     ;#%10000010
-        BCC b3002
+        BCC _L01
         LDA #$98     ;#%10011000
         STA SPRITES_PTR05,X
         LDA #$0B     ;dark grey
@@ -4574,78 +4574,81 @@ s2FC2   INC SPRITES_TICK05,X
         SEC
         SBC #$02     ;#%00000010
         CMP #$FE     ;#%11111110
-        BNE b2FF4
+        BNE _L00
         LDA #$00     ;#%00000000
-b2FF4   STA SPRITES_DELTA_X05,X
+_L00    STA SPRITES_DELTA_X05,X
         LDA #$15     ;#%00010101
         STA SPRITES_CLASS05,X
         LDA #$FF     ;#%11111111
         STA SPRITES_BKG_PRI05,X
         RTS
 
-b3002   CMP #$50     ;#%01010000
-        BCC b3009
+_L01    CMP #$50     ;#%01010000
+        BCC _L02
         JSR s300C
-b3009   JMP j33D0
+_L02    JMP j33D0
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s300C   LDA SPRITES_X_HI05,X
         CMP SPRITES_X_HI00
-        BEQ b301C
+        BEQ _L00
         LDA SPRITES_X_HI00
-        BNE b3043
-        JMP j3029
+        BNE _L03
+        JMP _L01
 
-b301C   LDA SPRITES_X_LO00
+_L00    LDA SPRITES_X_LO00
         CLC
         ADC #$32     ;#%00110010
-        BCS b3036
+        BCS _L02
         CMP SPRITES_X_LO05,X
-        BCS b3036
-j3029   LDA #$0A     ;#%00001010
+        BCS _L02
+
+_L01    LDA #$0A     ;#%00001010
         STA a04AC,X
         LDA #$CA     ;Soldier in trench: left
         STA SPRITES_PTR05,X
-        JMP j305A
+        JMP _L05
 
-b3036   LDA SPRITES_X_LO00
+_L02    LDA SPRITES_X_LO00
         SEC
         SBC #$32     ;#%00110010
-        BCC b3050
+        BCC _L04
         CMP SPRITES_X_LO05,X
-        BCC b3050
-b3043   LDA #$06     ;#%00000110
+        BCC _L04
+
+_L03    LDA #$06     ;#%00000110
         STA a04AC,X
         LDA #$C9     ;Soldier in trench: right
         STA SPRITES_PTR05,X
-        JMP j305A
+        JMP _L05
 
-b3050   LDA #$08     ;#%00001000
+_L04    LDA #$08     ;#%00001000
         STA a04AC,X
         LDA #$C8     ;Soldier in trench: down
         STA SPRITES_PTR05,X
-j305A   RTS
+_L05    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_0A
 s305B   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$1E     ;#%00011110
-        BNE b3084
+        BNE _L01
         LDA #$FE     ;#%11111110
         STA SPRITES_DELTA_Y05,X
         LDA SPRITES_DELTA_X05,X
-        BPL b307A
+        BPL _L00
         LDA #$C6     ;#%11000110
         STA SPRITES_PTR05,X
         LDA #$FF     ;#%11111111
         STA SPRITES_DELTA_X05,X
         RTS
 
-b307A   LDA #$D3     ;#%11010011
+_L00    LDA #$D3     ;#%11010011
         STA SPRITES_PTR05,X
         LDA #$01     ;#%00000001
         STA SPRITES_DELTA_X05,X
-b3084   BCS b30A6
+_L01    BCS _L02
         LDA a04AC,X
         AND #$FE     ;#%11111110
         TAY
@@ -4662,19 +4665,19 @@ b3084   BCS b30A6
         STA SPRITES_PTR05,X
         RTS
 
-b30A6   LDA SPRITES_TICK05,X
+_L02    LDA SPRITES_TICK05,X
         CMP #$23     ;#%00100011
-        BNE b30B0
+        BNE _L03
         INC SPRITES_PTR05,X
-b30B0   AND #$07     ;#%00000111
-        BNE b30BE
+_L03    AND #$07     ;#%00000111
+        BNE _L04
         INC SPRITES_DELTA_Y05,X
         LDA SPRITES_DELTA_Y05,X
         CMP #$03     ;#%00000011
-        BEQ b30BF
-b30BE   RTS
+        BEQ _L05
+_L04    RTS
 
-b30BF   LDA #$98     ;#%10011000
+_L05    LDA #$98     ;#%10011000
         STA SPRITES_PTR05,X
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X05,X
