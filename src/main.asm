@@ -4708,25 +4708,26 @@ s30DD   INC SPRITES_TICK05,X
         LDA (pFB),Y
         STA SPRITES_PTR05,X
         LDA SPRITES_TICK05,X
-        BNE b3109
+        BNE _L00
         LDA #$10     ;#%00010000
         STA SPRITES_TICK05,X
-b3109   CMP #$0F     ;#%00001111
-        BCC b3116
+_L00    CMP #$0F     ;#%00001111
+        BCC _L01
         JSR UPDATE_ENEMY_PATH
         JSR s28D8
         JSR s290E
-b3116   JSR s4006
+_L01    JSR s4006
         AND #$07     ;#%00000111
         BEQ s3128
         LDA SPRITES_TICK05,X
         AND #$1F     ;#%00011111
-        BNE b3127
+        BNE _L02
         JMP j3255
 
-b3127   RTS
+_L02    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; riq: investigate
 s3128   LDA SPRITES_X_HI05,X
         CMP SPRITES_X_HI00
         BCC b315C
