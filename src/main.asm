@@ -1764,7 +1764,7 @@ f14C3   .ADDR f17A9
         .ADDR f1AA9
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Patches the level data with the turrent destroyed/restored
+; Patches the level data with the turret destroyed/restored
 ; A = 0 left turret Ok
 ;   = 2 right turret Ok
 ;   = 4 left turret destroyed
@@ -2373,6 +2373,7 @@ s1E73   LDA #$0A     ;#%00001010
         STA a04AC,X
         LDA #$F4     ;Frame: Door left open?
         STA SPRITES_PTR05,X
+
 j1E7D   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_X_LO05,X
@@ -2580,6 +2581,7 @@ s201D   LDA #$32     ;#%00110010
         STA a04AC,X
         LDA #$01     ;#%00000001
         STA SPRITES_DELTA_X05,X
+
 j2036   LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y05,X
         LDA #$E6     ;#%11100110
@@ -2824,8 +2826,9 @@ _L01    TYA
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; unused (?)
-        LDY #$00     ;#%00000000
+; Tries to create a new mortar enemy in case a seat is available.
+; Seems to be unused (?)
+        LDY #$00
 b2231   LDA SPRITES_CLASS05,Y
         BEQ ACT_NEW_MORTAR_ENEMY
         INY
@@ -3134,10 +3137,10 @@ _L03    LDA SPRITES_CLASS05,Y
 _L04    TXA
         PHA
         LDX a04A1,Y
-        JSR s2EEB
+        JSR CONVERT_TO_CLASS_ANIM_EXPLOSION
         TYA
         TAX
-        JSR s2EEB
+        JSR CONVERT_TO_CLASS_ANIM_EXPLOSION
         PLA
         TAX
         JMP _L06
@@ -3203,7 +3206,7 @@ ANIM_CLASS_TBL_LO
         .ADDR CLASS_ANIM_SOLDIER_BULLET_END     ;$09
         .ADDR s305B                             ;$0A
         .ADDR s2EBF                             ;$0B
-        .ADDR s388B                             ;$0C
+        .ADDR CLASS_ANIM_EXPLOSION              ;$0C
         .ADDR s2BDF                             ;$0D
         .ADDR s2F0B                             ;$0E
         .ADDR s2B4D                             ;$0F
@@ -4410,11 +4413,11 @@ _L13    RTS
 s2EBF   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$50     ;#%01010000
-        BNE b2ECD
-        JSR s2EEB
+        BNE _L00
+        JSR CONVERT_TO_CLASS_ANIM_EXPLOSION
         RTS
 
-b2ECD   LDA SPRITES_TICK05,X
+_L00    LDA SPRITES_TICK05,X
         LSR A
         LSR A
         LSR A
@@ -4424,37 +4427,41 @@ b2ECD   LDA SPRITES_TICK05,X
         STA SPRITES_PTR05,X
         LDA SPRITES_TICK05,X
         AND #$0F     ;#%00001111
-        BNE b2EE5
+        BNE _L01
         INC SPRITES_DELTA_Y05,X
-b2EE5   RTS
+_L01    RTS
 
 FRAME_GRENADE0       ;$2EE6
         .BYTE $92,$91,$91,$92,$93
 
-s2EEB   LDA #$0C     ;#%00001100
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Converts the current class animation into an explosion class anim
+; X=anim to be converted
+CONVERT_TO_CLASS_ANIM_EXPLOSION       ;$2EEB
+        LDA #$0C
         STA SPRITES_CLASS05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_TICK05,X
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
-        LDA #$AF     ;#%10101111
+        LDA #$AF
         STA SPRITES_PTR05,X
         LDA #$02     ;red
         STA SPRITES_COLOR05,X
         LDA IS_HERO_DEAD
-        BNE b2F0A                               ;WTF
-b2F0A   RTS
+        BNE _L00    ;LOL!
+_L00    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_0E
 s2F0B   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$50     ;#%01010000
-        BNE b2F19
-        JSR s2EEB
+        BNE _L00
+        JSR CONVERT_TO_CLASS_ANIM_EXPLOSION
         RTS
 
-b2F19   LDA SPRITES_TICK05,X
+_L00    LDA SPRITES_TICK05,X
         LSR A
         LSR A
         LSR A
@@ -4464,9 +4471,9 @@ b2F19   LDA SPRITES_TICK05,X
         STA SPRITES_PTR05,X
         LDA SPRITES_TICK05,X
         AND #$0F     ;#%00001111
-        BNE b2F31
+        BNE _L01
         INC SPRITES_DELTA_Y05,X
-b2F31   RTS
+_L01    RTS
 
 f2F32   .BYTE $D2,$D1,$D0,$D1,$D2
 
@@ -4476,27 +4483,27 @@ CLASS_ANIM_SOLDIER_BULLET       ;$2F37
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$46     ;#%01000110
-        BEQ b2F67
+        BEQ _L01
         LDA SPRITES_TICK05,X
         CMP #$16     ;#%00010110
-        BCC b2F66
+        BCC _L00
         JSR UPDATE_ENEMY_PATH
         LDY #$00     ;#%00000000
         LDA (pFC),Y
         TAY
         LDA (p2A),Y
         AND #$01     ;#%00000001
-        BNE b2F67
+        BNE _L01
         LDA #$00     ;#%00000000
         STA SPRITES_BKG_PRI05,X
         LDA (p2A),Y
         AND #$02     ;#%00000010
-        BEQ b2F66
+        BEQ _L00
         LDA #$FF     ;#%11111111
         STA SPRITES_BKG_PRI05,X
-b2F66   RTS
+_L00    RTS
 
-b2F67   LDA #$09     ;#%00001001
+_L01    LDA #$09     ;#%00001001
         STA SPRITES_CLASS05,X
         LDA #$00     ;#%00000000
         STA SPRITES_TICK05,X
@@ -4512,10 +4519,10 @@ b2F67   LDA #$09     ;#%00001001
 s2F7F   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$5A     ;#%01011010
-        BEQ b2F8A
+        BEQ _L00
         RTS
 
-b2F8A   JMP s2EEB
+_L00    JMP CONVERT_TO_CLASS_ANIM_EXPLOSION
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_09
@@ -5583,7 +5590,7 @@ j37CF   TXA
         STA a00FB,b
         LDA a00FD,b
         STA a00FC,b
-        LDA #$04     ;#%00000100
+        LDA #$04
         JSR LEVEL_PATCH_TURRET
         JSR LEVEL_DRAW_VIEWPORT
 j3841   PLA
@@ -5594,13 +5601,13 @@ j3841   PLA
 
 b3848   LDA SPRITES_X_LO05,Y
         CLC
-        ADC #$0E     ;#%00001110
+        ADC #$0E
         STA SPRITES_X_LO01,X
         LDA SPRITES_Y05,Y
         STA SPRITES_Y01,X
-        LDA #$0C     ;#%00001100
+        LDA #$0C
         STA SPRITES_CLASS05,Y
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_TICK05,Y
         TAX
         LDA FRAME_EXPLOSION,X
@@ -5609,20 +5616,22 @@ b3848   LDA SPRITES_X_LO05,Y
         STA SPRITES_COLOR05,Y
         LDA SPRITES_Y05,Y
         SEC
-        SBC #$0A     ;#%00001010
+        SBC #$0A
         STA SPRITES_Y05,Y
         LDA #<$859A  ;Turret location in lvl2 lo
         STA a00FB,b
         LDA #>$859A  ;Turrent location in lvl2 hi
         STA a00FC,b
-        LDA #$06     ;#%00000110
+        LDA #$06
         JSR LEVEL_PATCH_TURRET
         JSR LEVEL_DRAW_VIEWPORT
         JMP j3841
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Animate explosion
 ; ref: class_0C
-s388B   INC SPRITES_TICK05,X
+CLASS_ANIM_EXPLOSION    ;$388B  
+        INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$14     ;#%00010100
         BEQ _L00
@@ -5633,7 +5642,7 @@ s388B   INC SPRITES_TICK05,X
         STA SPRITES_PTR05,X
         RTS
 
-_L00    LDA #$00     ;#%00000000
+_L00    LDA #$00
         STA SPRITES_CLASS05,X
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
