@@ -6830,10 +6830,7 @@ IRQ_B   NOP
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; raster = $1e
-; Renders 8 sprites taken:
-; $a8: hw sprite number
-; $4b,y: x to be used in $4c2
-; $4c2,x: y pos
+; Renders 8 sprites
 IRQ_C   LDA V_SCROLL_BIT_IDX
         EOR #$07     ;#%00000111    Reverse Y-bits
         STA a00A7,b
@@ -6925,6 +6922,8 @@ _L0     LDX a004B,b,Y
 ; sprite multiplexor: sprites 4-7
 ; raster = $??
 IRQ_D   ;$4284
+        ; Turn off MSB and sprite-bkg pri for upper 4 sprites.
+        ; Each sprite will set it individually in case it is needed
         LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND #$0F     ;#%00001111
         STA $D010    ;Sprites 0-7 MSB of X coordinate
@@ -6938,7 +6937,7 @@ IRQ_D   ;$4284
         LDA SPRITES_X_LO00,X
         STA $D00E    ;Sprite 7 X Pos
         LDA SPRITES_PTR00,X
-        STA aE3FF
+        STA aE3FF    ;Sprite 7 frame
         LDA SPRITES_COLOR00,X
         STA $D02E    ;Sprite 7 Color
         LDA SPRITES_X_HI00,X
@@ -6949,13 +6948,14 @@ IRQ_D   ;$4284
         AND MASK_1000_0000
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
+
         LDX a0054,b
         LDA SPRITES_RASTER_Y00,X
         STA $D00D    ;Sprite 6 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D00C    ;Sprite 6 X Pos
         LDA SPRITES_PTR00,X
-        STA aE3FE
+        STA aE3FE    ;Sprite 6 frame
         LDA SPRITES_COLOR00,X
         STA $D02D    ;Sprite 6 Color
         LDA SPRITES_X_HI00,X
@@ -6966,13 +6966,14 @@ IRQ_D   ;$4284
         AND MASK_0100_0000
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
+
         LDX a0055,b
         LDA SPRITES_RASTER_Y00,X
         STA $D00B    ;Sprite 5 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D00A    ;Sprite 5 X Pos
         LDA SPRITES_PTR00,X
-        STA aE3FD
+        STA aE3FD    ;Sprite 5 frame
         LDA SPRITES_COLOR00,X
         STA $D02C    ;Sprite 5 Color
         LDA SPRITES_X_HI00,X
@@ -6983,13 +6984,14 @@ IRQ_D   ;$4284
         AND MASK_0010_0000
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
+
         LDX a0056,b
         LDA SPRITES_RASTER_Y00,X
         STA $D009    ;Sprite 4 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D008    ;Sprite 4 X Pos
         LDA SPRITES_PTR00,X
-        STA aE3FC
+        STA aE3FC    ;Sprite 4 frame
         LDA SPRITES_COLOR00,X
         STA $D02B    ;Sprite 4 Color
         LDA SPRITES_X_HI00,X
@@ -7001,12 +7003,12 @@ IRQ_D   ;$4284
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
 
+        ; Y pos for next sprites sets the raster pos
         LDX a0057,b
         LDA SPRITES_RASTER_Y00,X
         SEC
-        SBC #$02     ;#%00000010
+        SBC #$02
         STA $D012    ;Raster Position
-
         LDA $D011    ;VIC Control Register 1
         AND #$7F     ;#%01111111    Raster MSB off
         STA $D011    ;VIC Control Register 1
@@ -7015,7 +7017,7 @@ IRQ_D   ;$4284
         STA IRQ_ADDR_LO
         LDA #>IRQ_E
         STA IRQ_ADDR_HI
-        LDA #$01     ;#%00000001
+        LDA #$01
         STA $D019    ;VIC Interrupt Request Register (IRR)
 
         PLA
@@ -7028,7 +7030,10 @@ IRQ_D   ;$4284
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; sprite multiplexor: sprites 0-3
 ; raster = $??
-IRQ_E   LDA $D010    ;Sprites 0-7 MSB of X coordinate
+IRQ_E   
+        ; Turn off MSB and sprite-bkg pri for lower 4 sprites.
+        ; Each sprite will set it individually in case it is needed
+        LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND #$F0     ;#%11110000
         STA $D010    ;Sprites 0-7 MSB of X coordinate
         LDA $D01B    ;Sprite to Background Display Priority
@@ -7052,6 +7057,7 @@ IRQ_E   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND MASK_0000_1000
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
+
         LDX a0058,b
         LDA SPRITES_RASTER_Y00,X
         STA $D005    ;Sprite 2 Y Pos
@@ -7069,6 +7075,7 @@ IRQ_E   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND MASK_0000_0100
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
+       
         LDX a0059,b
         LDA SPRITES_RASTER_Y00,X
         STA $D003    ;Sprite 1 Y Pos
@@ -7086,6 +7093,7 @@ IRQ_E   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND MASK_0000_0010
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
+       
         LDX a005A,b
         LDA SPRITES_RASTER_Y00,X
         STA $D001    ;Sprite 0 Y Pos
