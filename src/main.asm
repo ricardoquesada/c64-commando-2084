@@ -289,7 +289,7 @@ _L00    LDA RESET_ROUTINE,X
 
         JSR SETUP_VIC_BANK
         JSR SET_SIGHT_SPRITE
-        JSR s401D
+        JSR INIT_RANDOM
         LDX #$10     ;#%00010000
 _L01    TXA
         STA f004B,b,X
@@ -2388,7 +2388,7 @@ j1E7D   LDY a00FD,b
         LDA #$00
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
-        JSR s4006
+        JSR GET_RANDOM
         STA SPRITES_TICK05,X
         LDA #$FF
         STA SPRITES_BKG_PRI05,X
@@ -2400,7 +2400,7 @@ f1EAD   .BYTE $78,$D2
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_15
-s1EAF   JSR s4006
+s1EAF   JSR GET_RANDOM
         AND #$01     ;#%00000001
         TAY
         LDA f1EAD,Y
@@ -2658,14 +2658,14 @@ s20B1   LDA #$A0
         STA SPRITES_COLOR05,X
         LDA #$00
         STA SPRITES_X_HI05,X
-        JSR s4006
+        JSR GET_RANDOM
         AND #$1F     ;#%00011111
         STA SPRITES_TICK05,X
         LDA #$00
         STA SPRITES_BKG_PRI05,X
         LDA #$1A
         STA SPRITES_CLASS05,X
-        JSR s4006
+        JSR GET_RANDOM
         AND #$01     ;#%00000001
         ASL A
         SEC
@@ -2909,7 +2909,7 @@ s22A9   LDY a00FD,b
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_BKG_PRI05,X
-        JSR s4006
+        JSR GET_RANDOM
         STA SPRITES_TICK05,X
         LDA #$08
         STA a04A1,X
@@ -3699,7 +3699,7 @@ s28D8   LDY #$00     ;#%00000000
         LDA (p2A),Y
         AND #$04     ;#%00000100
         BEQ b290D
-b28E9   JSR s4006
+b28E9   JSR GET_RANDOM
         AND #$07     ;#%00000111
         SEC
         SBC #$04     ;#%00000100
@@ -3833,7 +3833,7 @@ b29D3   CMP #$06     ;#%00000110
 
 b29DD   CMP #$14     ;#%00010100
         BNE b2A04
-        JSR s4006
+        JSR GET_RANDOM
         AND #$01     ;#%00000001
         ASL A
         SEC
@@ -4211,7 +4211,7 @@ s2CD9   LDA V_SCROLL_ROW_IDX
 
 _L00    LDA ENEMIES_IN_FORT
         BEQ b2CC0
-        JSR s4006
+        JSR GET_RANDOM
         AND #$7F     ;#%01111111
         BNE b2CC0
         LDA #$3F     ;#%00111111
@@ -4224,10 +4224,10 @@ _L01    LDA LEVEL_NR
         BEQ _L04
         CMP #$01     ;#%00000001
         BNE _L02
-        JSR s4006
+        JSR GET_RANDOM
         AND #$01     ;#%00000001
         BEQ _L03
-_L02    JSR s4006
+_L02    JSR GET_RANDOM
         AND #$3F     ;#%00111111
         CLC
         ADC #$8C     ;#%10001100
@@ -4239,12 +4239,12 @@ _L02    JSR s4006
         INC a04F4
         JMP _L06
 
-_L03    JSR s4006
+_L03    JSR GET_RANDOM
         AND #$03     ;#%00000011
         TAY
         LDA f2CC1,Y
         STA SPRITES_X_LO05,X
-        JSR s4006
+        JSR GET_RANDOM
         AND #$07     ;#%00000111
         CLC
         ADC f2CC5,Y
@@ -4264,7 +4264,7 @@ _L03    JSR s4006
         STA SPRITES_CLASS05,X
         JMP _L07
 
-_L04    JSR s4006
+_L04    JSR GET_RANDOM
         AND #$3F     ;#%00111111
         CLC
         ADC #$8C     ;#%10001100
@@ -4276,13 +4276,13 @@ _L04    JSR s4006
         INC a04F4
         JMP _L06
 
-_L05    JSR s4006
+_L05    JSR GET_RANDOM
         AND #$03     ;#%00000011
         BNE _L08
-        JSR s4006
+        JSR GET_RANDOM
         AND #$FF     ;#%11111111
         BNE _L09
-        JSR s4006
+        JSR GET_RANDOM
         STA TMP_SPRITE_X_LO
         LDA #<a0028  ;#%00101000
         STA TMP_SPRITE_Y
@@ -4313,22 +4313,22 @@ _L06    LDA #$01     ;#%00000001
         STA SPRITES_X_HI05,X
 _L07    LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
-        JSR s4006
+        JSR GET_RANDOM
         AND #$1F     ;#%00011111
         STA SPRITES_TICK05,X
         LDA #$00     ;#%00000000
         STA SPRITES_BKG_PRI05,X
 _L08    RTS
 
-_L09    JSR s4006
+_L09    JSR GET_RANDOM
         AND #$FF     ;#%11111111
         BEQ _L10
         RTS
 
-_L10    JSR s4006
+_L10    JSR GET_RANDOM
         AND #$01     ;#%00000001
         BNE _L12
-        JSR s4006
+        JSR GET_RANDOM
         AND #$7F     ;#%01111111
         CLC
         ADC #$3C     ;#%00111100
@@ -4364,7 +4364,7 @@ _L11    LDA TMP_SPRITE_X_LO
         STA SPRITES_TICK05,X
         LDA #$18     ;#%00011000
         STA SPRITES_CLASS05,X
-        JSR s4006
+        JSR GET_RANDOM
         AND #$03     ;#%00000011
         CLC
         ADC #$02     ;#%00000010
@@ -4372,7 +4372,7 @@ _L11    LDA TMP_SPRITE_X_LO
         STA a04AC,X
         RTS
 
-_L12    JSR s4006
+_L12    JSR GET_RANDOM
         AND #$7F     ;#%01111111
         CLC
         ADC #$3C     ;#%00111100
@@ -4405,7 +4405,7 @@ _L12    JSR s4006
         STA SPRITES_TICK05,X
         LDA #$18     ;#%00011000
         STA SPRITES_CLASS05,X
-        JSR s4006
+        JSR GET_RANDOM
         AND #$03     ;#%00000011
         CLC
         ADC #$0B     ;#%00001011
@@ -4576,7 +4576,7 @@ s2FC2   INC SPRITES_TICK05,X
         STA SPRITES_TICK05,X
         LDA #$FF     ;#%11111111
         STA SPRITES_DELTA_Y05,X
-        JSR s4006
+        JSR GET_RANDOM
         AND #$03     ;#%00000011
         SEC
         SBC #$02     ;#%00000010
@@ -4723,7 +4723,7 @@ _L00    CMP #$0F     ;#%00001111
         JSR UPDATE_ENEMY_PATH
         JSR s28D8
         JSR s290E
-_L01    JSR s4006
+_L01    JSR GET_RANDOM
         AND #$07     ;#%00000111
         BEQ s3128
         LDA SPRITES_TICK05,X
@@ -4848,7 +4848,7 @@ _L12    LDA #$0A     ;#%00001010
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: class_1B
 s31F0   INC a04F4
-        JSR s4006
+        JSR GET_RANDOM
         AND #$3F     ;#%00111111
         BNE s3205
         JSR s32ED
@@ -4895,7 +4895,7 @@ _L01    JSR UPDATE_ENEMY_PATH
         JSR s3128
 _L02    RTS
 
-j3255   JSR s4006
+j3255   JSR GET_RANDOM
         AND #$01     ;#%00000001
         BNE b32A8
         LDA SPRITES_X_HI05,X
@@ -4933,7 +4933,7 @@ b329B   LDA a00FB,b
         STA a00FB,b
         JMP j32BA
 
-b32A8   JSR s4006
+b32A8   JSR GET_RANDOM
         AND #$03     ;#%00000011
         SEC
         SBC #$02     ;#%00000010
@@ -6212,7 +6212,7 @@ _L00    LDA f3D27,X
 _L01    LDX #$00     ;#%00000000
 _L02    LDA #$EE     ;Fire frame
         STA SPRITES_PTR05,X
-        JSR s4006
+        JSR GET_RANDOM
         AND #$03     ;#%00000011
         BNE _L03
         LDA #$FF     ;Empty frame
@@ -6582,8 +6582,12 @@ _L07    CMP #$48     ;#%01001000
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-;riq
-s4006   LDA a0400
+; Not really a random number generator, but used as one.
+; This function kind of duplicates the value in $0400/$0401
+; This function is used mostly to place certain enemies in a pseudo-random
+; position.
+GET_RANDOM      ;$4006
+        LDA a0400
         ASL A
         ROL a0401
         ROL a0400
@@ -6594,12 +6598,14 @@ s4006   LDA a0400
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-;riq
-s401D   LDA $D012    ;Raster Position
+; Sets the random "seed". Any value different than 0 is valid, since
+; a 0 will generate 0 all the time.
+INIT_RANDOM     ;$401D
+        LDA $D012    ;Raster Position
         STA a0400
         ASL A
         STA a0401
-        BEQ s401D
+        BEQ INIT_RANDOM
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
