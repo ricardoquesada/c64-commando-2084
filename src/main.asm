@@ -149,8 +149,8 @@ SPRITES_CLASS05 = $0492
 SPRITES_COUNTER00 = $049D       ;TICK and COUNTER are the same, but using different
                                 ; names since they are not contiguous in memory
 SPRITES_COUNTER03 = $04A0       ;referenced in throw grenade
-a04A1 = $04A1                   ;Used to link sprites together
-a04AC = $04AC
+a04A1 = $04A1                   ;Used to link sprites together (?)
+a04AC = $04AC                   ;Used as index to delta_tbl, and index to anim frames (?)
 SPRITES_TICK05 = $04B7
 SPRITES_RASTER_Y00 = $04C2      ;Raster Intr. uses values from here instead of SPRITES_Y00
 FIRE_COOLDOWN = $04DF           ;reset with $ff
@@ -4738,10 +4738,12 @@ _L02    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; riq: investigate
+; Compares hero with sprite X, and based on positions updates 04AC var.
 s3128   LDA SPRITES_X_HI05,X
         CMP SPRITES_X_HI00
         BCC _L01
         BNE _L04
+
         LDA SPRITES_X_LO05,X
         CLC
         ADC #$1E     ;#%00011110
@@ -5866,7 +5868,7 @@ _L02    LDA #$FF     ;#%11111111
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Level complete. Open door and animate hero to go through the exit door
 HERO_START_ANIM_EXIT_DOOR          ;$3A4C
-        LDA #$01     ;#%00000001
+        LDA #$01
         STA IS_ANIM_EXIT_DOOR
         LDA #$02     ;Draw open door
         JSR LEVEL_PATCH_DOOR
@@ -7141,6 +7143,7 @@ MASK_0001_0000   .BYTE $10           ;0001_0000
 MASK_0010_0000   .BYTE $20           ;0010_0000
 MASK_0100_0000   .BYTE $40           ;0100_0000
 MASK_1000_0000   .BYTE $80           ;1000_0000
+        ; Unused (?)
         .BYTE $FE
         .BYTE $FD,$FB,$F7
         .BYTE $EF,$DF,$BF
