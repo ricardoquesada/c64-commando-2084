@@ -49,8 +49,6 @@ pFD = $FD
 ; **** FIELDS ****
 ;
 f0000 = $0000
-f004B = $004B
-f004C = $004C
 f00A2 = $00A2
 fD040 = $D040
 fDB48 = $DB48
@@ -81,6 +79,8 @@ a002B = $002B
 a003D = $003D
 a003F = $003F
 a0041 = $0041
+a004B = $004B                   ;4b-5a Related to sprite Y pos, used in raster multiplexer
+a004C = $004C
 a004E = $004E
 a0053 = $0053
 a0054 = $0054
@@ -91,7 +91,7 @@ a0058 = $0058
 a0059 = $0059
 a005A = $005A
 a00A7 = $00A7
-a00A8 = $00A8
+VIC_SPRITE_IDX = $00A8          ;Index used for sprite pos (e.g: $D000,idx) in raster intr.
 a00C9 = $00C9
 a00D7 = $00D7
 a00F7 = $00F7
@@ -152,7 +152,7 @@ SPRITES_COUNTER03 = $04A0       ;referenced in throw grenade
 a04A1 = $04A1                   ;Used to link sprites together
 a04AC = $04AC
 SPRITES_TICK05 = $04B7
-a04C2 = $04C2
+SPRITES_RASTER_Y00 = $04C2      ;Raster Intr. uses values from here instead of SPRITES_Y00
 FIRE_COOLDOWN = $04DF           ;reset with $ff
 HERO_ANIM_MOV_IDX = $04E0       ;Movement anim for hero: left,right,up,down,diagoanly,etc.
                                 ; See: SOLDIER_ANIM_FRAMES_HI/LO
@@ -290,11 +290,14 @@ _L00    LDA RESET_ROUTINE,X
         JSR SETUP_VIC_BANK
         JSR SET_SIGHT_SPRITE
         JSR INIT_RANDOM
-        LDX #$10     ;#%00010000
+
+        ; Sprite Y pos used in raster multiplexer
+        LDX #$10
 _L01    TXA
-        STA f004B,b,X
+        STA a004B,b,X
         DEX
         BPL _L01
+
         LDA #$00     ;#%00000000
         STA a0502
         STA a0501
@@ -1675,10 +1678,10 @@ SCREEN_REFRESH_LIVES
         RTS
 
         LDX #$0F     ;#%00001111
-b142B   LDA SPRITES_Y00,X
-        STA a04C2,X
+_L00    LDA SPRITES_Y00,X
+        STA SPRITES_RASTER_Y00,X
         DEX
-        BPL b142B
+        BPL _L00
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -6259,12 +6262,12 @@ _L00    PLA
         CLC
         ADC SPRITES_DELTA_Y00
         STA SPRITES_Y00
-        STA a04C2
+        STA SPRITES_RASTER_Y00
 
         ; For the remaining sprites: 1-15
         LDX #$01
 _L01    LDA SPRITES_Y00,X
-        STA a04C2,X
+        STA SPRITES_RASTER_Y00,X
         LDA SPRITES_CLASS00,X
         BEQ _L03
 
@@ -6452,14 +6455,14 @@ f3EEF   .BYTE >f3EDA
 
 b3EF6   LDX #$00     ;#%00000000
         STX a00D7,b
-b3EFB   LDY f004C,b,X
+b3EFB   LDY a004C,b,X
         LDA SPRITES_Y00,Y
-        LDY f004B,b,X
+        LDY a004B,b,X
         CMP SPRITES_Y00,Y
         BCS b3F19
-        LDY f004B,b,X
-        LDA f004C,b,X
-        STA f004B,b,X
+        LDY a004B,b,X
+        LDA a004C,b,X
+        STA a004B,b,X
         STY f4C,X
         LDA #$01     ;#%00000001
         STA a00D7,b
@@ -6489,20 +6492,20 @@ _L02    LDA a003F,b
         ADC a0014,b
         STA a0041,b
         LDX a0041,b
-        LDY f004B,b,X
+        LDY a004B,b,X
         LDA SPRITES_Y00,Y
         LDX a003F,b
-        LDY f004B,b,X
+        LDY a004B,b,X
         CMP SPRITES_Y00,Y
         BCS _L03
         LDX a003F,b
         LDY a0041,b
-        LDA f004B,Y
+        LDA a004B,Y
         PHA
-        LDA f004B,b,X
-        STA f004B,Y
+        LDA a004B,b,X
+        STA a004B,Y
         PLA
-        STA f004B,b,X
+        STA a004B,b,X
         LDA a003F,b
         SEC
         SBC a0014,b
@@ -6765,7 +6768,7 @@ _L0     LDA #$FF     ;#%11111111
         STA $D018    ;VIC Memory Control Register
 
         INC RASTER_TICK
-        LDA #$DE     ;#%11011110
+        LDA #$DE
         STA $D012    ;Raster Position
 
         LDA $D011    ;VIC Control Register 1
@@ -6776,7 +6779,7 @@ _L0     LDA #$FF     ;#%11111111
         STA IRQ_ADDR_LO
         LDA #>IRQ_B
         STA IRQ_ADDR_HI
-        LDA #$01     ;#%00000001
+        LDA #$01
         STA $D019    ;VIC Interrupt Request Register (IRR)
 
         PLA
@@ -6794,14 +6797,14 @@ IRQ_B   NOP
         AND #$9F     ;#%10011111    Turn Off bitmap, turn off Extended color
         STA $D011    ;VIC Control Register 1
 
-        LDA #$01     ;#%00000001
+        LDA #$01     ;white
         STA $D022    ;Background Color 1, Multi-Color Register 0
-        LDA #$02     ;#%00000010
+        LDA #$02     ;red
         STA $D023    ;Background Color 2, Multi-Color Register 1
 
         JSR MUSIC_PLAY
 
-        LDA #$1E     ;#%00011110
+        LDA #$1E
         STA $D012    ;Raster Position
 
         LDA $D011    ;VIC Control Register 1
@@ -6812,7 +6815,7 @@ IRQ_B   NOP
         STA IRQ_ADDR_LO
         LDA #>IRQ_C
         STA IRQ_ADDR_HI
-        LDA #$01     ;#%00000001
+        LDA #$01
         STA $D019    ;VIC Interrupt Request Register (IRR)
 
         PLA
@@ -6827,6 +6830,10 @@ IRQ_B   NOP
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; raster = $1e
+; Renders 8 sprites taken:
+; $a8: hw sprite number
+; $4b,y: x to be used in $4c2
+; $4c2,x: y pos
 IRQ_C   LDA V_SCROLL_BIT_IDX
         EOR #$07     ;#%00000111    Reverse Y-bits
         STA a00A7,b
@@ -6843,22 +6850,22 @@ IRQ_C   LDA V_SCROLL_BIT_IDX
         LDA BKG_COLOR2
         STA $D023    ;Background Color 2, Multi-Color Register 1
 
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D01B    ;Sprite to Background Display Priority
 
-        LDA #$0E     ;#%00001110
-        STA a00A8,b
+        LDA #$0E     ;Points to $D00E (sprite 7 x pos)
+        STA VIC_SPRITE_IDX,b
         LDY #$00    ;#%00000000
         STY a00A7,b
 
-_L0     LDX f004B,b,Y
-        LDY a00A8,b
-        LDA a04C2,X
+_L0     LDX a004B,b,Y
+        LDY VIC_SPRITE_IDX,b
+        LDA SPRITES_RASTER_Y00,X
         STA $D001,Y  ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D000,Y  ;Sprite 0 X Pos
-        LDA a00A8,b
+        LDA VIC_SPRITE_IDX,b
         LSR A
         TAY
         LDA SPRITES_PTR00,X
@@ -6873,11 +6880,11 @@ _L0     LDX f004B,b,Y
         AND f4487,Y
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
-        DEC a00A8,b
-        DEC a00A8,b
+        DEC VIC_SPRITE_IDX,b
+        DEC VIC_SPRITE_IDX,b
         INC a00A7,b
         LDY a00A7,b
-        CPY #$08     ;#%00001000
+        CPY #$08
         BNE _L0
 
         LDA LEVEL_NR
@@ -6891,7 +6898,7 @@ _L0     LDX f004B,b,Y
         STA $D018    ;VIC Memory Control Register
 
         LDX a004E,b
-        LDA a04C2,X
+        LDA SPRITES_RASTER_Y00,X
         CLC
         ADC #$14     ;#%00010100
         STA $D012    ;Raster Position
@@ -6917,14 +6924,16 @@ _L0     LDX f004B,b,Y
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; sprite multiplexor: sprites 4-7
 ; raster = $??
-IRQ_D   LDA $D010    ;Sprites 0-7 MSB of X coordinate
+IRQ_D   ;$4284
+        LDA $D010    ;Sprites 0-7 MSB of X coordinate
         AND #$0F     ;#%00001111
         STA $D010    ;Sprites 0-7 MSB of X coordinate
         LDA $D01B    ;Sprite to Background Display Priority
         AND #$0F     ;#%00001111
         STA $D01B    ;Sprite to Background Display Priority
+
         LDX a0053,b
-        LDA a04C2,X
+        LDA SPRITES_RASTER_Y00,X
         STA $D00F    ;Sprite 7 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D00E    ;Sprite 7 X Pos
@@ -6933,15 +6942,15 @@ IRQ_D   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         LDA SPRITES_COLOR00,X
         STA $D02E    ;Sprite 7 Color
         LDA SPRITES_X_HI00,X
-        AND a448E
+        AND MASK_1000_0000
         ORA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D010    ;Sprites 0-7 MSB of X coordinate
         LDA SPRITES_BKG_PRI00,X
-        AND a448E
+        AND MASK_1000_0000
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
         LDX a0054,b
-        LDA a04C2,X
+        LDA SPRITES_RASTER_Y00,X
         STA $D00D    ;Sprite 6 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D00C    ;Sprite 6 X Pos
@@ -6950,15 +6959,15 @@ IRQ_D   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         LDA SPRITES_COLOR00,X
         STA $D02D    ;Sprite 6 Color
         LDA SPRITES_X_HI00,X
-        AND a448D
+        AND MASK_0100_0000
         ORA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D010    ;Sprites 0-7 MSB of X coordinate
         LDA SPRITES_BKG_PRI00,X
-        AND a448D
+        AND MASK_0100_0000
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
         LDX a0055,b
-        LDA a04C2,X
+        LDA SPRITES_RASTER_Y00,X
         STA $D00B    ;Sprite 5 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D00A    ;Sprite 5 X Pos
@@ -6975,7 +6984,7 @@ IRQ_D   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
         LDX a0056,b
-        LDA a04C2,X
+        LDA SPRITES_RASTER_Y00,X
         STA $D009    ;Sprite 4 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D008    ;Sprite 4 X Pos
@@ -6993,7 +7002,7 @@ IRQ_D   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D01B    ;Sprite to Background Display Priority
 
         LDX a0057,b
-        LDA a04C2,X
+        LDA SPRITES_RASTER_Y00,X
         SEC
         SBC #$02     ;#%00000010
         STA $D012    ;Raster Position
@@ -7025,8 +7034,9 @@ IRQ_E   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         LDA $D01B    ;Sprite to Background Display Priority
         AND #$F0     ;#%11110000
         STA $D01B    ;Sprite to Background Display Priority
+
         LDX a0057,b
-        LDA a04C2,X
+        LDA SPRITES_RASTER_Y00,X
         STA $D007    ;Sprite 3 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D006    ;Sprite 3 X Pos
@@ -7043,7 +7053,7 @@ IRQ_E   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
         LDX a0058,b
-        LDA a04C2,X
+        LDA SPRITES_RASTER_Y00,X
         STA $D005    ;Sprite 2 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D004    ;Sprite 2 X Pos
@@ -7060,7 +7070,7 @@ IRQ_E   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
         LDX a0059,b
-        LDA a04C2,X
+        LDA SPRITES_RASTER_Y00,X
         STA $D003    ;Sprite 1 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D002    ;Sprite 1 X Pos
@@ -7077,7 +7087,7 @@ IRQ_E   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
         LDX a005A,b
-        LDA a04C2,X
+        LDA SPRITES_RASTER_Y00,X
         STA $D001    ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D000    ;Sprite 0 X Pos
@@ -7094,7 +7104,7 @@ IRQ_E   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
 
-        LDA #$D5     ;#%11010101
+        LDA #$D5
         STA $D012    ;Raster Position
         LDA $D011    ;VIC Control Register 1
         AND #$7F     ;#%01111111    Raster MSB off
@@ -7114,15 +7124,16 @@ IRQ_E   LDA $D010    ;Sprites 0-7 MSB of X coordinate
         PLA
         RTI
 
-
-f4487   .BYTE $01
-a4488   .BYTE $02
-a4489   .BYTE $04
-a448A   .BYTE $08
-a448B   .BYTE $10
-a448C   .BYTE $20
-a448D   .BYTE $40
-a448E   .BYTE $80,$FE
+        ; Masks
+f4487   .BYTE $01           ;0000_0001
+a4488   .BYTE $02           ;0000_0010
+a4489   .BYTE $04           ;0000_0100
+a448A   .BYTE $08           ;0000_1000
+a448B   .BYTE $10           ;0001_0000
+a448C   .BYTE $20           ;0010_0000
+MASK_0100_0000   .BYTE $40           ;0100_0000
+MASK_1000_0000   .BYTE $80           ;1000_0000
+        .BYTE $FE
         .BYTE $FD,$FB,$F7
         .BYTE $EF,$DF,$BF
         .BYTE $7F,$8D,$28
@@ -7141,7 +7152,7 @@ a448E   .BYTE $80,$FE
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
         LDX a005A,b
-        LDA a04C2,X
+        LDA SPRITES_RASTER_Y00,X
         STA $D001    ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D000    ;Sprite 0 X Pos
