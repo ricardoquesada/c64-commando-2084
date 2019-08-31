@@ -4966,17 +4966,20 @@ DELTA_Y_TBL
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s32ED   LDA SPRITES_X_HI05,X
         CMP SPRITES_X_HI00
-        BNE b3301
-        LDY #$00     ;#%00000000
-b32F7   LDA SPRITES_CLASS05,Y
-        BEQ b3304
+        BNE _L01
+
+        ; Search for empty seat
+        LDY #$00
+_L00    LDA SPRITES_CLASS05,Y
+        BEQ _L02
         INY
-        CPY #$0B     ;#%00001011
-        BNE b32F7
-b3301   LDY #$FF     ;#%11111111
+        CPY #$0B
+        BNE _L00
+
+_L01    LDY #$FF
         RTS
 
-b3304   TXA
+_L02    TXA
         PHA
         LDA SPRITES_X_LO05,X
         CLC
@@ -4999,7 +5002,7 @@ b3304   TXA
         SEC
         SBC SPRITES_X_LO05,Y
         STA a00FB,b
-        BCS b338D
+        BCS _L04
         LDA a00FB,b
         EOR #$FF     ;#%11111111
         STA a00FB,b
@@ -5008,7 +5011,7 @@ b3304   TXA
         SEC
         SBC SPRITES_Y05,Y
         STA a00FC,b
-        BCS b337C
+        BCS _L03
         LDA a00FC,b
         EOR #$FF     ;#%11111111
         STA a00FC,b
@@ -5022,20 +5025,20 @@ b3304   TXA
         EOR #$FF     ;#%11111111
         STA a00FB,b
         INC a00FB,b
-        JMP j33B8
+        JMP _L06
 
-b337C   JSR s3555
+_L03    JSR s3555
         LDA a00FB,b
         EOR #$FF     ;#%11111111
         STA a00FB,b
         INC a00FB,b
-        JMP j33B8
+        JMP _L06
 
-b338D   LDA SPRITES_Y00
+_L04    LDA SPRITES_Y00
         SEC
         SBC SPRITES_Y05,Y
         STA a00FC,b
-        BCS b33B5
+        BCS _L05
         LDA a00FC,b
         EOR #$FF     ;#%11111111
         STA a00FC,b
@@ -5045,10 +5048,10 @@ b338D   LDA SPRITES_Y00
         EOR #$FF     ;#%11111111
         STA a00FC,b
         INC a00FC,b
-        JMP j33B8
+        JMP _L06
 
-b33B5   JSR s3555
-j33B8   LDA a00FB,b
+_L05    JSR s3555
+_L06    LDA a00FB,b
         STA SPRITES_DELTA_X05,Y
         LDA a00FC,b
         STA SPRITES_DELTA_Y05,Y
@@ -5060,160 +5063,164 @@ j33B8   LDA a00FB,b
         TAX
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; riq
 j33D0   LDA SPRITES_TICK05,X
         AND a0504
-        BNE b33E4
-        LDY #$00     ;#%00000000
-b33DA   LDA SPRITES_CLASS05,Y
-        BEQ b33E5
+        BNE _L01
+
+        ; Search empty seat
+        LDY #$00
+_L00    LDA SPRITES_CLASS05,Y
+        BEQ _L02
         INY
-        CPY #$0B     ;#%00001011
-        BNE b33DA
-b33E4   RTS
+        CPY #$0B
+        BNE _L00
+_L01    RTS
 
-b33E5   LDA SPRITES_X_HI05,X
+_L02    LDA SPRITES_X_HI05,X
         CMP SPRITES_X_HI00
-        BEQ b33F2
-        BCS b3450
-        JMP j341C
+        BEQ _L03
+        BCS _L09
+        JMP _L05
 
-b33F2   LDA SPRITES_X_LO05,X
+_L03    LDA SPRITES_X_LO05,X
         CLC
         ADC #$1E     ;#%00011110
         CMP SPRITES_X_LO00
-        BCC j341C
+        BCC _L05
         SEC
         SBC #$3C     ;#%00111100
         CMP SPRITES_X_LO00
-        BCS b3450
+        BCS _L09
         LDA SPRITES_Y05,X
         CLC
         ADC #$14     ;#%00010100
         CMP SPRITES_Y00
-        BCC b3419
+        BCC _L04
         SEC
         SBC #$28     ;#%00101000
         CMP SPRITES_Y00
-        BCS b3481
+        BCS _L12
         RTS
 
-b3419   JMP j34B0
+_L04    JMP _L15
 
-j341C   LDA SPRITES_Y05,X
+_L05    LDA SPRITES_Y05,X
         CLC
         ADC #$14     ;#%00010100
         CMP SPRITES_Y00
-        BCC b3439
+        BCC _L06
         SEC
         SBC #$28     ;#%00101000
         CMP SPRITES_Y00
-        BCS b3443
+        BCS _L07
         LDA a04AC,X
         AND #$FE     ;#%11111110
         CMP #$04     ;#%00000100
-        BEQ b344D
+        BEQ _L08
         RTS
 
-b3439   LDA a04AC,X
+_L06    LDA a04AC,X
         AND #$FE     ;#%11111110
         CMP #$06     ;#%00000110
-        BEQ b344D
+        BEQ _L08
         RTS
 
-b3443   LDA a04AC,X
+_L07    LDA a04AC,X
         AND #$FE     ;#%11111110
         CMP #$02     ;#%00000010
-        BEQ b344D
+        BEQ _L08
         RTS
 
-b344D   JMP j34E1
+_L08    JMP _L18
 
-b3450   LDA SPRITES_Y05,X
+_L09    LDA SPRITES_Y05,X
         CLC
         ADC #$14     ;#%00010100
         CMP SPRITES_Y00
-        BCC b346D
+        BCC _L10
         SEC
         SBC #$28     ;#%00101000
         CMP SPRITES_Y00
-        BCS b3477
+        BCS _L11
         LDA a04AC,X
         AND #$FE     ;#%11111110
         CMP #$0C     ;#%00001100
-        BEQ b344D
+        BEQ _L08
         RTS
 
-b346D   LDA a04AC,X
+_L10    LDA a04AC,X
         AND #$FE     ;#%11111110
         CMP #$0A     ;#%00001010
-        BEQ b344D
+        BEQ _L08
         RTS
 
-b3477   LDA a04AC,X
+_L11    LDA a04AC,X
         AND #$FE     ;#%11111110
         CMP #$0E     ;#%00001110
-        BEQ b344D
+        BEQ _L08
         RTS
 
-b3481   LDA SPRITES_X_LO05,X
+_L12    LDA SPRITES_X_LO05,X
         CLC
         ADC #$1E     ;#%00011110
         CMP SPRITES_X_LO00
-        BCC b349C
+        BCC _L13
         SEC
         SBC #$3C     ;#%00111100
         CMP SPRITES_X_LO00
-        BCS b34A6
+        BCS _L14
         LDA a04AC,X
         AND #$FE     ;#%11111110
-        BEQ j34E1
+        BEQ _L18
         RTS
 
-b349C   LDA a04AC,X
+_L13    LDA a04AC,X
         AND #$FE     ;#%11111110
         CMP #$02     ;#%00000010
-        BEQ j34E1
+        BEQ _L18
         RTS
 
-b34A6   LDA a04AC,X
+_L14    LDA a04AC,X
         AND #$FE     ;#%11111110
         CMP #$0E     ;#%00001110
-        BEQ j34E1
+        BEQ _L18
         RTS
 
-j34B0   LDA SPRITES_X_LO05,X
+_L15    LDA SPRITES_X_LO05,X
         CLC
         ADC #$1E     ;#%00011110
         CMP SPRITES_X_LO00
-        BCC b34CD
+        BCC _L16
         SEC
         SBC #$3C     ;#%00111100
         CMP SPRITES_X_LO00
-        BCS b34D7
+        BCS _L17
         LDA a04AC,X
         AND #$FE     ;#%11111110
         CMP #$08     ;#%00001000
-        BEQ j34E1
+        BEQ _L18
         RTS
 
-b34CD   LDA a04AC,X
+_L16    LDA a04AC,X
         AND #$FE     ;#%11111110
         CMP #$06     ;#%00000110
-        BEQ j34E1
+        BEQ _L18
         RTS
 
-b34D7   LDA a04AC,X
+_L17    LDA a04AC,X
         AND #$FE     ;#%11111110
         CMP #$0A     ;#%00001010
-        BEQ j34E1
+        BEQ _L18
         RTS
 
-j34E1   STX a00FB,b
+_L18    STX a00FB,b
         STA a04AC,X
         TAX
-        LDA f3535,X
+        LDA _DELTA_X_TBL,X
         STA SPRITES_DELTA_X05,Y
-        LDA f3545,X
+        LDA _DELTA_Y_TBL,X
         STA SPRITES_DELTA_Y05,Y
         LDA f3617,X
         STA SPRITES_X_LO05,Y
@@ -5241,16 +5248,22 @@ j34E1   STX a00FB,b
         STA SPRITES_CLASS05,Y
         RTS
 
-f3535   .BYTE $00,$01,$01,$02,$02,$02,$01,$01
+        ; Sprite delta X tbl
+_DELTA_X_TBL    ;$3535
+        .BYTE $00,$01,$01,$02,$02,$02,$01,$01
         .BYTE $00,$FF,$FF,$FE,$FE,$FE,$FF,$FF
-f3545   .BYTE $FE,$FE,$FF,$FF,$00,$01,$01,$02
+
+        ; Sprite delta Y tbl
+_DELTA_Y_TBL    ;$3545
+        .BYTE $FE,$FE,$FF,$FF,$00,$01,$01,$02
         .BYTE $02,$02,$01,$01,$00,$FF,$FF,$FE
 
-s3555   LDX #$05     ;#%00000101
-b3557   LSR a00FB,b
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+s3555   LDX #$05
+_L00    LSR a00FB,b
         LSR a00FC,b
         DEX
-        BPL b3557
+        BPL _L00
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -5262,13 +5275,15 @@ CLASS_ANIM_SOLDIER_DIE  ;$3561
         CMP #$18     ;#%00011000
         BEQ _L00
         TAY
-        LDA f3576,Y
+        LDA _FRAME_TBL,Y
         STA SPRITES_PTR05,X
         RTS
 
 _L00    JMP CLEANUP_SPRITE
 
-f3576   .BYTE $BE,$FF,$BE,$FF,$BE,$FF,$BF,$FF
+        ; Sprite frames
+_FRAME_TBL      ;f3576
+        .BYTE $BE,$FF,$BE,$FF,$BE,$FF,$BF,$FF
         .BYTE $BF,$FF,$BF,$FF,$BE,$FF,$BE,$FF
         .BYTE $BE,$FF,$BF,$FF,$BF
         .BYTE $FF,$BF,$FF
