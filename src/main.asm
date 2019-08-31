@@ -3224,15 +3224,15 @@ TYPE_ANIM_TBL_LO
         .ADDR TYPE_ANIM_POW_FREE                ;$14
         .ADDR TYPE_ANIM_SOLIDER_GO_UP           ;$15
         .ADDR TYPE_ANIM_GRENADE_BOX             ;$16
-        .ADDR TYPE_ANIM_SOLDIER_FROM_SIDE       ;$17
-        .ADDR s29BB                             ;$18
-        .ADDR s2956
+        .ADDR TYPE_ANIM_SOLDIER_FROM_SIDE_A     ;$17
+        .ADDR TYPE_ANIM_SOLDIER_FROM_SIDE_B     ;$18
+        .ADDR s2956                             ;$19
         .ADDR TYPE_ANIM_BOSS_L1                 ;$1A
         .ADDR TYPE_ANIM_SOLDIER_IN_FORT_L1      ;$1B
-        .ADDR s2876
-        .ADDR s2860
-        .ADDR s27E4
-        .ADDR s2F7F
+        .ADDR TYPE_ANIM_SOLDIER_IN_TRENCH       ;$1C
+        .ADDR s2860                             ;$1D
+        .ADDR s27E4                             ;$1E
+        .ADDR s2F7F                             ;$1F
         .ADDR s2724                             ;$20
         .ADDR s2F7F
         .ADDR s26DD
@@ -3263,12 +3263,12 @@ f2596   ;Label used in self-modifying code
         ; By default points to incorrect place.
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_10
+; ref: anim_type_10
 TYPE_ANIM_VOID      ;$2596
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_28
+; ref: anim_type_28
 s2597   INC SPRITES_TICK05,X
         LDA a04EA
         BEQ _L02
@@ -3310,13 +3310,13 @@ _L03    JSR s32ED
 _L04    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_27
+; ref: anim_type_27
 s25F0   INC SPRITES_TICK05,X
-        JSR s300C
+        JSR SOLIDER_IN_TRENCH_AIM_TO_HERO
         JMP j33D0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_26
+; ref: anim_type_26
 s25F9   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         AND #$7F     ;#%01111111
@@ -3377,7 +3377,7 @@ b2633   LDA SPRITES_X_LO05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_25
+; ref: anim_type_25
 s2675   INC SPRITES_TICK05,X
         JSR s3128
         JSR j33D0
@@ -3397,11 +3397,11 @@ b2690   LDA #$FE     ;#%11111110
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_23
+; ref: anim_type_23
 s2696   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_24
+; ref: anim_type_24
 s2697   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         AND #$3F     ;#%00111111
@@ -3440,7 +3440,7 @@ _L01    LDA SPRITES_X_LO05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_22
+; ref: anim_type_22
 s26DD   INC SPRITES_TICK05,X
         LDY a04A1,X
         LDA SPRITES_TICK05,X
@@ -3475,7 +3475,7 @@ b270C   LDA #$0C     ;#%00001100
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_20
+; ref: anim_type_20
 s2724   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         AND #$07     ;#%00000111
@@ -3565,7 +3565,7 @@ FRAME_BAZOOKA_GUY       ;$27E0
         .BYTE $E5,$E6,$E7,$E6
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_1E
+; ref: anim_type_1E
 s27E4   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         AND #$1F
@@ -3627,23 +3627,24 @@ _L05    LDA #$02
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_1D
+; ref: anim_type_1D
 s2860   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$0A     ;#%00001010
-        BEQ b286F
+        BEQ _L00
         CMP #$14     ;#%00010100
-        BEQ b2873
+        BEQ _L01
         RTS
 
-b286F   INC SPRITES_PTR05,X
+_L00    INC SPRITES_PTR05,X
         RTS
 
-b2873   JMP CLEANUP_SPRITE
+_L01    JMP CLEANUP_SPRITE
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_1C
-s2876   INC SPRITES_TICK05,X
+; ref: anim_type_1C
+TYPE_ANIM_SOLDIER_IN_TRENCH     ;$2876
+        INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         AND #$70     ;#%01110000
         LSR A
@@ -3651,19 +3652,20 @@ s2876   INC SPRITES_TICK05,X
         LSR A
         LSR A
         TAY
-        LDA f289B,Y
+        LDA _TRENCH_FRAMES,Y
         STA SPRITES_PTR05,X
-        CMP #$C8     ;#%11001000
-        BEQ b288E
+        CMP #$C8            ;soldier in trench heading south
+        BEQ _L00
         RTS
 
-b288E   LDA SPRITES_Y05,X
-        CMP #$50     ;#%01010000
-        BCC b2898
-        JSR s300C
-b2898   JMP j33D0
+_L00    LDA SPRITES_Y05,X
+        CMP #$50
+        BCC _L01
+        JSR SOLIDER_IN_TRENCH_AIM_TO_HERO
+_L01    JMP j33D0
 
-f289B   .BYTE $EC,$ED,$C8,$C8,$C8,$ED,$EC,$EC
+_TRENCH_FRAMES
+        .BYTE $EC,$ED,$C8,$C8,$C8,$ED,$EC,$EC
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Valid only for enemies: sprites 5-15
@@ -3723,25 +3725,29 @@ b28E9   JSR GET_RANDOM
         STA SPRITES_DELTA_Y05,X
 b290D   RTS
 
-s290E   LDY #$00     ;#%00000000
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+UPDATE_ENEMY_BKG_PRI    ;$290E
+        LDY #$00
         LDA (pFC),Y
         TAY
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_BKG_PRI05,X
+
         LDA (p2A),Y
         AND #$02     ;#%00000010
-        BEQ b2923
-        LDA #$FF     ;#%11111111
+        BEQ _L00
+
+        LDA #$FF
         STA SPRITES_BKG_PRI05,X
-b2923   RTS
+_L00    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_1A
+; ref: anim_type_1A
 ; Animation for Level 1 Boss
 TYPE_ANIM_BOSS_L1     ;$2924
         JSR UPDATE_ENEMY_PATH
         JSR s28D8
-        JSR s290E
+        JSR UPDATE_ENEMY_BKG_PRI
         LDA SPRITES_DELTA_X05,X
         BPL _L00
         LDA GAME_TICK
@@ -3770,40 +3776,42 @@ FRAME_BOSS1_LEFT        ;$2954
         .BYTE $EF,$F0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_19
-s2956   INC SPRITES_TICK05,X
+; ref: anim_type_19
+s2956
+        INC SPRITES_TICK05,X
         LDA SPRITES_DELTA_X05,X
         ORA SPRITES_DELTA_Y05,X
-        BEQ b2968
+        BEQ _L00
         LDA SPRITES_TICK05,X
-        CMP #$64     ;#%01100100
-        BNE b299B
-b2968   LDA #$00     ;#%00000000
+        CMP #$64
+        BNE _L04
+
+_L00    LDA #$00
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
         LDA SPRITES_TICK05,X
-        CMP #$C8     ;#%11001000
-        BCS b298E
+        CMP #$C8
+        BCS _L03
         AND #$0F     ;#%00001111
-        BEQ b2980
+        BEQ _L01
         CMP #$08     ;#%00001000
-        BEQ b2986
+        BEQ _L02
         RTS
 
-b2980   LDA #$E3     ;#%11100011
+_L01    LDA #$E3    ; soldier throw grenade #1-frame
         STA SPRITES_PTR05,X
         RTS
 
-b2986   LDA #$E4     ;#%11100100
+_L02    LDA #$E4    ; soldier throw grenade #2-frame
         STA SPRITES_PTR05,X
         JMP s32ED
 
-b298E   LDA #$04     ;#%00000100
+_L03    LDA #$04
         STA a04A1,X
         STA a04AC,X
-        LDA #$01     ;#%00000001
+        LDA #$01
         STA SPRITES_DELTA_X05,X
-b299B   LDA a04AC,X
+_L04    LDA a04AC,X
         AND #$FE     ;#%11111110
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
@@ -3820,33 +3828,37 @@ b299B   LDA a04AC,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_18
-s29BB   INC SPRITES_TICK05,X
+; ref: anim_type_18
+; Appears from the sides, specially at the beginning of level 1
+; Very common solider.
+TYPE_ANIM_SOLDIER_FROM_SIDE_B   ;$29BB
+        INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
-        AND #$3F     ;#%00111111
-        BNE b29D3
-        LDA #$00     ;#%00000000
+        AND #$3F
+        BNE _L00
+
+        LDA #$00
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
         LDA #$E3     ;Frame enemy throw grenade
         STA SPRITES_PTR05,X
         RTS
 
-b29D3   CMP #$06     ;#%00000110
-        BNE b29DD
+_L00    CMP #$06
+        BNE _L01
         INC SPRITES_PTR05,X
         JMP s32ED
 
-b29DD   CMP #$14     ;#%00010100
-        BNE b2A04
+_L01    CMP #$14
+        BNE _L02
         JSR GET_RANDOM
-        AND #$01     ;#%00000001
+        AND #$01
         ASL A
         SEC
-        SBC #$01     ;#%00000001
+        SBC #$01
         CLC
         ADC a04A1,X
-        AND #$0F     ;#%00001111
+        AND #$0F
         STA a04A1,X
         STA a04AC,X
         TAY
@@ -3856,10 +3868,10 @@ b29DD   CMP #$14     ;#%00010100
         STA SPRITES_DELTA_Y05,X
         RTS
 
-b2A04   CMP #$14     ;#%00010100
-        BCC b2A27
+_L02    CMP #$14
+        BCC _L03
         LDA a04AC,X
-        AND #$FE     ;#%11111110
+        AND #$FE
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
         STA a00FB,b
@@ -3872,17 +3884,18 @@ b2A04   CMP #$14     ;#%00010100
         TAY
         LDA (pFB),Y
         STA SPRITES_PTR05,X
-b2A27   JSR UPDATE_ENEMY_PATH
+_L03    JSR UPDATE_ENEMY_PATH
         JSR s28D8
-        JSR s290E
+        JSR UPDATE_ENEMY_BKG_PRI
         JSR j33D0
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_17
+; ref: anim_type_17
 ; Animates the soliders that appears from the sides and moves mostly
 ; horizontally.
-TYPE_ANIM_SOLDIER_FROM_SIDE     ;$2A34
+; Appears in level 1, more or less after crossing the bridge
+TYPE_ANIM_SOLDIER_FROM_SIDE_A     ;$2A34
         INC SPRITES_TICK05,X
         LDA a04AC,X
         AND #$FE     ;#%11111110
@@ -3899,7 +3912,7 @@ TYPE_ANIM_SOLDIER_FROM_SIDE     ;$2A34
         LDA (pFB),Y
         STA SPRITES_PTR05,X
         JSR UPDATE_ENEMY_PATH
-        JSR s290E
+        JSR UPDATE_ENEMY_BKG_PRI
         LDA SPRITES_TICK05,X
         CMP a04A1,X
         BEQ _L00
@@ -3915,7 +3928,7 @@ _L00    LDA #$08     ;#%00001000
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_16
+; ref: anim_type_16
 TYPE_ANIM_GRENADE_BOX   ;$2A78
         LDA SPRITES_X_HI00
         CMP SPRITES_X_HI05,X
@@ -3964,7 +3977,7 @@ _L01    LDA #$08     ;orange
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_14
+; ref: anim_type_14
 TYPE_ANIM_POW_FREE  ;$2ADA
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
@@ -3986,7 +3999,7 @@ _FRAME_POW_FREE         ;$2AF7 (Pow == Prisoner of War)
         .BYTE $C4,$C5
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_13
+; ref: anim_type_13
 TYPE_ANIM_DELAYED_CLEANUP   ;s2AF9
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
@@ -3997,7 +4010,7 @@ TYPE_ANIM_DELAYED_CLEANUP   ;s2AF9
 _L00    JMP CLEANUP_SPRITE
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_12
+; ref: anim_type_12
 TYPE_ANIM_POW   ;$2B07
         LDA GAME_TICK
         AND #$08     ;#%00001000
@@ -4020,7 +4033,7 @@ FRAME_POW_RUN       ;$2B28 (POW == Prisoner of War)
         .BYTE $C2,$C3
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_11
+; ref: anim_type_11
 TYPE_ANIM_POW_GUARD     ;$2B2A
         LDA GAME_TICK
         AND #$08     ;#%00001000
@@ -4043,7 +4056,7 @@ _FRAME_POW_GUARD     ;$2B4B
         .BYTE $C0,$C1
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_0F
+; ref: anim_type_0F
 TYPE_ANIM_BIKE_IN_BRIDGE ;$2B4D
         INC SPRITES_TICK05,X
         LDY a04A1,X
@@ -4113,7 +4126,7 @@ _L06    LDA SPRITES_X_LO05,X
 _L07    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_0D
+; ref: anim_type_0D
 TYPE_ANIM_MORTAR_ENEMY  ;$2BDF
         INC SPRITES_TICK05,X
         LDA a04EA
@@ -4222,7 +4235,7 @@ f2CD1   .BYTE $9B,$9B,$9B,$9B
 f2CD5   .BYTE $00,$00,$FF,$FF
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_00
+; ref: anim_type_00
 ; Main logic
 TYPE_ANIM_MAIN      ;$2CD9
         LDA V_SCROLL_ROW_IDX
@@ -4436,7 +4449,7 @@ _L12    JSR GET_RANDOM
 _L13    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_0B
+; ref: anim_type_0B
 TYPE_ANIM_SOLDIER_GRENADE   ;$2EBF
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
@@ -4481,7 +4494,7 @@ CONVERT_TO_TYPE_ANIM_EXPLOSION       ;$2EEB
 _L00    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_0E
+; ref: anim_type_0E
 TYPE_ANIM_MORTAR_BOMB   ;$2F0B
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
@@ -4508,7 +4521,7 @@ _BOMB_FRAMES
         .BYTE $D2,$D1,$D0,$D1,$D2
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_08
+; ref: anim_type_08
 TYPE_ANIM_SOLDIER_BULLET       ;$2F37
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
@@ -4545,7 +4558,7 @@ _L01    LDA #$09     ;#%00001001
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_1F / sprite_type_21
+; ref: anim_type_1F / sprite_type_21
 s2F7F   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$5A     ;#%01011010
@@ -4555,7 +4568,7 @@ s2F7F   INC SPRITES_TICK05,X
 _L00    JMP CONVERT_TO_TYPE_ANIM_EXPLOSION
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_09
+; ref: anim_type_09
 TYPE_ANIM_SOLDIER_BULLET_END   ;$2F8D
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
@@ -4584,7 +4597,7 @@ _L01    LDA #$00
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_07
+; ref: anim_type_07
 TYPE_ANIM_SOLDIER_BEHIND_SMTH   ;$2FC2
         INC SPRITES_TICK05,X
         LDA SPRITES_Y05,X
@@ -4618,11 +4631,13 @@ _L00    STA SPRITES_DELTA_X05,X
 
 _L01    CMP #$50     ;#%01010000
         BCC _L02
-        JSR s300C
+        JSR SOLIDER_IN_TRENCH_AIM_TO_HERO
 _L02    JMP j33D0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s300C   LDA SPRITES_X_HI05,X
+; Make the soldier in trench or behind something to aim to hero
+SOLIDER_IN_TRENCH_AIM_TO_HERO
+        LDA SPRITES_X_HI05,X
         CMP SPRITES_X_HI00
         BEQ _L00
         LDA SPRITES_X_HI00
@@ -4662,7 +4677,7 @@ _L04    LDA #$08     ;#%00001000
 _L05    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_0A
+; ref: anim_type_0A
 TYPE_ANIM_SOLDIER_JUMPING        ;$305B
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
@@ -4725,7 +4740,7 @@ _L05    LDA #$98     ;#%10011000
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_15
+; ref: anim_type_15
 ; When the "soldier behind something" (see sprite_type_17) is below our Y
 ; position, it is converted into this sprite_type.
 ; This sprite_type moves the sprite up and kind of chase the hero.
@@ -4753,7 +4768,7 @@ _L00    CMP #$0F     ;#%00001111
         BCC _L01
         JSR UPDATE_ENEMY_PATH
         JSR s28D8
-        JSR s290E
+        JSR UPDATE_ENEMY_BKG_PRI
 _L01    JSR GET_RANDOM
         AND #$07     ;#%00000111
         BEQ s3128
@@ -4879,7 +4894,7 @@ _L12    LDA #$0A     ;#%00001010
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_1B
+; ref: anim_type_1B
 ; Sprites that goes out for the fort in LVL1
 ; Same logic as regular soldier but with some randomness at the beginning
 TYPE_ANIM_SOLDIER_IN_FORT_L1  ;$31F0
@@ -4895,7 +4910,7 @@ TYPE_ANIM_SOLDIER_IN_FORT_L1  ;$31F0
         ; fall-through
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_05
+; ref: anim_type_05
 TYPE_ANIM_SOLDIER        ;$3205
         INC SPRITES_TICK05,X
         LDA SPRITES_DELTA_X05,X
@@ -4921,7 +4936,7 @@ _L00    LDA #$E4
         STA SPRITES_PTR05,X
 _L01    JSR UPDATE_ENEMY_PATH
         JSR s28D8
-        JSR s290E
+        JSR UPDATE_ENEMY_BKG_PRI
         JSR j33D0
         LDA SPRITES_TICK05,X
         AND #$1F     ;#%00011111
@@ -4996,6 +5011,7 @@ DELTA_Y_TBL
     .BYTE $01,$01,$01,$00,$00,$00,$FF,$FF
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; riq
 s32ED   LDA SPRITES_X_HI05,X
         CMP SPRITES_X_HI00
         BNE _L01
@@ -5300,7 +5316,7 @@ _L00    LSR a00FB,b
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_06
+; ref: anim_type_06
 ; Animation when regular soldier dies
 TYPE_ANIM_SOLDIER_DIE  ;$3561
         INC SPRITES_TICK05,X
@@ -5438,7 +5454,7 @@ _L02    LDA SPRITES_TYPE01,X
 _L03    JMP (a00FB)
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_02
+; ref: anim_type_02
 ; Hero anim grenade
 TYPE_ANIM_HERO_GRENADE
         INC SPRITES_COUNTER00,X
@@ -5501,7 +5517,7 @@ FRAME_GRENADE1      ;$36F3
 f36F9   .BYTE $A4,$A5,$DE,$98,$98
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_03
+; ref: anim_type_03
 ; Hero Anim bullet end
 TYPE_ANIM_HERO_BULLET_END      ;$36FE
         INC SPRITES_COUNTER00,X
@@ -5539,7 +5555,7 @@ CLEANUP_HERO_SPRITE     ;$371D
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_04
+; ref: anim_type_04
 ; Exploding grenade animation
 TYPE_ANIM_HERO_GRENADE_END ;$373C
         INC SPRITES_COUNTER00,X
@@ -5695,7 +5711,7 @@ b3848   LDA SPRITES_X_LO05,Y
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Animate explosion
-; ref: sprite_type_0C
+; ref: anim_type_0C
 TYPE_ANIM_EXPLOSION    ;$388B
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
@@ -5773,7 +5789,7 @@ _L00    LDA SPRITES_TYPE04
 _SKIP   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: sprite_type_01
+; ref: anim_type_01
 ; Hero Anim bullet
 TYPE_ANIM_HERO_BULLET  ;$3935
         INC SPRITES_COUNTER00,X
