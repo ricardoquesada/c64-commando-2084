@@ -3206,13 +3206,13 @@ TYPE_ANIM_TBL_LO
         .ADDR TYPE_ANIM_HERO_GRENADE            ;$02
         .ADDR TYPE_ANIM_HERO_BULLET_END         ;$03
         .ADDR TYPE_ANIM_HERO_GRENADE_END        ;$04
-        .ADDR s3205                             ;$05
+        .ADDR TYPE_ANIM_SOLDIER                 ;$05
         .ADDR TYPE_ANIM_SOLDIER_DIE             ;$06
-        .ADDR s2FC2                             ;$07
+        .ADDR TYPE_ANIM_SOLDIER_BEHIND_SMTH     ;$07
         .ADDR TYPE_ANIM_SOLDIER_BULLET          ;$08
         .ADDR TYPE_ANIM_SOLDIER_BULLET_END      ;$09
-        .ADDR s305B                             ;$0A
-        .ADDR s2EBF                             ;$0B
+        .ADDR TYPE_ANIM_SOLDIER_JUMPING         ;$0A
+        .ADDR TYPE_ANIM_SOLDIER_GRENADE         ;$0B
         .ADDR TYPE_ANIM_EXPLOSION               ;$0C
         .ADDR s2BDF                             ;$0D
         .ADDR s2F0B                             ;$0E
@@ -3227,8 +3227,8 @@ TYPE_ANIM_TBL_LO
         .ADDR s2A34
         .ADDR s29BB                             ;$18
         .ADDR s2956
-        .ADDR TYPE_ANIM_BOSS                    ;$1A
-        .ADDR s31F0
+        .ADDR TYPE_ANIM_BOSS_L1                 ;$1A
+        .ADDR TYPE_ANIM_SOLDIER_IN_FORT_L1      ;$1B
         .ADDR s2876
         .ADDR s2860
         .ADDR s27E4
@@ -3735,7 +3735,7 @@ b2923   RTS
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_1A
 ; Animation for Level 1 Boss
-TYPE_ANIM_BOSS     ;$2924
+TYPE_ANIM_BOSS_L1     ;$2924
         JSR UPDATE_ENEMY_PATH
         JSR s28D8
         JSR s290E
@@ -4420,7 +4420,8 @@ _L13    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_0B
-s2EBF   INC SPRITES_TICK05,X
+TYPE_ANIM_SOLDIER_GRENADE   ;$2EBF
+        INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$50     ;#%01010000
         BNE _L00
@@ -4565,7 +4566,8 @@ _L01    LDA #$00
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_07
-s2FC2   INC SPRITES_TICK05,X
+TYPE_ANIM_SOLDIER_BEHIND_SMTH   ;$2FC2
+        INC SPRITES_TICK05,X
         LDA SPRITES_Y05,X
         CMP #$82     ;#%10000010
         BCC _L01
@@ -4640,7 +4642,8 @@ _L05    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_0A
-s305B   INC SPRITES_TICK05,X
+TYPE_ANIM_SOLDIER_JUMPING        ;$305B
+        INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$1E     ;#%00011110
         BNE _L01
@@ -4852,10 +4855,13 @@ _L12    LDA #$0A     ;#%00001010
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_1B
-s31F0   INC a04F4
+; Sprites that goes out for the fort in LVL1
+; Same logic as regular soldier but with some randomness at the beginning
+TYPE_ANIM_SOLDIER_IN_FORT_L1  ;$31F0
+        INC a04F4
         JSR GET_RANDOM
         AND #$3F     ;#%00111111
-        BNE s3205
+        BNE TYPE_ANIM_SOLDIER
         JSR s32ED
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X05,X
@@ -4865,7 +4871,8 @@ s31F0   INC a04F4
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_05
-s3205   INC SPRITES_TICK05,X
+TYPE_ANIM_SOLDIER        ;$3205
+        INC SPRITES_TICK05,X
         LDA SPRITES_DELTA_X05,X
         ORA SPRITES_DELTA_Y05,X
         BEQ _L00
@@ -5004,7 +5011,7 @@ _L02    TXA
         STA a00FB,b
         BCS _L04
         LDA a00FB,b
-        EOR #$FF     ;#%11111111
+        EOR #$FF
         STA a00FB,b
         INC a00FB,b
         LDA SPRITES_Y00
@@ -5013,23 +5020,23 @@ _L02    TXA
         STA a00FC,b
         BCS _L03
         LDA a00FC,b
-        EOR #$FF     ;#%11111111
+        EOR #$FF
         STA a00FC,b
         INC a00FC,b
         JSR s3555
         LDA a00FC,b
-        EOR #$FF     ;#%11111111
+        EOR #$FF
         STA a00FC,b
         INC a00FC,b
         LDA a00FB,b
-        EOR #$FF     ;#%11111111
+        EOR #$FF
         STA a00FB,b
         INC a00FB,b
         JMP _L06
 
 _L03    JSR s3555
         LDA a00FB,b
-        EOR #$FF     ;#%11111111
+        EOR #$FF
         STA a00FB,b
         INC a00FB,b
         JMP _L06
@@ -5040,24 +5047,25 @@ _L04    LDA SPRITES_Y00
         STA a00FC,b
         BCS _L05
         LDA a00FC,b
-        EOR #$FF     ;#%11111111
+        EOR #$FF
         STA a00FC,b
         INC a00FC,b
         JSR s3555
         LDA a00FC,b
-        EOR #$FF     ;#%11111111
+        EOR #$FF
         STA a00FC,b
         INC a00FC,b
         JMP _L06
 
 _L05    JSR s3555
+
 _L06    LDA a00FB,b
         STA SPRITES_DELTA_X05,Y
         LDA a00FC,b
         STA SPRITES_DELTA_Y05,Y
         LDA SPRITES_DELTA_Y05,Y
         SEC
-        SBC #$02     ;#%00000010
+        SBC #$02
         STA SPRITES_DELTA_Y05,Y
         PLA
         TAX
@@ -5663,7 +5671,7 @@ b3848   LDA SPRITES_X_LO05,Y
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Animate explosion
 ; ref: sprite_type_0C
-TYPE_ANIM_EXPLOSION    ;$388B  
+TYPE_ANIM_EXPLOSION    ;$388B
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$14     ;#%00010100
@@ -7046,7 +7054,7 @@ IRQ_D   ;$4284
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; sprite multiplexor: sprites 0-3
 ; raster = $??
-IRQ_E   
+IRQ_E
         ; Turn off MSB and sprite-bkg pri for lower 4 sprites.
         ; Each sprite will set it individually in case it is needed
         LDA $D010    ;Sprites 0-7 MSB of X coordinate
@@ -7091,7 +7099,7 @@ IRQ_E
         AND MASK_0000_0100
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
-       
+
         LDX a0059,b
         LDA SPRITES_RASTER_Y00,X
         STA $D003    ;Sprite 1 Y Pos
@@ -7109,7 +7117,7 @@ IRQ_E
         AND MASK_0000_0010
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
-       
+
         LDX a005A,b
         LDA SPRITES_RASTER_Y00,X
         STA $D001    ;Sprite 0 Y Pos
