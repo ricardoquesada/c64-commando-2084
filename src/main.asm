@@ -31,9 +31,9 @@ aE6 = $E6
 ; **** ZP POINTERS ****
 ;
 p22 = $22                       ;sprite to create: X lo
-p24 = $24                       ;rows that trigger sprite class init
+p24 = $24                       ;rows that trigger sprite type init
 p26 = $26                       ;sprite to create: X hi
-p28 = $28                       ;what sprite class to create at row
+p28 = $28                       ;what sprite type to create at row
 p2A = $2A
 p5D = $5D
 p5F = $5F
@@ -142,10 +142,10 @@ SPRITES_DELTA_Y00 = $047D       ;pixels to move vertically for hero (neg or pos)
 SPRITES_DELTA_Y01 = $047E
 SPRITES_DELTA_Y04 = $0481
 SPRITES_DELTA_Y05 = $0482
-SPRITES_CLASS00 = $048D
-SPRITES_CLASS01 = $048E
-SPRITES_CLASS04 = $0491
-SPRITES_CLASS05 = $0492
+SPRITES_TYPE00 = $048D
+SPRITES_TYPE01 = $048E
+SPRITES_TYPE04 = $0491
+SPRITES_TYPE05 = $0492
 SPRITES_COUNTER00 = $049D       ;TICK and COUNTER are the same, but using different
                                 ; names since they are not contiguous in memory
 SPRITES_COUNTER03 = $04A0       ;referenced in throw grenade
@@ -719,7 +719,7 @@ HISCORE_SETUP_SPRITES   ;$0B94
         LDA #$FF
         STA SPRITES_BKG_PRI05
         LDA #$01
-        STA SPRITES_CLASS05
+        STA SPRITES_TYPE05
         LDA SPRITES_X_LO05
 
         ; Hero sprite
@@ -735,7 +735,7 @@ HISCORE_SETUP_SPRITES   ;$0B94
         LDA #$00
         STA SPRITES_BKG_PRI00
         LDA #$01
-        STA SPRITES_CLASS00
+        STA SPRITES_TYPE00
 
         LDX #$07
         LDA #$00
@@ -915,7 +915,7 @@ HISCORE_READ_JOY_FIRE       ;$0D59
 _L00
         ; Cleanup bullet sprite
         LDA #$00
-        STA SPRITES_CLASS01
+        STA SPRITES_TYPE01
         STA HISCORE_IS_BULLET_ANIM
         LDA #$FF                ;Emtpy sprite
         STA SPRITES_PTR01
@@ -932,7 +932,7 @@ _L02    LDA $DC00               ;Fire pressed?
         RTS
 
 _L03
-        ; Create bullet sprite class
+        ; Create bullet sprite type
         LDA #$00
         STA SPRITES_DELTA_X01
         LDA #$FA
@@ -944,7 +944,7 @@ _L03
         LDA SPRITES_X_HI00
         STA SPRITES_X_HI01
         LDA #$01
-        STA SPRITES_CLASS01
+        STA SPRITES_TYPE01
         LDA #$90                ;Bullet frame
         STA SPRITES_PTR01
         STA SPRITES_BKG_PRI01
@@ -1179,7 +1179,7 @@ _L00    LDA #$48     ;Sprite Y position
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
         LDA #$10     ;#%00010000
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         LDA #$08     ;orange
         STA SPRITES_COLOR05,X
         LDA #$00     ;#%00000000
@@ -1243,7 +1243,7 @@ _SCROLL_IDX     ;$1008
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 CHECK_COLLISION       ;$100F
         LDY #$00     ;#%00000000
-_L00    LDA SPRITES_CLASS05,Y
+_L00    LDA SPRITES_TYPE05,Y
         STY a00FB,b
         TAY
         LDA f1074,Y
@@ -1287,7 +1287,7 @@ _L01    INY
         BNE _L00
         RTS
 
-        ; Sprite classes that can collide with hero. Starts at $05
+        ; Sprite types that can collide with hero. Starts at $05
         ; Classes flagged: $0A,$0D,$0F,$11,$1A,$1C-$20,$24-$2A
 f1074   .BYTE $00,$00,$00,$00,$00,$01,$00,$00
         .BYTE $01,$00,$01,$00,$01,$00,$00,$00
@@ -1320,7 +1320,7 @@ _L00    LDA (p24),Y  ;End of trigger-rows?
 
         ; Find empty seat
         LDX #$00     ;#%00000000
-_L01    LDA SPRITES_CLASS05,X
+_L01    LDA SPRITES_TYPE05,X
         BEQ _L02
         INX
         CPX #$0B     ;#%00001011
@@ -1723,7 +1723,7 @@ INIT_LEVEL_DATA                 ;$1445
         STA a0027,b
 
         LDA f14BB,Y
-        STA a0028,b     ;Sprite class to create
+        STA a0028,b     ;Sprite type to create
         LDA f14BC,Y
         STA a0029,b
 
@@ -2133,9 +2133,9 @@ f1AA9   .BYTE $00,$02,$02,$02,$02,$02,$02,$02
 ; available.
 ;
 ; It is possible that two different actions creates the same sprite
-; class. This happens when it wants to create the same sprite class, but
-; the sprite class must be init in a differnt way. E.g: one for placing
-; the sprite class at the left, and the other at the right of the screen.
+; type. This happens when it wants to create the same sprite type, but
+; the sprite type must be init in a differnt way. E.g: one for placing
+; the sprite type at the left, and the other at the right of the screen.
 ; TODO: How many actions per row are possible? 8?
 RUN_ACTIONS   ;$1BA9
         LDY TRIGGER_ROW_IDX
@@ -2146,9 +2146,9 @@ RUN_ACTIONS   ;$1BA9
 
 _L00    INC TRIGGER_ROW_IDX
 
-        ; Try to find an empty seat, when class is 0
+        ; Try to find an empty seat, when type is 0
         LDX #$0A     ;#%00001010
-_L01    LDA SPRITES_CLASS05,X
+_L01    LDA SPRITES_TYPE05,X
         BEQ _L04
         DEX
         BPL _L01
@@ -2156,18 +2156,18 @@ _L01    LDA SPRITES_CLASS05,X
         ; TODO: Loop tried twice, probably a bug. Remove
 
         LDX #$0A     ;#%00001010
-_L02    LDA SPRITES_CLASS05,X
+_L02    LDA SPRITES_TYPE05,X
         BEQ _L04
         DEX
         BPL _L02
 
-        ; If an empty seat (class == 0) cannot be found, try reusing one with
+        ; If an empty seat (type == 0) cannot be found, try reusing one with
         ; lower priority
 
         ; Lower priority ones:
         ; $08, $09, $13, $0C, $06, $0B, $05
         LDX #$0A
-_L03    LDA SPRITES_CLASS05,X
+_L03    LDA SPRITES_TYPE05,X
         CMP #$08
         BEQ _L04
         CMP #$09
@@ -2342,17 +2342,17 @@ ACT_VOID        ;$1E4E
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_1A
-; Create sprite class: $28
+; Create sprite type: $28
 s1E4F   JSR ACT_NEW_MORTAR_ENEMY
         LDA #$28     ;#%00101000
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_19
 s1E58   JSR ACT_NEW_SOLDIER_BEHIND_TRENCH
         LDA #$27     ;#%00100111
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -2396,7 +2396,7 @@ j1E7D   LDY a00FD,b
         LDA #$FF
         STA SPRITES_BKG_PRI05,X
         LDA #$26
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         RTS
 
 f1EAD   .BYTE $78,$D2
@@ -2424,7 +2424,7 @@ s1EAF   JSR GET_RANDOM
         LDA #$08     ;#%00001000
         STA a04AC,X
         LDA #$25     ;#%00100101
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         LDA #$05     ;#%00000101
         JSR SFX_PLAY
         RTS
@@ -2447,13 +2447,13 @@ s1EED   LDA #$3E
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$23                        ;void class
-        STA SPRITES_CLASS05,X
+        LDA #$23                        ;void sprite type
+        STA SPRITES_TYPE05,X
 
         ;Try to find an extra empty seat
 
         LDY #$00     ;#%00000000
-_L00    LDA SPRITES_CLASS05,Y
+_L00    LDA SPRITES_TYPE05,Y
         BEQ _L01
         INY
         CPY #$0B     ;#%00001011
@@ -2479,7 +2479,7 @@ _L01    TYA
         STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
         LDA #$24
-        STA SPRITES_CLASS05,Y
+        STA SPRITES_TYPE05,Y
         TXA
         STA a04A1,Y                     ;links X with Y
         RTS
@@ -2510,7 +2510,7 @@ s1F5F   JSR s1F8F
 ; ref: action_13
 ; requires an extra empty seat
 s1F8F   LDY #$00     ;#%00000000
-_L00    LDA SPRITES_CLASS05,Y
+_L00    LDA SPRITES_TYPE05,Y
         BEQ _L01
         INY
         CPY #$0B     ;#%00001011
@@ -2536,7 +2536,7 @@ _L01    TYA
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$22
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
 
         TXA
         STA a04A1,Y                 ;links X with Y
@@ -2557,7 +2557,7 @@ _L01    TYA
         STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
         LDA #$10
-        STA SPRITES_CLASS05,Y
+        STA SPRITES_TYPE05,Y
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -2597,7 +2597,7 @@ j2036   LDA #$00     ;#%00000000
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$20     ;#%00100000
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -2619,7 +2619,7 @@ s2053   LDA #$2C     ;#%00101100
         LDA #$06     ;#%00000110
         STA a04AC,X
         LDA #$1E     ;#%00011110
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -2641,7 +2641,7 @@ s2082   LDA #$30     ;#%00110000
         LDA #$0A     ;#%00001010
         STA a04AC,X
         LDA #$1E     ;#%00011110
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -2667,7 +2667,7 @@ s20B1   LDA #$A0
         LDA #$00
         STA SPRITES_BKG_PRI05,X
         LDA #$1A
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         JSR GET_RANDOM
         AND #$01     ;#%00000001
         ASL A
@@ -2678,7 +2678,7 @@ s20B1   LDA #$A0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_0A
-; Create sprite class $18
+; Create sprite type $18
 s20F6   LDA #$1E     ;#%00011110
         STA SPRITES_Y05,X
         LDA #$5A     ;#%01011010
@@ -2697,7 +2697,7 @@ s20F6   LDA #$1E     ;#%00011110
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$18     ;#%00011000
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         LDA #$0C     ;#%00001100
         STA a04A1,X
         STA a04AC,X
@@ -2705,7 +2705,7 @@ s20F6   LDA #$1E     ;#%00011110
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_07
-; Create sprite class $16
+; Create sprite type $16
 s212F   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_X_LO05,X
@@ -2723,12 +2723,12 @@ s212F   LDY a00FD,b
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$16     ;#%00010110
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_06
-; Create sprite class $12
+; Create sprite type $12
 s215F   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_X_LO05,X
@@ -2745,13 +2745,13 @@ s215F   LDY a00FD,b
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$12     ;#%00010010
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         STX a04ED
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_05
-; Create sprite class $11
+; Create sprite type $11
 s2190   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_X_LO05,X
@@ -2769,14 +2769,14 @@ s2190   LDY a00FD,b
         STA SPRITES_BKG_PRI05,X
         STA a04EC
         LDA #$11     ;#%00010001
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_04
-; Init object bike (sprite classes $0f and $10)
+; Init object bike (sprite types $0f and $10)
 ; From lvl1, the one that crosses the bridge
-; This object requires two different class sprites: front and back bike.
+; This object requires two different sprite types: front and back bike.
 ; Creates the back one only if there is space for it.
 ACT_NEW_BIKE         ;$21C1
         LDA #$20     ;#%00100000
@@ -2796,12 +2796,12 @@ ACT_NEW_BIKE         ;$21C1
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$0F
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
 
-        ; If there is additional room, create the back bike class sprite
+        ; If there is additional room, create the back bike sprite type
         ; as well.
         LDY #$00     ;#%00000000
-_L00    LDA SPRITES_CLASS05,Y
+_L00    LDA SPRITES_TYPE05,Y
         BEQ _L01
         INY
         CPY #$0B     ;#%00001011
@@ -2827,14 +2827,14 @@ _L01    TYA
         STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
         LDA #$10     ;#%00010000
-        STA SPRITES_CLASS05,Y
+        STA SPRITES_TYPE05,Y
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Tries to create a new mortar enemy in case a seat is available.
 ; Seems to be unused (?)
         LDY #$00
-b2231   LDA SPRITES_CLASS05,Y
+b2231   LDA SPRITES_TYPE05,Y
         BEQ ACT_NEW_MORTAR_ENEMY
         INY
         CPY #$0B     ;#%00001011
@@ -2843,7 +2843,7 @@ b2231   LDA SPRITES_CLASS05,Y
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_03
-; Create the red mortar guy (sprite class: $0D)
+; Create the red mortar guy (sprite type: $0D)
 ACT_NEW_MORTAR_ENEMY    ;$223C
         LDY a00FD,b
         LDA (p22),Y
@@ -2864,12 +2864,12 @@ ACT_NEW_MORTAR_ENEMY    ;$223C
         LDA #$FF     ;#%11111111
         STA SPRITES_BKG_PRI05,X
         LDA #$0D     ;#%00001101
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_00
-; Create soldier behind trench (sprite class: $07)
+; Create soldier behind trench (sprite type: $07)
 ACT_NEW_SOLDIER_BEHIND_TRENCH       ;$2271
         LDY a00FD,b
         LDA (p22),Y
@@ -2891,12 +2891,12 @@ ACT_NEW_SOLDIER_BEHIND_TRENCH       ;$2271
         STA a04A1,X
         STA a04AC,X
         LDA #$07
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_0E
-; Create sprite class: $1C
+; Create sprite type: $1C
 s22A9   LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_X_LO05,X
@@ -2918,12 +2918,12 @@ s22A9   LDY a00FD,b
         STA a04A1,X
         STA a04AC,X
         LDA #$1C
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_01
-; Create jumping sprite from right margin (sprite class: $0A)
+; Create jumping sprite from right margin (sprite type: $0A)
 ACT_NEW_JUMPING_SOLDIER_R       ;$22E4
         LDY a00FD,b
         LDA #$9F     ;#%10011111
@@ -2951,7 +2951,7 @@ ACT_NEW_JUMPING_SOLDIER_R       ;$22E4
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$0A
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         LDA #$0C     ;#%00001100
         STA a04A1,X
         STA a04AC,X
@@ -2959,7 +2959,7 @@ ACT_NEW_JUMPING_SOLDIER_R       ;$22E4
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_02
-; Create jumping sprite from left margin (sprite class: $0A)
+; Create jumping sprite from left margin (sprite type: $0A)
 ACT_NEW_JUMPING_SOLDIER_L       ;$2329
         LDY a00FD,b
         LDA #$86     ;#%10000110
@@ -2987,7 +2987,7 @@ ACT_NEW_JUMPING_SOLDIER_L       ;$2329
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$0A
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         LDA #$04
         STA a04A1,X
         STA a04AC,X
@@ -2995,7 +2995,7 @@ ACT_NEW_JUMPING_SOLDIER_L       ;$2329
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_08
-; Create sprite class $17
+; Create sprite type $17
 ; Sprite is placed at the left of screen
 s236E   LDA #$01
         STA SPRITES_X_LO05,X
@@ -3009,7 +3009,7 @@ s236E   LDA #$01
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_09
-; Create sprite class $17
+; Create sprite type $17
 ; Sprite is placed at right of screen
 s2385   LDA #$5A
         STA SPRITES_X_LO05,X
@@ -3032,7 +3032,7 @@ j2399   LDA #$00
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$17
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         LDY a00FD,b
         LDA (p26),Y
         SEC
@@ -3067,36 +3067,36 @@ s23CC   LDA #$1E     ;#%00011110
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$19     ;#%00011001
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         LDA #$0C     ;#%00001100
         STA a04A1,X
         STA a04AC,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Add score based on killed enemy, and convert enemy sprite class into
-; "enemy dying" sprite class.
+; Add score based on killed enemy, and convert enemy sprite type into
+; "enemy dying" type.
 DIE_ANIM_AND_SCORE  ;$2405
         TYA
         PHA
-        LDA SPRITES_CLASS05,Y
+        LDA SPRITES_TYPE05,Y
         TAY
         LDA POINTS_TBL,Y
         JSR SCORE_ADD
         PLA
         TAY
-        LDA SPRITES_CLASS05,Y
+        LDA SPRITES_TYPE05,Y
         CMP #$07     ;#%00000111
         BEQ _L00
         CMP #$1C     ;#%00011100
         BNE _L01
 _L00    LDA #$1D     ;#%00011101
-        STA SPRITES_CLASS05,Y
+        STA SPRITES_TYPE05,Y
         LDA #$CB     ;#%11001011
         STA SPRITES_PTR05,Y
         JMP _L06
 
-_L01    LDA SPRITES_CLASS05,Y
+_L01    LDA SPRITES_TYPE05,Y
         CMP #$1A     ;#%00011010
         BNE _L02
         LDA #$BC     ;#%10111100
@@ -3104,13 +3104,13 @@ _L01    LDA SPRITES_CLASS05,Y
         LDA #$01     ;white
         STA SPRITES_COLOR05,Y
         LDA #$13     ;#%00010011
-        STA SPRITES_CLASS05,Y
+        STA SPRITES_TYPE05,Y
         JMP _L06
 
-_L02    LDA SPRITES_CLASS05,Y
+_L02    LDA SPRITES_TYPE05,Y
         CMP #$11     ;#%00010001
         BNE _L03
-        LDA SPRITES_CLASS01,X
+        LDA SPRITES_TYPE01,X
         CMP #$04     ;#%00000100
         BEQ _L03
         LDA #$BD     ;#%10111101
@@ -3118,7 +3118,7 @@ _L02    LDA SPRITES_CLASS05,Y
         LDA #$0E     ;light blue
         STA SPRITES_COLOR05,Y
         LDA #$13     ;#%00010011
-        STA SPRITES_CLASS05,Y
+        STA SPRITES_TYPE05,Y
         INC a04EC
         LDA a04EC
         CMP #$02     ;#%00000010
@@ -3127,7 +3127,7 @@ _L02    LDA SPRITES_CLASS05,Y
         PHA
         LDX a04ED
         LDA #$14     ;#%00010100
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
@@ -3136,7 +3136,7 @@ _L02    LDA SPRITES_CLASS05,Y
         TAX
         JMP _L06
 
-_L03    LDA SPRITES_CLASS05,Y
+_L03    LDA SPRITES_TYPE05,Y
         CMP #$23     ;#%00100011
         BEQ _L04
         CMP #$24     ;#%00100100
@@ -3144,16 +3144,16 @@ _L03    LDA SPRITES_CLASS05,Y
 _L04    TXA
         PHA
         LDX a04A1,Y
-        JSR CONVERT_TO_CLASS_ANIM_EXPLOSION
+        JSR CONVERT_TO_TYPE_ANIM_EXPLOSION
         TYA
         TAX
-        JSR CONVERT_TO_CLASS_ANIM_EXPLOSION
+        JSR CONVERT_TO_TYPE_ANIM_EXPLOSION
         PLA
         TAX
         JMP _L06
 
 _L05    LDA #$06     ;#%00000110
-        STA SPRITES_CLASS05,Y
+        STA SPRITES_TYPE05,Y
 
 _L06    LDA #$00     ;#%00000000
         STA SPRITES_TICK05,Y
@@ -3180,12 +3180,12 @@ _L00    LDA SPRITES_Y05,X
         BEQ _L02
 _L01    JSR CLEANUP_SPRITE
 
-_L02    LDA SPRITES_CLASS05,X
+_L02    LDA SPRITES_TYPE05,X
         ASL A
         TAY
-        LDA ANIM_CLASS_TBL_LO,Y
+        LDA TYPE_ANIM_TBL_LO,Y
         STA a00FB,b
-        LDA ANIM_CLASS_TBL_HI,Y
+        LDA TYPE_ANIM_TBL_HI,Y
         STA a00FC,b
         INC a04E7
         JSR JMP_FB
@@ -3198,22 +3198,22 @@ _L02    LDA SPRITES_CLASS05,X
 JMP_FB              ;$24EF
         JMP (a00FB)
 
-        ; Anim class table
-ANIM_CLASS_TBL_HI =*+1
-ANIM_CLASS_TBL_LO
+        ; Anim table
+TYPE_ANIM_TBL_HI =*+1
+TYPE_ANIM_TBL_LO
         .ADDR s2CD9                             ;$00
-        .ADDR CLASS_ANIM_HERO_BULLET            ;$01
-        .ADDR CLASS_ANIM_HERO_GRENADE           ;$02
-        .ADDR CLASS_ANIM_HERO_BULLET_END        ;$03
-        .ADDR CLASS_ANIM_HERO_GRENADE_END       ;$04
+        .ADDR TYPE_ANIM_HERO_BULLET             ;$01
+        .ADDR TYPE_ANIM_HERO_GRENADE            ;$02
+        .ADDR TYPE_ANIM_HERO_BULLET_END         ;$03
+        .ADDR TYPE_ANIM_HERO_GRENADE_END        ;$04
         .ADDR s3205                             ;$05
-        .ADDR CLASS_ANIM_SOLDIER_DIE            ;$06
+        .ADDR TYPE_ANIM_SOLDIER_DIE             ;$06
         .ADDR s2FC2                             ;$07
-        .ADDR CLASS_ANIM_SOLDIER_BULLET         ;$08
-        .ADDR CLASS_ANIM_SOLDIER_BULLET_END     ;$09
+        .ADDR TYPE_ANIM_SOLDIER_BULLET          ;$08
+        .ADDR TYPE_ANIM_SOLDIER_BULLET_END      ;$09
         .ADDR s305B                             ;$0A
         .ADDR s2EBF                             ;$0B
-        .ADDR CLASS_ANIM_EXPLOSION              ;$0C
+        .ADDR TYPE_ANIM_EXPLOSION               ;$0C
         .ADDR s2BDF                             ;$0D
         .ADDR s2F0B                             ;$0E
         .ADDR s2B4D                             ;$0F
@@ -3227,7 +3227,7 @@ ANIM_CLASS_TBL_LO
         .ADDR s2A34
         .ADDR s29BB                             ;$18
         .ADDR s2956
-        .ADDR CLASS_ANIM_BOSS                   ;$1A
+        .ADDR TYPE_ANIM_BOSS                    ;$1A
         .ADDR s31F0
         .ADDR s2876
         .ADDR s2860
@@ -3250,7 +3250,7 @@ f2544   .BYTE $00,$00,$00,$00,$00,$03,$00,$02
         .BYTE $03,$00,$00,$02,$02,$00,$00,$02
         .BYTE $02
 
-        ; Points to score for each sprite class killed
+        ; Points to score for each sprite type killed
 POINTS_TBL      ;$256D
         .BYTE $00,$00,$00,$00,$00,$03,$00,$03
         .BYTE $00,$00,$03,$00,$00,$05,$00,$00
@@ -3260,12 +3260,12 @@ POINTS_TBL      ;$256D
         .BYTE $05
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_10
+; ref: sprite_type_10
 f2596
 s2596   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_28
+; ref: sprite_type_28
 s2597   INC SPRITES_TICK05,X
         LDA a04EA
         BEQ _L02
@@ -3303,17 +3303,17 @@ _L03    JSR s32ED
         STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
         LDA #$0E     ;#%00001110
-        STA SPRITES_CLASS05,Y
+        STA SPRITES_TYPE05,Y
 _L04    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_27
+; ref: sprite_type_27
 s25F0   INC SPRITES_TICK05,X
         JSR s300C
         JMP j33D0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_26
+; ref: sprite_type_26
 s25F9   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         AND #$7F     ;#%01111111
@@ -3337,7 +3337,7 @@ b261B   LDA #$00     ;#%00000000
 b2621   LDA #$01     ;#%00000001
         STA SPRITES_DELTA_Y05,X
         LDY #$00     ;#%00000000
-b2628   LDA SPRITES_CLASS05,Y
+b2628   LDA SPRITES_TYPE05,Y
         BEQ b2633
         INY
         CPY #$0B     ;#%00001011
@@ -3351,7 +3351,7 @@ b2633   LDA SPRITES_X_LO05,X
         ADC #$10     ;#%00010000
         STA SPRITES_Y05,Y
         LDA #$05     ;#%00000101
-        STA SPRITES_CLASS05,Y
+        STA SPRITES_TYPE05,Y
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,Y
         LDA SPRITES_X_HI05,X
@@ -3374,7 +3374,7 @@ b2633   LDA SPRITES_X_LO05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_25
+; ref: sprite_type_25
 s2675   INC SPRITES_TICK05,X
         JSR s3128
         JSR j33D0
@@ -3394,11 +3394,11 @@ b2690   LDA #$FE     ;#%11111110
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_23
+; ref: sprite_type_23
 s2696   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_24
+; ref: sprite_type_24
 s2697   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         AND #$3F     ;#%00111111
@@ -3407,14 +3407,14 @@ s2697   INC SPRITES_TICK05,X
         ;Try to find an empty seat
 
         LDY #$00     ;#%00000000
-_L00    LDA SPRITES_CLASS05,Y
+_L00    LDA SPRITES_TYPE05,Y
         BEQ _L01
         INY
         CPY #$0B     ;#%00001011
         BNE _L00
         RTS
 
-        ; Create a sprite class $0A
+        ; Create a sprite type $0A
 
 _L01    LDA SPRITES_X_LO05,X
         CLC
@@ -3425,7 +3425,7 @@ _L01    LDA SPRITES_X_LO05,X
         LDA SPRITES_X_HI05,X
         STA SPRITES_X_HI05,Y
         LDA #$0A
-        STA SPRITES_CLASS05,Y
+        STA SPRITES_TYPE05,Y
         LDA #$08     ;dark grey
         STA SPRITES_COLOR05,Y
         LDA #$1D
@@ -3437,7 +3437,7 @@ _L01    LDA SPRITES_X_LO05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_22
+; ref: sprite_type_22
 s26DD   INC SPRITES_TICK05,X
         LDY a04A1,X
         LDA SPRITES_TICK05,X
@@ -3461,7 +3461,7 @@ b2700   RTS
 
 
 b270C   LDA #$0C     ;#%00001100
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         LDA #$00     ;#%00000000
         STA SPRITES_TICK05,X
         STA SPRITES_DELTA_X05,X
@@ -3472,7 +3472,7 @@ b270C   LDA #$0C     ;#%00001100
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_20
+; ref: sprite_type_20
 s2724   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         AND #$07     ;#%00000111
@@ -3499,7 +3499,7 @@ b2754   LDA SPRITES_Y00
         CMP SPRITES_Y05,X
         BCC b2753
         LDY #$00     ;#%00000000
-b275E   LDA SPRITES_CLASS05,Y
+b275E   LDA SPRITES_TYPE05,Y
         BEQ b2769
         INY
         CPY #$0B     ;#%00001011
@@ -3516,7 +3516,7 @@ b2769   LDA #$00     ;#%00000000
         LDA SPRITES_Y05,X
         STA SPRITES_Y05,Y
         LDA #$21     ;#%00100001
-        STA SPRITES_CLASS05,Y
+        STA SPRITES_TYPE05,Y
         LDA #$01     ;white
         STA SPRITES_COLOR05,Y
         LDA #$EA     ;Frame bazooka left-down
@@ -3562,7 +3562,7 @@ FRAME_BAZOOKA_GUY       ;$27E0
         .BYTE $E5,$E6,$E7,$E6
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_1E
+; ref: sprite_type_1E
 s27E4   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         AND #$1F
@@ -3575,7 +3575,7 @@ _L01    LDA SPRITES_Y00
 
         ; Search for empty seat
         LDY #$00
-_L02    LDA SPRITES_CLASS05,Y
+_L02    LDA SPRITES_TYPE05,Y
         BEQ _L04
         INY
         CPY #$0B
@@ -3588,7 +3588,7 @@ _L04    LDA SPRITES_X_LO05,X
         LDA SPRITES_Y05,X
         STA SPRITES_Y05,Y
         LDA #$1F
-        STA SPRITES_CLASS05,Y
+        STA SPRITES_TYPE05,Y
         LDA #$00     ;black
         STA SPRITES_COLOR05,Y
         LDA #$D2
@@ -3624,7 +3624,7 @@ _L05    LDA #$02
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_1D
+; ref: sprite_type_1D
 s2860   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$0A     ;#%00001010
@@ -3639,7 +3639,7 @@ b286F   INC SPRITES_PTR05,X
 b2873   JMP CLEANUP_SPRITE
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_1C
+; ref: sprite_type_1C
 s2876   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         AND #$70     ;#%01110000
@@ -3733,9 +3733,9 @@ s290E   LDY #$00     ;#%00000000
 b2923   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_1A
+; ref: sprite_type_1A
 ; Animation for Level 1 Boss
-CLASS_ANIM_BOSS     ;$2924
+TYPE_ANIM_BOSS     ;$2924
         JSR UPDATE_ENEMY_PATH
         JSR s28D8
         JSR s290E
@@ -3767,7 +3767,7 @@ FRAME_BOSS1_LEFT        ;$2954
         .BYTE $EF,$F0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_19
+; ref: sprite_type_19
 s2956   INC SPRITES_TICK05,X
         LDA SPRITES_DELTA_X05,X
         ORA SPRITES_DELTA_Y05,X
@@ -3817,7 +3817,7 @@ b299B   LDA a04AC,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_18
+; ref: sprite_type_18
 s29BB   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         AND #$3F     ;#%00111111
@@ -3876,7 +3876,7 @@ b2A27   JSR UPDATE_ENEMY_PATH
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_17
+; ref: sprite_type_17
 s2A34   INC SPRITES_TICK05,X
         LDA a04AC,X
         AND #$FE     ;#%11111110
@@ -3909,7 +3909,7 @@ _L00    LDA #$08     ;#%00001000
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_16
+; ref: sprite_type_16
 s2A78   LDA SPRITES_X_HI00
         CMP SPRITES_X_HI05,X
         BNE b2AC7
@@ -3957,7 +3957,7 @@ b2AD4   LDA #$08     ;orange
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_14
+; ref: sprite_type_14
 s2ADA   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$64     ;#%01100100
@@ -3978,7 +3978,7 @@ FRAME_POW_RESCUE    ;$2AF7 (Pow == Prisoner of War)
         .BYTE $C4,$C5
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_13
+; ref: sprite_type_13
 s2AF9   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$41     ;#%01000001
@@ -3988,7 +3988,7 @@ s2AF9   INC SPRITES_TICK05,X
 b2B04   JMP CLEANUP_SPRITE
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_12
+; ref: sprite_type_12
 s2B07   LDA GAME_TICK
         AND #$08     ;#%00001000
         LSR A
@@ -4010,7 +4010,7 @@ FRAME_POW_RUN       ;$2B28 (POW == Prisoner of War)
         .BYTE $C2,$C3
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_11
+; ref: sprite_type_11
 s2B2A   LDA GAME_TICK
         AND #$08     ;#%00001000
         LSR A
@@ -4032,7 +4032,7 @@ FRAME_POW_GUARD     ;$2B4B
         .BYTE $C0,$C1
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_0F
+; ref: sprite_type_0F
 s2B4D   INC SPRITES_TICK05,X
         LDY a04A1,X
         LDA SPRITES_X_LO05,X
@@ -4098,7 +4098,7 @@ b2BCF   LDA SPRITES_X_LO05,X
 b2BDE   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_0D
+; ref: sprite_type_0D
 s2BDF   INC SPRITES_TICK05,X
         LDA a04EA
         BEQ b2C0C
@@ -4131,7 +4131,7 @@ b2C0C   LDA SPRITES_Y05,X
         LDA #$FF     ;#%11111111
         STA SPRITES_DELTA_Y05,X
         LDA #$05     ;#%00000101
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         RTS
 
 b2C31   LDA SPRITES_TICK05,X
@@ -4140,7 +4140,7 @@ b2C31   LDA SPRITES_TICK05,X
         RTS
 
 b2C39   LDY #$00     ;#%00000000
-b2C3B   LDA SPRITES_CLASS05,Y
+b2C3B   LDA SPRITES_TYPE05,Y
         BEQ b2C46
         INY
         CPY #$0B     ;#%00001011
@@ -4195,7 +4195,7 @@ b2C97   STA SPRITES_DELTA_X05,Y
         STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
         LDA #$0E     ;#%00001110
-        STA SPRITES_CLASS05,Y
+        STA SPRITES_TYPE05,Y
 b2CC0   RTS
 
 f2CC1   .BYTE $29,$29,$32,$32
@@ -4206,7 +4206,7 @@ f2CD1   .BYTE $9B,$9B,$9B,$9B
 f2CD5   .BYTE $00,$00,$FF,$FF
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_00
+; ref: sprite_type_00
 ; Main logic
 s2CD9   LDA V_SCROLL_ROW_IDX
         BEQ _L00
@@ -4238,7 +4238,7 @@ _L02    JSR GET_RANDOM
         LDA #$3C     ;#%00111100
         STA SPRITES_Y05,X
         LDA #$1B     ;#%00011011
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         INC a04F4
         JMP _L06
 
@@ -4264,7 +4264,7 @@ _L03    JSR GET_RANDOM
         LDA f2CD1,Y
         STA SPRITES_PTR05,X
         LDA #$1B     ;#%00011011
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         JMP _L07
 
 _L04    JSR GET_RANDOM
@@ -4275,7 +4275,7 @@ _L04    JSR GET_RANDOM
         LDA #$64     ;#%01100100
         STA SPRITES_Y05,X
         LDA #$1B     ;#%00011011
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         INC a04F4
         JMP _L06
 
@@ -4302,7 +4302,7 @@ _L05    JSR GET_RANDOM
         LDA TMP_SPRITE_Y
         STA SPRITES_Y05,X
         LDA #$05     ;#%00000101
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
 _L06    LDA #$01     ;#%00000001
         STA SPRITES_DELTA_Y05,X
         LDA #$00     ;#%00000000
@@ -4366,7 +4366,7 @@ _L11    LDA TMP_SPRITE_X_LO
         LDA #$14     ;#%00010100
         STA SPRITES_TICK05,X
         LDA #$18     ;#%00011000
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         JSR GET_RANDOM
         AND #$03     ;#%00000011
         CLC
@@ -4407,7 +4407,7 @@ _L12    JSR GET_RANDOM
         LDA #$14     ;#%00010100
         STA SPRITES_TICK05,X
         LDA #$18     ;#%00011000
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         JSR GET_RANDOM
         AND #$03     ;#%00000011
         CLC
@@ -4419,12 +4419,12 @@ _L12    JSR GET_RANDOM
 _L13    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_0B
+; ref: sprite_type_0B
 s2EBF   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$50     ;#%01010000
         BNE _L00
-        JSR CONVERT_TO_CLASS_ANIM_EXPLOSION
+        JSR CONVERT_TO_TYPE_ANIM_EXPLOSION
         RTS
 
 _L00    LDA SPRITES_TICK05,X
@@ -4445,11 +4445,11 @@ FRAME_GRENADE0       ;$2EE6
         .BYTE $92,$91,$91,$92,$93
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Converts the current class animation into an explosion class anim
+; Converts the current animation into an explosion animation.
 ; X=anim to be converted
-CONVERT_TO_CLASS_ANIM_EXPLOSION       ;$2EEB
+CONVERT_TO_TYPE_ANIM_EXPLOSION       ;$2EEB
         LDA #$0C
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         LDA #$00
         STA SPRITES_TICK05,X
         STA SPRITES_DELTA_X05,X
@@ -4463,12 +4463,12 @@ CONVERT_TO_CLASS_ANIM_EXPLOSION       ;$2EEB
 _L00    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_0E
+; ref: sprite_type_0E
 s2F0B   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$50     ;#%01010000
         BNE _L00
-        JSR CONVERT_TO_CLASS_ANIM_EXPLOSION
+        JSR CONVERT_TO_TYPE_ANIM_EXPLOSION
         RTS
 
 _L00    LDA SPRITES_TICK05,X
@@ -4488,8 +4488,8 @@ _L01    RTS
 f2F32   .BYTE $D2,$D1,$D0,$D1,$D2
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_08
-CLASS_ANIM_SOLDIER_BULLET       ;$2F37
+; ref: sprite_type_08
+TYPE_ANIM_SOLDIER_BULLET       ;$2F37
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$46     ;#%01000110
@@ -4514,7 +4514,7 @@ CLASS_ANIM_SOLDIER_BULLET       ;$2F37
 _L00    RTS
 
 _L01    LDA #$09     ;#%00001001
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         LDA #$00     ;#%00000000
         STA SPRITES_TICK05,X
         STA SPRITES_DELTA_X05,X
@@ -4525,18 +4525,18 @@ _L01    LDA #$09     ;#%00001001
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_1F / class_21
+; ref: sprite_type_1F / sprite_type_21
 s2F7F   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$5A     ;#%01011010
         BEQ _L00
         RTS
 
-_L00    JMP CONVERT_TO_CLASS_ANIM_EXPLOSION
+_L00    JMP CONVERT_TO_TYPE_ANIM_EXPLOSION
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_09
-CLASS_ANIM_SOLDIER_BULLET_END   ;$2F8D
+; ref: sprite_type_09
+TYPE_ANIM_SOLDIER_BULLET_END   ;$2F8D
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$09     ;#%00001001
@@ -4551,7 +4551,7 @@ _L00    JSR _L01
 
         ; Cleanup sprite
 _L01    LDA #$00
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
         LDA ORIG_SPRITE_Y05,X
@@ -4564,7 +4564,7 @@ _L01    LDA #$00
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_07
+; ref: sprite_type_07
 s2FC2   INC SPRITES_TICK05,X
         LDA SPRITES_Y05,X
         CMP #$82     ;#%10000010
@@ -4588,7 +4588,7 @@ s2FC2   INC SPRITES_TICK05,X
         LDA #$00     ;#%00000000
 _L00    STA SPRITES_DELTA_X05,X
         LDA #$15     ;#%00010101
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         LDA #$FF     ;#%11111111
         STA SPRITES_BKG_PRI05,X
         RTS
@@ -4639,7 +4639,7 @@ _L04    LDA #$08     ;#%00001000
 _L05    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_0A
+; ref: sprite_type_0A
 s305B   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$1E     ;#%00011110
@@ -4697,11 +4697,11 @@ _L05    LDA #$98     ;#%10011000
         LDA #$FF     ;#%11111111
         STA SPRITES_DELTA_Y05,X
         LDA #$05     ;#%00000101
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_15
+; ref: sprite_type_15
 s30DD   INC SPRITES_TICK05,X
         LDA a04AC,X
         AND #$FE     ;#%11111110
@@ -4851,7 +4851,7 @@ _L12    LDA #$0A     ;#%00001010
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_1B
+; ref: sprite_type_1B
 s31F0   INC a04F4
         JSR GET_RANDOM
         AND #$3F     ;#%00111111
@@ -4864,7 +4864,7 @@ s31F0   INC a04F4
         ; fall-through
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_05
+; ref: sprite_type_05
 s3205   INC SPRITES_TICK05,X
         LDA SPRITES_DELTA_X05,X
         ORA SPRITES_DELTA_Y05,X
@@ -4970,7 +4970,7 @@ s32ED   LDA SPRITES_X_HI05,X
 
         ; Search for empty seat
         LDY #$00
-_L00    LDA SPRITES_CLASS05,Y
+_L00    LDA SPRITES_TYPE05,Y
         BEQ _L02
         INY
         CPY #$0B
@@ -4997,7 +4997,7 @@ _L02    TXA
         STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
         LDA #$0B     ;#%00001011
-        STA SPRITES_CLASS05,Y
+        STA SPRITES_TYPE05,Y
         LDA SPRITES_X_LO00
         SEC
         SBC SPRITES_X_LO05,Y
@@ -5071,7 +5071,7 @@ j33D0   LDA SPRITES_TICK05,X
 
         ; Search empty seat
         LDY #$00
-_L00    LDA SPRITES_CLASS05,Y
+_L00    LDA SPRITES_TYPE05,Y
         BEQ _L02
         INY
         CPY #$0B
@@ -5245,7 +5245,7 @@ _L18    STX a00FB,b
         STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
         LDA #$08     ;#%00001000
-        STA SPRITES_CLASS05,Y
+        STA SPRITES_TYPE05,Y
         RTS
 
         ; Sprite delta X tbl
@@ -5267,9 +5267,9 @@ _L00    LSR a00FB,b
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_06
+; ref: sprite_type_06
 ; Animation when regular soldier dies
-CLASS_ANIM_SOLDIER_DIE  ;$3561
+TYPE_ANIM_SOLDIER_DIE  ;$3561
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$18     ;#%00011000
@@ -5293,7 +5293,7 @@ _FRAME_TBL      ;f3576
 ; X=sprite to cleanup
 CLEANUP_SPRITE      ;$358E
         LDA #$00
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
         LDA ORIG_SPRITE_Y05,X
@@ -5358,16 +5358,16 @@ f3617   .BYTE $04,$04,$04,$04,$00,$00,$02,$02
 f3627   .BYTE $00,$00,$02,$02,$00,$00,$02,$02
         .BYTE $00,$00,$02,$02,$00,$00,$07,$07
 
-HERO_ANIM_CLASS_TBL_HI=*+1
-HERO_ANIM_CLASS_TBL_LO
-        .ADDR CLASS_ANIM_HERO_MAIN
-        .ADDR CLASS_ANIM_HERO_BULLET
-        .ADDR CLASS_ANIM_HERO_GRENADE
-        .ADDR CLASS_ANIM_HERO_BULLET_END
-        .ADDR CLASS_ANIM_HERO_GRENADE_END
+HERO_TYPE_ANIM_TBL_HI=*+1
+HERO_TYPE_ANIM_TBL_LO
+        .ADDR TYPE_ANIM_HERO_MAIN
+        .ADDR TYPE_ANIM_HERO_BULLET
+        .ADDR TYPE_ANIM_HERO_GRENADE
+        .ADDR TYPE_ANIM_HERO_BULLET_END
+        .ADDR TYPE_ANIM_HERO_GRENADE_END
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Calls the different hero-related animation, based on the sprite class assigned.
+; Calls the different hero-related animation, based on the sprite type assigned.
 ; E.g: throw grenade, bullet start, bullet end, main anim, etc.
 ANIM_HERO       ;$3641
         ; Sprites 1-5 are bullets / grenades
@@ -5388,12 +5388,12 @@ _L01    JSR CLEANUP_HERO_SPRITE
 
         ; TODO: avoid the anim if the sprite has just been cleaned-up
 
-_L02    LDA SPRITES_CLASS01,X
+_L02    LDA SPRITES_TYPE01,X
         ASL A
         TAY
-        LDA HERO_ANIM_CLASS_TBL_LO,Y
+        LDA HERO_TYPE_ANIM_TBL_LO,Y
         STA a00FB,b
-        LDA HERO_ANIM_CLASS_TBL_HI,Y
+        LDA HERO_TYPE_ANIM_TBL_HI,Y
         STA a00FC,b
         JSR _L03
         INX
@@ -5405,9 +5405,9 @@ _L02    LDA SPRITES_CLASS01,X
 _L03    JMP (a00FB)
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_02
+; ref: sprite_type_02
 ; Hero anim grenade
-CLASS_ANIM_HERO_GRENADE
+TYPE_ANIM_HERO_GRENADE
         INC SPRITES_COUNTER00,X
         LDA SPRITES_COUNTER00,X
         CMP #$0F     ;#%00001111
@@ -5450,7 +5450,7 @@ _L01    CMP #$28     ;#%00101000
 _L02    RTS
 
 _L03    LDA #$04     ;#%00000100
-        STA SPRITES_CLASS01,X
+        STA SPRITES_TYPE01,X
         LDA #$00     ;#%00000000
         STA SPRITES_COUNTER00,X
         STA SPRITES_DELTA_X01,X
@@ -5468,9 +5468,9 @@ FRAME_GRENADE1      ;$36F3
 f36F9   .BYTE $A4,$A5,$DE,$98,$98
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_03
+; ref: sprite_type_03
 ; Hero Anim bullet end
-CLASS_ANIM_HERO_BULLET_END      ;$36FE
+TYPE_ANIM_HERO_BULLET_END      ;$36FE
         INC SPRITES_COUNTER00,X
         LDA SPRITES_COUNTER00,X
         CMP #$09     ;Frames for anim(?)
@@ -5493,7 +5493,7 @@ FRAME_BULLET_END             ;$3714
 ; and grenade.
 CLEANUP_HERO_SPRITE     ;$371D
         LDA #$00
-        STA SPRITES_CLASS01,X
+        STA SPRITES_TYPE01,X
         STA SPRITES_DELTA_X01,X
         STA SPRITES_DELTA_Y01,X
         LDA ORIG_SPRITE_Y01,X
@@ -5506,12 +5506,12 @@ CLEANUP_HERO_SPRITE     ;$371D
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_04
+; ref: sprite_type_04
 ; Exploding grenade animation
-CLASS_ANIM_HERO_GRENADE_END ;$373C
+TYPE_ANIM_HERO_GRENADE_END ;$373C
         INC SPRITES_COUNTER00,X
         LDY #$00     ;#%00000000
-b3741   LDA SPRITES_CLASS05,Y
+b3741   LDA SPRITES_TYPE05,Y
         STY a00FB,b
         TAY
         LDA f2544,Y
@@ -5541,7 +5541,7 @@ b3741   LDA SPRITES_CLASS05,Y
         SBC #$16     ;#%00010110
         CMP SPRITES_Y05,Y
         BCS b3793
-        LDA SPRITES_CLASS05,Y
+        LDA SPRITES_TYPE05,Y
         CMP #$1E     ;#%00011110
         BNE b3790
         JMP j37CF
@@ -5562,7 +5562,7 @@ b3793   INY
         RTS
 
 b37A9   LDA #$00     ;#%00000000
-        STA SPRITES_CLASS01,X
+        STA SPRITES_TYPE01,X
         STA SPRITES_DELTA_X01,X
         STA SPRITES_DELTA_Y01,X
         LDA ORIG_SPRITE_Y01,X
@@ -5596,7 +5596,7 @@ j37CF   TXA
         LDA SPRITES_Y05,Y
         STA SPRITES_Y01,X
         LDA #$0C     ;#%00001100
-        STA SPRITES_CLASS05,Y
+        STA SPRITES_TYPE05,Y
         LDA #$00     ;#%00000000
         STA SPRITES_TICK05,Y
         TAX
@@ -5639,7 +5639,7 @@ b3848   LDA SPRITES_X_LO05,Y
         LDA SPRITES_Y05,Y
         STA SPRITES_Y01,X
         LDA #$0C
-        STA SPRITES_CLASS05,Y
+        STA SPRITES_TYPE05,Y
         LDA #$00
         STA SPRITES_TICK05,Y
         TAX
@@ -5662,8 +5662,8 @@ b3848   LDA SPRITES_X_LO05,Y
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Animate explosion
-; ref: class_0C
-CLASS_ANIM_EXPLOSION    ;$388B  
+; ref: sprite_type_0C
+TYPE_ANIM_EXPLOSION    ;$388B  
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$14     ;#%00010100
@@ -5676,7 +5676,7 @@ CLASS_ANIM_EXPLOSION    ;$388B
         RTS
 
 _L00    LDA #$00
-        STA SPRITES_CLASS05,X
+        STA SPRITES_TYPE05,X
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_BKG_PRI05,X
@@ -5698,7 +5698,7 @@ TRY_THROW_GRENADE               ;$38c3
         BNE _L00
         LDA a04F4
         BEQ _SKIP
-_L00    LDA SPRITES_CLASS04
+_L00    LDA SPRITES_TYPE04
         BNE _SKIP
         LDA GRENADES
         BEQ _SKIP
@@ -5722,7 +5722,7 @@ _L00    LDA SPRITES_CLASS04
         LDA SPRITES_BKG_PRI00
         STA SPRITES_BKG_PRI04
         LDA #$02     ;#%00000010
-        STA SPRITES_CLASS04
+        STA SPRITES_TYPE04
         LDA #$00     ;#%00000000
         STA SPRITES_COUNTER03
         STA HERO_ANIM_MOV_IDX
@@ -5740,9 +5740,9 @@ _L00    LDA SPRITES_CLASS04
 _SKIP   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: class_01
+; ref: sprite_type_01
 ; Hero Anim bullet
-CLASS_ANIM_HERO_BULLET  ;$3935
+TYPE_ANIM_HERO_BULLET  ;$3935
         INC SPRITES_COUNTER00,X
         LDA SPRITES_COUNTER00,X
         CMP #$0F
@@ -5750,7 +5750,7 @@ CLASS_ANIM_HERO_BULLET  ;$3935
         JMP _L04
 
 _L00    LDY #$00
-_L01    LDA SPRITES_CLASS05,Y
+_L01    LDA SPRITES_TYPE05,Y
         STY a00FB,b
         TAY
         LDA f2544,Y
@@ -5813,7 +5813,7 @@ _L03    LDA #$00     ;#%00000000
         RTS
 
 _L04    LDA #$03     ;#%00000011
-        STA SPRITES_CLASS01,X
+        STA SPRITES_TYPE01,X
         LDA #$00     ;#%00000000
         STA SPRITES_COUNTER00,X
         STA SPRITES_DELTA_X01,X
@@ -5826,7 +5826,7 @@ _L04    LDA #$03     ;#%00000011
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Animation for hero in "normal" state
 ; X=Sprite to update
-CLASS_ANIM_HERO_MAIN
+TYPE_ANIM_HERO_MAIN
         LDA IS_HERO_DEAD
         BNE _L02
         LDA ENEMIES_IN_FORT
@@ -5867,7 +5867,7 @@ _L00    LDA $DC00    ;CIA1: Data Port Register A (in-game fire)
         STA SPRITES_X_HI01,X
 
         LDA #$01
-        STA SPRITES_CLASS01,X
+        STA SPRITES_TYPE01,X
         LDA #$90     ;Bullet frame
         STA SPRITES_PTR01,X
         LDA #$00
@@ -6285,7 +6285,7 @@ _L00    PLA
         LDX #$01
 _L01    LDA SPRITES_Y00,X
         STA SPRITES_RASTER_Y00,X
-        LDA SPRITES_CLASS00,X
+        LDA SPRITES_TYPE00,X
         BEQ _L03
 
         ; Apply delta X
@@ -6318,7 +6318,7 @@ _L03    INX
         ; Unused (?)
 
         LDA #$00     ;#%00000000
-        STA SPRITES_CLASS00,X
+        STA SPRITES_TYPE00,X
         STA SPRITES_DELTA_X00,X
         STA SPRITES_DELTA_Y00,X
         LDA ORIG_SPRITE_Y00,X
@@ -6348,7 +6348,7 @@ _L00    LDA #$64     ;#%01100100
         STA SPRITES_PTR00,X
         LDA #$00     ;#%00000000
         STA SPRITES_BKG_PRI00,X
-        STA SPRITES_CLASS00,X
+        STA SPRITES_TYPE00,X
         INX
         CPX #$10     ;#%00010000
         BNE _L00
