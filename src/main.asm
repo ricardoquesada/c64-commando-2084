@@ -6461,15 +6461,14 @@ f3EDA   .BYTE $13,$3D,$61,$83,$AF
 f3EDF   .BYTE $13,$3D,$61
         .BYTE $83,$A6,$13,$3D,$61,$83,$B2
 f3EE9   .BYTE $13,$3D,$61,$83,$A6
-f3EEE   .BYTE <f3EDA
-f3EEF   .BYTE >f3EDA
-        .BYTE <f3EDF
-        .BYTE >f3EDF
-        .BYTE <f3EDF
-        .BYTE >f3EDF
-        .BYTE <f3EE9
-        .BYTE >f3EE9
 
+f3EEF    =*+1
+f3EEE   .ADDR f3EDA
+        .ADDR f3EDF
+        .ADDR f3EDF
+        .ADDR f3EE9
+
+        ; Unused (?)
 b3EF6   LDX #$00     ;#%00000000
         STX a00D7,b
 b3EFB   LDY a004C,b,X
@@ -6543,7 +6542,7 @@ LEVEL_DRAW_VIEWPORT             ;$3F93
         STA _L04
         LDA #>pE000  ;Screen RAM hi
         STA _L05
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA a00FB,b
         STA a00FD,b
         LDA V_SCROLL_ROW_IDX
