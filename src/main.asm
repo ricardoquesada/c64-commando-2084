@@ -3214,14 +3214,14 @@ TYPE_ANIM_TBL_LO
         .ADDR TYPE_ANIM_SOLDIER_JUMPING         ;$0A
         .ADDR TYPE_ANIM_SOLDIER_GRENADE         ;$0B
         .ADDR TYPE_ANIM_EXPLOSION               ;$0C
-        .ADDR s2BDF                             ;$0D
-        .ADDR s2F0B                             ;$0E
-        .ADDR s2B4D                             ;$0F
-        .ADDR s2596                             ;$10
-        .ADDR s2B2A
-        .ADDR s2B07
+        .ADDR TYPE_ANIM_MORTAR_ENEMY            ;$0D
+        .ADDR TYPE_ANIM_MORTAR_BOMB             ;$0E
+        .ADDR TYPE_ANIM_BIKE_IN_BRIDGE          ;$0F
+        .ADDR TYPE_ANIM_VOID                    ;$10
+        .ADDR TYPE_ANIM_POW_GUARD               ;$11
+        .ADDR TYPE_ANIM_POW                     ;$12
         .ADDR s2AF9
-        .ADDR s2ADA
+        .ADDR TYPE_ANIM_POW_FREE                ;$14
         .ADDR s30DD
         .ADDR s2A78
         .ADDR s2A34
@@ -3259,10 +3259,13 @@ POINTS_TBL      ;$256D
         .BYTE $05,$00,$00,$0A,$0A,$00,$00,$05
         .BYTE $05
 
+f2596   ;Label used in self-modifying code
+        ; By default points to incorrect place.
+
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_10
-f2596
-s2596   RTS
+TYPE_ANIM_VOID      ;$2596
+        RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_28
@@ -3958,38 +3961,41 @@ b2AD4   LDA #$08     ;orange
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_14
-s2ADA   INC SPRITES_TICK05,X
+TYPE_ANIM_POW_FREE  ;$2ADA
+        INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$64     ;#%01100100
-        BEQ b2AF4
+        BEQ _L00
         LDA GAME_TICK
         AND #$08     ;#%00001000
         LSR A
         LSR A
         LSR A
         TAY
-        LDA FRAME_POW_RESCUE,Y
+        LDA _FRAME_POW_FREE,Y
         STA SPRITES_PTR05,X
         RTS
 
-b2AF4   JMP CLEANUP_SPRITE
+_L00    JMP CLEANUP_SPRITE
 
-FRAME_POW_RESCUE    ;$2AF7 (Pow == Prisoner of War)
+_FRAME_POW_FREE         ;$2AF7 (Pow == Prisoner of War)
         .BYTE $C4,$C5
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_13
-s2AF9   INC SPRITES_TICK05,X
+s2AF9
+        INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$41     ;#%01000001
-        BEQ b2B04
+        BEQ _L00
         RTS
 
-b2B04   JMP CLEANUP_SPRITE
+_L00    JMP CLEANUP_SPRITE
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_12
-s2B07   LDA GAME_TICK
+TYPE_ANIM_POW   ;$2B07
+        LDA GAME_TICK
         AND #$08     ;#%00001000
         LSR A
         LSR A
@@ -4011,34 +4017,38 @@ FRAME_POW_RUN       ;$2B28 (POW == Prisoner of War)
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_11
-s2B2A   LDA GAME_TICK
+TYPE_ANIM_POW_GUARD     ;$2B2A
+        LDA GAME_TICK
         AND #$08     ;#%00001000
         LSR A
         LSR A
         LSR A
         TAY
-        LDA FRAME_POW_GUARD,Y
+        LDA _FRAME_POW_GUARD,Y
         STA SPRITES_PTR05,X
         LDA V_SCROLL_ROW_IDX
-        CMP #$71     ;#%01110001
-        BCS b2B4A
-        LDA #$FF     ;#%11111111
+        CMP #$71
+        BCS _L00
+        LDA #$FF
         STA SPRITES_DELTA_X05,X
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_DELTA_Y05,X
-b2B4A   RTS
+_L00    RTS
 
-FRAME_POW_GUARD     ;$2B4B
+_FRAME_POW_GUARD     ;$2B4B
         .BYTE $C0,$C1
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_0F
-s2B4D   INC SPRITES_TICK05,X
+TYPE_ANIM_BIKE_IN_BRIDGE ;$2B4D
+        INC SPRITES_TICK05,X
         LDY a04A1,X
         LDA SPRITES_X_LO05,X
-        CMP #$A5     ;#%10100101
-        BNE b2BA2
-        LDA #$00     ;#%00000000
+        CMP #$A5
+        BNE _L03
+
+        ; Throw grenades when bike reaches X=$A5
+        LDA #$00
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_X05,Y
         LDA #$B2     ;Bike Front (throw grenade #0)
@@ -4047,59 +4057,61 @@ s2B4D   INC SPRITES_TICK05,X
         STA SPRITES_PTR05,Y
         LDA SPRITES_TICK05,X
         AND #$10     ;#%00010000
-        BEQ b2B7D
+        BEQ _L00
         LDA #$B4     ;Bike Front (throw grenade #1)
         STA SPRITES_PTR05,X
         LDA #$B5     ;Bike Back (throw grenade #1)
         STA SPRITES_PTR05,Y
-b2B7D   LDA SPRITES_TICK05,X
+_L00    LDA SPRITES_TICK05,X
         AND #$1F     ;#%00011111
-        BNE b2B88
+        BNE _L01
         JSR s32ED
         RTS
 
-b2B88   LDA SPRITES_Y05,X
-        CMP #$73     ;#%01110011
-        BCC b2BA1
-        LDA #$FF     ;#%11111111
+        ; Bike moving fordward (left-direction)
+_L01    LDA SPRITES_Y05,X
+        CMP #$73
+        BCC _L02
+        LDA #$FF
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_X05,Y
         LDA #$B0     ;Bike Front (ride)
         STA SPRITES_PTR05,X
         LDA #$B1     ;Bike Back (ride)
         STA SPRITES_PTR05,Y
-b2BA1   RTS
+_L02    RTS
 
-b2BA2   LDA SPRITES_X_LO05,X
+_L03    LDA SPRITES_X_LO05,X
         AND #$1F     ;#%00011111
-        BNE b2BB2
+        BNE _L04
         INC SPRITES_Y05,X
         LDA SPRITES_Y05,X
         STA SPRITES_Y05,Y
-b2BB2   CMP #$10     ;#%00010000
-        BNE b2BBF
+_L04    CMP #$10     ;#%00010000
+        BNE _L05
         DEC SPRITES_Y05,X
         LDA SPRITES_Y05,X
         STA SPRITES_Y05,Y
-b2BBF   LDA SPRITES_X_LO05,X
+_L05    LDA SPRITES_X_LO05,X
         CMP #$B4     ;#%10110100
-        BNE b2BCF
+        BNE _L06
         LDA #$FF     ;#%11111111
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_X05,Y
         RTS
 
-b2BCF   LDA SPRITES_X_LO05,X
+_L06    LDA SPRITES_X_LO05,X
         CMP #$A0     ;#%10100000
-        BNE b2BDE
+        BNE _L07
         LDA #$FE     ;#%11111110
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_X05,Y
-b2BDE   RTS
+_L07    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_0D
-s2BDF   INC SPRITES_TICK05,X
+TYPE_ANIM_MORTAR_ENEMY  ;$2BDF
+        INC SPRITES_TICK05,X
         LDA a04EA
         BEQ b2C0C
         LDA SPRITES_TICK05,X
@@ -4465,9 +4477,10 @@ _L00    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_0E
-s2F0B   INC SPRITES_TICK05,X
+TYPE_ANIM_MORTAR_BOMB   ;$2F0B
+        INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
-        CMP #$50     ;#%01010000
+        CMP #$50
         BNE _L00
         JSR CONVERT_TO_TYPE_ANIM_EXPLOSION
         RTS
@@ -4478,7 +4491,7 @@ _L00    LDA SPRITES_TICK05,X
         LSR A
         LSR A
         TAY
-        LDA f2F32,Y
+        LDA _BOMB_FRAMES,Y
         STA SPRITES_PTR05,X
         LDA SPRITES_TICK05,X
         AND #$0F     ;#%00001111
@@ -4486,7 +4499,8 @@ _L00    LDA SPRITES_TICK05,X
         INC SPRITES_DELTA_Y05,X
 _L01    RTS
 
-f2F32   .BYTE $D2,$D1,$D0,$D1,$D2
+_BOMB_FRAMES
+        .BYTE $D2,$D1,$D0,$D1,$D2
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_08
