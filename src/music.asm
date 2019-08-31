@@ -19,6 +19,7 @@ s5006   JMP j5F48
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Plays a sound effect
 ; A=sfx to play
+;  $00 = pick up grenade
 SFX_PLAY
         JMP j5F56
 

@@ -3201,7 +3201,7 @@ JMP_FB              ;$24EF
         ; Anim table
 TYPE_ANIM_TBL_HI =*+1
 TYPE_ANIM_TBL_LO
-        .ADDR s2CD9                             ;$00
+        .ADDR TYPE_ANIM_MAIN                    ;$00
         .ADDR TYPE_ANIM_HERO_BULLET             ;$01
         .ADDR TYPE_ANIM_HERO_GRENADE            ;$02
         .ADDR TYPE_ANIM_HERO_BULLET_END         ;$03
@@ -3220,11 +3220,11 @@ TYPE_ANIM_TBL_LO
         .ADDR TYPE_ANIM_VOID                    ;$10
         .ADDR TYPE_ANIM_POW_GUARD               ;$11
         .ADDR TYPE_ANIM_POW                     ;$12
-        .ADDR s2AF9
+        .ADDR TYPE_ANIM_DELAYED_CLEANUP         ;$13
         .ADDR TYPE_ANIM_POW_FREE                ;$14
-        .ADDR s30DD
-        .ADDR s2A78
-        .ADDR s2A34
+        .ADDR TYPE_ANIM_SOLIDER_GO_UP           ;$15
+        .ADDR TYPE_ANIM_GRENADE_BOX             ;$16
+        .ADDR TYPE_ANIM_SOLDIER_FROM_SIDE       ;$17
         .ADDR s29BB                             ;$18
         .ADDR s2956
         .ADDR TYPE_ANIM_BOSS_L1                 ;$1A
@@ -3880,7 +3880,10 @@ b2A27   JSR UPDATE_ENEMY_PATH
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_17
-s2A34   INC SPRITES_TICK05,X
+; Animates the soliders that appears from the sides and moves mostly
+; horizontally.
+TYPE_ANIM_SOLDIER_FROM_SIDE     ;$2A34
+        INC SPRITES_TICK05,X
         LDA a04AC,X
         AND #$FE     ;#%11111110
         TAY
@@ -3913,29 +3916,30 @@ _L00    LDA #$08     ;#%00001000
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_16
-s2A78   LDA SPRITES_X_HI00
+TYPE_ANIM_GRENADE_BOX   ;$2A78
+        LDA SPRITES_X_HI00
         CMP SPRITES_X_HI05,X
-        BNE b2AC7
+        BNE _L00
         LDA SPRITES_X_LO00
         CLC
         ADC #$0F     ;#%00001111
         CMP SPRITES_X_LO05,X
-        BCC b2AC7
+        BCC _L00
         LDA SPRITES_X_LO00
         SEC
         SBC #$0F     ;#%00001111
         CMP SPRITES_X_LO05,X
-        BCS b2AC7
+        BCS _L00
         LDA SPRITES_Y00
         CLC
         ADC #$12     ;#%00010010
         CMP SPRITES_Y05,X
-        BCC b2AC7
+        BCC _L00
         LDA SPRITES_Y00
         SEC
         SBC #$0A     ;#%00001010
         CMP SPRITES_Y05,X
-        BCS b2AC7
+        BCS _L00
         LDA #$03     ;#%00000011
         SED
         CLC
@@ -3943,19 +3947,19 @@ s2A78   LDA SPRITES_X_HI00
         STA GRENADES
         CLD
         JSR SCREEN_REFRESH_GRENADES
-        LDA #$0A     ;#%00001010
+        LDA #$0A
         JSR SCORE_ADD
         JSR CLEANUP_SPRITE
-        LDA #$00     ;#%00000000
+        LDA #$00     ;play "pick up grenade" sfx
         JSR SFX_PLAY
-b2AC7   LDA #$0B     ;dark grey
+_L00    LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
         LDA GAME_TICK
         AND #$08     ;#%00001000
-        BEQ b2AD4
+        BEQ _L01
         RTS
 
-b2AD4   LDA #$08     ;orange
+_L01    LDA #$08     ;orange
         STA SPRITES_COLOR05,X
         RTS
 
@@ -3983,7 +3987,7 @@ _FRAME_POW_FREE         ;$2AF7 (Pow == Prisoner of War)
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_13
-s2AF9
+TYPE_ANIM_DELAYED_CLEANUP   ;s2AF9
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$41     ;#%01000001
@@ -4220,7 +4224,8 @@ f2CD5   .BYTE $00,$00,$FF,$FF
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_00
 ; Main logic
-s2CD9   LDA V_SCROLL_ROW_IDX
+TYPE_ANIM_MAIN      ;$2CD9
+        LDA V_SCROLL_ROW_IDX
         BEQ _L00
         JMP _L05
 
@@ -4583,17 +4588,17 @@ _L01    LDA #$00
 TYPE_ANIM_SOLDIER_BEHIND_SMTH   ;$2FC2
         INC SPRITES_TICK05,X
         LDA SPRITES_Y05,X
-        CMP #$82     ;#%10000010
+        CMP #$82
         BCC _L01
-        LDA #$98     ;#%10011000
+        LDA #$98
         STA SPRITES_PTR05,X
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA a04A1,X
         STA a04AC,X
         STA SPRITES_TICK05,X
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_DELTA_Y05,X
         JSR GET_RANDOM
         AND #$03     ;#%00000011
@@ -4601,11 +4606,13 @@ TYPE_ANIM_SOLDIER_BEHIND_SMTH   ;$2FC2
         SBC #$02     ;#%00000010
         CMP #$FE     ;#%11111110
         BNE _L00
-        LDA #$00     ;#%00000000
+        LDA #$00
 _L00    STA SPRITES_DELTA_X05,X
-        LDA #$15     ;#%00010101
+
+        ; Switch animation to "go up"
+        LDA #$15
         STA SPRITES_TYPE05,X
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_BKG_PRI05,X
         RTS
 
@@ -4719,7 +4726,11 @@ _L05    LDA #$98     ;#%10011000
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: sprite_type_15
-s30DD   INC SPRITES_TICK05,X
+; When the "soldier behind something" (see sprite_type_17) is below our Y
+; position, it is converted into this sprite_type.
+; This sprite_type moves the sprite up and kind of chase the hero.
+TYPE_ANIM_SOLIDER_GO_UP     ;$30DD
+        INC SPRITES_TICK05,X
         LDA a04AC,X
         AND #$FE     ;#%11111110
         TAY
