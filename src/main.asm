@@ -2216,7 +2216,7 @@ ACTION_TBL_LO               ;$1C06
         .ADDR ACTION_NEW_GRENADE_BOX    ;$07
         .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_L    ;$08
         .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_R    ;$09
-        .ADDR s20F6                     ;$0A
+        .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_R_B  ;$0A
         .ADDR ACTION_OPEN_DOOR          ;$0B
         .ADDR s23CC                     ;$0C
         .ADDR s20B1                     ;$0D
@@ -2682,25 +2682,28 @@ s20B1   LDA #$A0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_0A
-; Create sprite type $18
-s20F6   LDA #$1E     ;#%00011110
+; Create sprite "soldier from side b" which seems to be more or less similar
+; to the regular "sprite from side".
+; TODO: investigate the differences
+ACTION_NEW_SOLDIER_FROM_SIDE_R_B ;$20F6
+        LDA #$1E
         STA SPRITES_Y05,X
-        LDA #$5A     ;#%01011010
+        LDA #$5A
         STA SPRITES_X_LO05,X
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_X_HI05,X
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_DELTA_X05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_Y05,X
-        LDA #$D5     ;#%11010101
+        LDA #$D5    ;soldier from side r frame
         STA SPRITES_PTR05,X
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$18     ;#%00011000
+        LDA #$18        ;soldier from side B
         STA SPRITES_TYPE05,X
         LDA #$0C     ;#%00001100
         STA a04A1,X
@@ -3057,24 +3060,25 @@ NEW_SOLDIER_FROM_SIDE
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_0C
-s23CC   LDA #$1E     ;#%00011110
+; Creates a soldier from side that throws grenades
+s23CC   LDA #$1E
         STA SPRITES_Y05,X
-        LDA #$5A     ;#%01011010
+        LDA #$5A
         STA SPRITES_X_LO05,X
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_X_HI05,X
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_DELTA_X05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_Y05,X
-        LDA #$D5     ;#%11010101
+        LDA #$D5     ;soldier from side B
         STA SPRITES_PTR05,X
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$19     ;#%00011001
+        LDA #$19    ;anim_type_19
         STA SPRITES_TYPE05,X
         LDA #$0C     ;#%00001100
         STA a04A1,X
@@ -3304,7 +3308,7 @@ _L02    LDA SPRITES_TICK05,X
         BEQ _L03
         RTS
 
-_L03    JSR s32ED
+_L03    JSR THROW_GRENADE
         LDA #$01
         STA a04EA
         CPY #$FF
@@ -3841,7 +3845,7 @@ _L01    LDA #$E3    ; soldier throw grenade #1-frame
 
 _L02    LDA #$E4    ; soldier throw grenade #2-frame
         STA SPRITES_PTR05,X
-        JMP s32ED
+        JMP THROW_GRENADE
 
 _L03    LDA #$04
         STA a04A1,X
@@ -3884,7 +3888,7 @@ TYPE_ANIM_SOLDIER_FROM_SIDE_B   ;$29BB
 _L00    CMP #$06
         BNE _L01
         INC SPRITES_PTR05,X
-        JMP s32ED
+        JMP THROW_GRENADE
 
 _L01    CMP #$14
         BNE _L02
@@ -4119,7 +4123,7 @@ TYPE_ANIM_BIKE_IN_BRIDGE ;$2B4D
 _L00    LDA SPRITES_TICK05,X
         AND #$1F     ;#%00011111
         BNE _L01
-        JSR s32ED
+        JSR THROW_GRENADE
         RTS
 
         ; Bike moving fordward (left-direction)
@@ -4940,7 +4944,7 @@ TYPE_ANIM_SOLDIER_IN_FORT_L1  ;$31F0
         JSR GET_RANDOM
         AND #$3F     ;#%00111111
         BNE TYPE_ANIM_SOLDIER
-        JSR s32ED
+        JSR THROW_GRENADE
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
@@ -5049,8 +5053,11 @@ DELTA_Y_TBL
     .BYTE $01,$01,$01,$00,$00,$00,$FF,$FF
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; riq
-s32ED   LDA SPRITES_X_HI05,X
+; Soldier tries to throw a grenade. If there are no empty seats, grenade
+; is not thrown.
+THROW_GRENADE   ;$32ED
+        ; Same X part?
+        LDA SPRITES_X_HI05,X
         CMP SPRITES_X_HI00
         BNE _L01
 
@@ -5075,14 +5082,14 @@ _L02    TXA
         STA SPRITES_Y05,Y
         LDA SPRITES_X_HI05,X
         STA SPRITES_X_HI05,Y
-        LDA #$93     ;#%10010011
+        LDA #$93    ;grenade frame #0
         STA SPRITES_PTR05,Y
         LDA #$0E     ;light blue
         STA SPRITES_COLOR05,Y
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
-        LDA #$0B     ;#%00001011
+        LDA #$0B     ;anim_type_0B: grenade
         STA SPRITES_TYPE05,Y
         LDA SPRITES_X_LO00
         SEC

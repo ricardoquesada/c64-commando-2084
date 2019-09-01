@@ -1,6 +1,8 @@
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Music routine
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Not fully analized. Might be very similar to the one analized here:
+; http://www.1xn.org/text/C64/rob_hubbards_music.txt
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Init a song
@@ -463,8 +465,6 @@ b5418   BVC b5425
         STA a552F
 b5425   JMP b53B4
 
-; Frequency data
-; Taken from: http://www.1xn.org/text/C64/rob_hubbards_music.txt
 FREQ_LO
         .BYTE $16
 FREQ_HI
