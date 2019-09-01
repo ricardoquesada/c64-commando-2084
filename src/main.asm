@@ -2223,8 +2223,8 @@ ACTION_TBL_LO               ;$1C06
         .ADDR ACTION_NEW_SOLDIER_IN_TRENCH  ;$0E
         .ADDR ACTION_NEW_TURRET_CANNON_L    ;$0F
         .ADDR ACTION_NEW_TURRET_CANNON_R    ;$10
-        .ADDR s2001                     ;$11
-        .ADDR s201D                     ;$12
+        .ADDR ACTION_NEW_BAZOOKA_ENEMY_R    ;$11
+        .ADDR ACTION_NEW_BAZOOKA_ENEMY_L    ;$12
         .ADDR s1F8F                     ;$13
         .ADDR s1EED                     ;$14
         .ADDR s1EAF                     ;$15
@@ -2566,32 +2566,37 @@ _L01    TYA
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_11
-s2001   LDA #$46     ;#%01000110
+ACTION_NEW_BAZOOKA_ENEMY_R  ;$2001
+        LDA #$46
         STA SPRITES_X_LO05,X
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_X_HI05,X
-        LDA #$1E     ;#%00011110
+        LDA #$1E
         STA SPRITES_Y05,X
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_DELTA_X05,X
         LDA #$0C     ;#%00001100
         STA a04AC,X
-        JMP j2036
+        JMP INIT_NEW_BAZOOKA_ENEMY
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_12
-s201D   LDA #$32     ;#%00110010
+ACTION_NEW_BAZOOKA_ENEMY_L  ;$201D
+        LDA #$32
         STA SPRITES_X_LO05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_X_HI05,X
-        LDA #$1E     ;#%00011110
+        LDA #$1E
         STA SPRITES_Y05,X
-        LDA #$04     ;#%00000100
+        LDA #$04
         STA a04AC,X
-        LDA #$01     ;#%00000001
+        LDA #$01
         STA SPRITES_DELTA_X05,X
 
-j2036   LDA #$00     ;#%00000000
+        ; Fall-through
+
+INIT_NEW_BAZOOKA_ENEMY
+        LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y05,X
         LDA #$E6     ;#%11100110
         STA SPRITES_PTR05,X
@@ -2600,7 +2605,7 @@ j2036   LDA #$00     ;#%00000000
         LDA #$00     ;#%00000000
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$20     ;#%00100000
+        LDA #$20     ;anim_type_20: bazooka enemy
         STA SPRITES_TYPE05,X
         RTS
 
