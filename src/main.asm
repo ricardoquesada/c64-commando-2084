@@ -327,9 +327,8 @@ START   ;$0883
         STA LIVES
 
         ;riq
-;        inc LEVEL_NR
-;        inc LEVEL_NR
-;        inc LEVEL_NR
+        ;lda #3
+        ;sta LEVEL_NR
 
 START_LEVEL          ;$08B8
         LDA #$A5     ;#%10100101
@@ -2207,18 +2206,18 @@ _L04    STY a00FD,b
 
 ACTION_TBL_HI = *+1         ;$1C07
 ACTION_TBL_LO               ;$1C06
-        .ADDR ACT_NEW_SOLDIER_BEHIND_TRENCH ;$00
-        .ADDR ACT_NEW_JUMPING_SOLDIER_R ;$01
-        .ADDR ACT_NEW_JUMPING_SOLDIER_L ;$02
-        .ADDR ACT_NEW_MORTAR_ENEMY      ;$03
-        .ADDR ACT_NEW_BIKE              ;$04
-        .ADDR s2190                     ;$05
-        .ADDR s215F                     ;$06
-        .ADDR s212F                     ;$07
-        .ADDR s236E                     ;$08
-        .ADDR s2385                     ;$09
+        .ADDR ACTION_NEW_SOLDIER_BEHIND_TRENCH  ;$00
+        .ADDR ACTION_NEW_JUMPING_SOLDIER_R  ;$01
+        .ADDR ACTION_NEW_JUMPING_SOLDIER_L  ;$02
+        .ADDR ACTION_NEW_MORTAR_ENEMY   ;$03
+        .ADDR ACTION_NEW_BIKE           ;$04
+        .ADDR ACTION_NEW_POW_GUARD      ;$05
+        .ADDR ACTION_NEW_POW            ;$06
+        .ADDR ACTION_NEW_GRENADE_BOX    ;$07
+        .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_L    ;$08
+        .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_R    ;$09
         .ADDR s20F6                     ;$0A
-        .ADDR ACT_OPEN_DOOR             ;$0B
+        .ADDR ACTION_OPEN_DOOR          ;$0B
         .ADDR s23CC                     ;$0C
         .ADDR s20B1                     ;$0D
         .ADDR s22A9                     ;$0E
@@ -2234,7 +2233,7 @@ ACTION_TBL_LO               ;$1C06
         .ADDR s1E66                     ;$18
         .ADDR s1E58                     ;$19
         .ADDR s1E4F                     ;$1A
-        .ADDR ACT_VOID                  ;$1B
+        .ADDR ACTION_VOID               ;$1B
 
 ; Level 1 data
 LVL1_TRIGGER_ROW_TBL    ;$1C3E
@@ -2342,20 +2341,20 @@ LVL3_ACTION_TBL         ;$1E2C
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_1B
-ACT_VOID        ;$1E4E
+ACTION_VOID        ;$1E4E
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_1A
 ; Create sprite type: $28
-s1E4F   JSR ACT_NEW_MORTAR_ENEMY
+s1E4F   JSR ACTION_NEW_MORTAR_ENEMY
         LDA #$28     ;#%00101000
         STA SPRITES_TYPE05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_19
-s1E58   JSR ACT_NEW_SOLDIER_BEHIND_TRENCH
+s1E58   JSR ACTION_NEW_SOLDIER_BEHIND_TRENCH
         LDA #$27     ;#%00100111
         STA SPRITES_TYPE05,X
         RTS
@@ -2363,7 +2362,7 @@ s1E58   JSR ACT_NEW_SOLDIER_BEHIND_TRENCH
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_0B
 ; Open door
-ACT_OPEN_DOOR    ;$1E61
+ACTION_OPEN_DOOR    ;$1E61
         LDA #$02     ;Draw open door
         JMP LEVEL_PATCH_DOOR
 
@@ -2711,45 +2710,47 @@ s20F6   LDA #$1E     ;#%00011110
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_07
 ; Create sprite type $16
-s212F   LDY a00FD,b
+ACTION_NEW_GRENADE_BOX  ;$212F
+        LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_X_LO05,X
-        LDA #$26     ;#%00100110
+        LDA #$26
         STA SPRITES_Y05,X
-        LDA #$BB     ;#%10111011
+        LDA #$BB        ;grenade box frame
         STA SPRITES_PTR05,X
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
         LDA (p26),Y
         STA SPRITES_X_HI05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$16     ;#%00010110
+        LDA #$16        ;grenade box
         STA SPRITES_TYPE05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_06
 ; Create sprite type $12
-s215F   LDY a00FD,b
+ACTION_NEW_POW      ;$215F
+        LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_X_LO05,X
-        LDA #$21     ;#%00100001
+        LDA #$21
         STA SPRITES_Y05,X
-        LDA #$C2     ;#%11000010
+        LDA #$C2    ;POW frame
         STA SPRITES_PTR05,X
         LDA #$06     ;blue
         STA SPRITES_COLOR05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_X_HI05,X
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$12     ;#%00010010
+        LDA #$12        ;POW
         STA SPRITES_TYPE05,X
         STX a04ED
         RTS
@@ -2757,23 +2758,24 @@ s215F   LDY a00FD,b
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_05
 ; Create sprite type $11
-s2190   LDY a00FD,b
+ACTION_NEW_POW_GUARD    ;$2190
+        LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_X_LO05,X
-        LDA #$21     ;#%00100001
+        LDA #$21
         STA SPRITES_Y05,X
-        LDA #$C0     ;#%11000000
+        LDA #$C0     ;POW guard frame
         STA SPRITES_PTR05,X
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_X_HI05,X
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         STA a04EC
-        LDA #$11     ;#%00010001
+        LDA #$11     ;POW guard
         STA SPRITES_TYPE05,X
         RTS
 
@@ -2783,7 +2785,7 @@ s2190   LDY a00FD,b
 ; From lvl1, the one that crosses the bridge
 ; This object requires two different sprite types: front and back bike.
 ; Creates the back one only if there is space for it.
-ACT_NEW_BIKE         ;$21C1
+ACTION_NEW_BIKE         ;$21C1
         LDA #$20     ;#%00100000
         STA SPRITES_X_LO05,X
         LDA #$21     ;#%00100001
@@ -2840,7 +2842,7 @@ _L01    TYA
 ; Seems to be unused (?)
         LDY #$00
 b2231   LDA SPRITES_TYPE05,Y
-        BEQ ACT_NEW_MORTAR_ENEMY
+        BEQ ACTION_NEW_MORTAR_ENEMY
         INY
         CPY #$0B     ;#%00001011
         BNE b2231
@@ -2849,7 +2851,7 @@ b2231   LDA SPRITES_TYPE05,Y
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_03
 ; Create the red mortar guy (sprite type: $0D)
-ACT_NEW_MORTAR_ENEMY    ;$223C
+ACTION_NEW_MORTAR_ENEMY    ;$223C
         LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_X_LO05,X
@@ -2875,7 +2877,7 @@ ACT_NEW_MORTAR_ENEMY    ;$223C
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_00
 ; Create soldier behind trench (sprite type: $07)
-ACT_NEW_SOLDIER_BEHIND_TRENCH       ;$2271
+ACTION_NEW_SOLDIER_BEHIND_TRENCH       ;$2271
         LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_X_LO05,X
@@ -2929,7 +2931,7 @@ s22A9   LDY a00FD,b
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_01
 ; Create jumping sprite from right margin (sprite type: $0A)
-ACT_NEW_JUMPING_SOLDIER_R       ;$22E4
+ACTION_NEW_JUMPING_SOLDIER_R       ;$22E4
         LDY a00FD,b
         LDA #$9F     ;#%10011111
         SEC
@@ -2965,7 +2967,7 @@ ACT_NEW_JUMPING_SOLDIER_R       ;$22E4
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_02
 ; Create jumping sprite from left margin (sprite type: $0A)
-ACT_NEW_JUMPING_SOLDIER_L       ;$2329
+ACTION_NEW_JUMPING_SOLDIER_L       ;$2329
         LDY a00FD,b
         LDA #$86     ;#%10000110
         SEC
@@ -3000,9 +3002,9 @@ ACT_NEW_JUMPING_SOLDIER_L       ;$2329
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_08
-; Create sprite type $17
 ; Sprite is placed at the left of screen
-s236E   LDA #$01
+ACTION_NEW_SOLDIER_FROM_SIDE_L  ;$236E
+        LDA #$01
         STA SPRITES_X_LO05,X
         LDA #$00
         STA SPRITES_X_HI05,X
@@ -3010,13 +3012,13 @@ s236E   LDA #$01
         STA SPRITES_DELTA_X05,X
         LDA #$04
         STA a04AC,X
-        JMP j2399
+        JMP NEW_SOLDIER_FROM_SIDE
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_09
-; Create sprite type $17
 ; Sprite is placed at right of screen
-s2385   LDA #$5A
+ACTION_NEW_SOLDIER_FROM_SIDE_R  ;$2385
+        LDA #$5A
         STA SPRITES_X_LO05,X
         LDA #$FF
         STA SPRITES_X_HI05,X
@@ -3027,16 +3029,17 @@ s2385   LDA #$5A
 
         ; fall-through
 
-j2399   LDA #$00
+NEW_SOLDIER_FROM_SIDE
+        LDA #$00
         STA SPRITES_DELTA_Y05,X
-        LDA #$D5
+        LDA #$D5    ;soldier from side heading west
         STA SPRITES_PTR05,X
-        LDA #$0B     ;dark grey
+        LDA #$0B    ;dark grey
         STA SPRITES_COLOR05,X
         LDA #$00
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$17
+        LDA #$17    ;soldier from side type
         STA SPRITES_TYPE05,X
         LDY a00FD,b
         LDA (p26),Y
@@ -3243,9 +3246,9 @@ TYPE_ANIM_TBL_LO
         .ADDR s26DD                             ;$22
         .ADDR TYPE_ANIM_VOID1                   ;$23
         .ADDR TYPE_ANIM_SOLDIER_JUMPING_FROM_TRUCK  ;$24
-        .ADDR s2675
-        .ADDR s25F9
-        .ADDR s25F0
+        .ADDR TYPE_ANIM_CART_UP_L2              ;$25
+        .ADDR s25F9                             ;$26
+        .ADDR TYPE_ANIM_TOWER_FIRE_L3           ;$27
         .ADDR s2597                             ;$28
 
 f2544   .BYTE $00,$00,$00,$00,$00,$03,$00,$02
@@ -3285,38 +3288,44 @@ s2597   INC SPRITES_TICK05,X
         STA SPRITES_PTR05,X
 _L00    CMP #$0F     ;#%00001111
         BNE _L01
-        LDA #$CE     ;#%11001110
+
+        LDA #$CE
         STA SPRITES_PTR05,X
 _L01    CMP #$14     ;#%00010100
         BNE _L02
-        LDA #$CD     ;#%11001101
+
+        LDA #$CD
         STA SPRITES_PTR05,X
         LDA #$00     ;#%00000000
         STA a04EA
+
 _L02    LDA SPRITES_TICK05,X
         AND #$3F     ;#%00111111
         BEQ _L03
         RTS
 
 _L03    JSR s32ED
-        LDA #$01     ;#%00000001
+        LDA #$01
         STA a04EA
-        CPY #$FF     ;#%11111111
+        CPY #$FF
         BEQ _L04
-        LDA #$D0     ;#%11010000
+
+        LDA #$D0        ; bomb frame
         STA SPRITES_PTR05,Y
         LDA #$00     ;black
         STA SPRITES_COLOR05,Y
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
-        LDA #$0E     ;#%00001110
+        LDA #$0E        ; bomb from mortar animation
         STA SPRITES_TYPE05,Y
 _L04    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_27
-s25F0   INC SPRITES_TICK05,X
+; The animation of the tower in level3 with a guy firing at the hero.
+TYPE_ANIM_TOWER_FIRE_L3     ;$25F0
+        INC SPRITES_TICK05,X
         JSR SOLIDER_IN_TRENCH_AIM_TO_HERO
         JMP j33D0
 
@@ -3325,46 +3334,50 @@ s25F0   INC SPRITES_TICK05,X
 s25F9   INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         AND #$7F     ;#%01111111
-        BNE b2608
-        LDA #$FF     ;#%11111111
+        BNE _L00
+
+        LDA #$FF
         STA SPRITES_DELTA_Y05,X
-b2608   LDA SPRITES_DELTA_Y05,X
-        BEQ b261A
+
+_L00    LDA SPRITES_DELTA_Y05,X
+        BEQ _L01
         LDA SPRITES_TICK05,X
         AND #$1F     ;#%00011111
         CMP #$0F     ;#%00001111
-        BEQ b2621
+        BEQ _L03
         CMP #$1E     ;#%00011110
-        BEQ b261B
-b261A   RTS
+        BEQ _L02
+_L01    RTS
 
-b261B   LDA #$00     ;#%00000000
+_L02    LDA #$00
         STA SPRITES_DELTA_Y05,X
         RTS
 
-b2621   LDA #$01     ;#%00000001
+_L03    LDA #$01
         STA SPRITES_DELTA_Y05,X
-        LDY #$00     ;#%00000000
-b2628   LDA SPRITES_TYPE05,Y
-        BEQ b2633
+
+        ; Search empty seat
+        LDY #$00
+_L04    LDA SPRITES_TYPE05,Y
+        BEQ _L05
         INY
         CPY #$0B     ;#%00001011
-        BNE b2628
+        BNE _L04
         RTS
 
-b2633   LDA SPRITES_X_LO05,X
+_L05    LDA SPRITES_X_LO05,X
         STA SPRITES_X_LO05,Y
         LDA SPRITES_Y05,X
         CLC
-        ADC #$10     ;#%00010000
+        ADC #$10
         STA SPRITES_Y05,Y
-        LDA #$05     ;#%00000101
+        LDA #$05        ;Create soldier
         STA SPRITES_TYPE05,Y
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,Y
         LDA SPRITES_X_HI05,X
         STA SPRITES_X_HI05,Y
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
         TXA
@@ -3383,7 +3396,10 @@ b2633   LDA SPRITES_X_LO05,X
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_25
-s2675   INC SPRITES_TICK05,X
+; The animation for the "cart" that appears going up at the very beginning of
+; level2.
+TYPE_ANIM_CART_UP_L2   ;$2675
+        INC SPRITES_TICK05,X
         JSR s3128
         JSR j33D0
         LDA SPRITES_TICK05,X
