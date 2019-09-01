@@ -2219,10 +2219,10 @@ ACTION_TBL_LO               ;$1C06
         .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_R_B  ;$0A
         .ADDR ACTION_OPEN_DOOR          ;$0B
         .ADDR s23CC                     ;$0C
-        .ADDR s20B1                     ;$0D
-        .ADDR s22A9                     ;$0E
-        .ADDR s2053                     ;$0F
-        .ADDR s2082                     ;$10
+        .ADDR ACTION_NEW_BOSS_L1        ;$0D
+        .ADDR ACTION_NEW_SOLDIER_IN_TRENCH  ;$0E
+        .ADDR ACTION_NEW_TURRET_CANNON_L    ;$0F
+        .ADDR ACTION_NEW_TURRET_CANNON_R    ;$10
         .ADDR s2001                     ;$11
         .ADDR s201D                     ;$12
         .ADDR s1F8F                     ;$13
@@ -2606,51 +2606,57 @@ j2036   LDA #$00     ;#%00000000
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_0F
-s2053   LDA #$2C     ;#%00101100
+; creates the left cannon (inside the turrent). Appears in level2
+ACTION_NEW_TURRET_CANNON_L      ;$2053
+        LDA #$2C
         STA SPRITES_X_LO05,X
-        LDA #$24     ;#%00100100
+        LDA #$24
         STA SPRITES_Y05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
-        LDA #$FC     ;#%11111100
+        LDA #$FC
         STA SPRITES_PTR05,X
         LDA #$08     ;orange
         STA SPRITES_COLOR05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_X_HI05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$06     ;#%00000110
+        LDA #$06
         STA a04AC,X
-        LDA #$1E     ;#%00011110
+        LDA #$1E        ;anim_type_1E: turret fire
         STA SPRITES_TYPE05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_10
-s2082   LDA #$30     ;#%00110000
+; creates the right cannon (inside the turrent). Appears in level2
+ACTION_NEW_TURRET_CANNON_R     ;$2082
+        LDA #$30
         STA SPRITES_X_LO05,X
-        LDA #$1E     ;#%00011110
+        LDA #$1E
         STA SPRITES_Y05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$FD     ;#%11111101
+        LDA #$FD     ;Cannon in turrent
         STA SPRITES_PTR05,X
         LDA #$08     ;orange
         STA SPRITES_COLOR05,X
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_X_HI05,X
-        LDA #$0A     ;#%00001010
+        LDA #$0A
         STA a04AC,X
-        LDA #$1E     ;#%00011110
+        LDA #$1E    ;anim_type_1E: turret fire
         STA SPRITES_TYPE05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_0D
-s20B1   LDA #$A0
+; Creates the boss from level 1
+ACTION_NEW_BOSS_L1  ;$20B1
+        LDA #$A0
         STA SPRITES_X_LO05,X
         LDA #$50
         STA SPRITES_Y05,X
@@ -2659,7 +2665,7 @@ s20B1   LDA #$A0
         LDA #$08
         STA a04A1,X
         STA a04AC,X
-        LDA #$B9
+        LDA #$B9    ;boss l1 frame
         STA SPRITES_PTR05,X
         LDA #$05     ;green
         STA SPRITES_COLOR05,X
@@ -2670,13 +2676,13 @@ s20B1   LDA #$A0
         STA SPRITES_TICK05,X
         LDA #$00
         STA SPRITES_BKG_PRI05,X
-        LDA #$1A
+        LDA #$1A    ;anim_type_1A: boss l1
         STA SPRITES_TYPE05,X
         JSR GET_RANDOM
-        AND #$01     ;#%00000001
+        AND #$01
         ASL A
         SEC
-        SBC #$01     ;#%00000001
+        SBC #$01
         STA SPRITES_DELTA_X05,X
         RTS
 
@@ -2906,8 +2912,8 @@ ACTION_NEW_SOLDIER_BEHIND_TRENCH       ;$2271
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_0E
-; Create sprite type: $1C
-s22A9   LDY a00FD,b
+ACTION_NEW_SOLDIER_IN_TRENCH    ;$22A9
+        LDY a00FD,b
         LDA (p22),Y
         STA SPRITES_X_LO05,X
         LDA #$2A
@@ -2927,7 +2933,7 @@ s22A9   LDY a00FD,b
         LDA #$08
         STA a04A1,X
         STA a04AC,X
-        LDA #$1C
+        LDA #$1C            ;anim_type_1C: soldier in trench
         STA SPRITES_TYPE05,X
         RTS
 
@@ -3603,6 +3609,7 @@ FRAME_BAZOOKA_GUY       ;$27E0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_1E
+; Turrets are thow small houses that can be destroyed and appear on level 2
 TYPE_ANIM_TURRET_FIRE   ;$27E4
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
