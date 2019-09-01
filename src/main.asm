@@ -722,7 +722,7 @@ HISCORE_SETUP_SPRITES   ;$0B94
         STA SPRITES_COLOR05
         LDA #$FF
         STA SPRITES_BKG_PRI05
-        LDA #$01
+        LDA #$01            ;anim_type_01: bullet
         STA SPRITES_TYPE05
         LDA SPRITES_X_LO05
 
@@ -1182,7 +1182,7 @@ _L00    LDA #$48     ;Sprite Y position
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
-        LDA #$10     ;#%00010000
+        LDA #$10            ;anim_type_10: void
         STA SPRITES_TYPE05,X
         LDA #$08     ;orange
         STA SPRITES_COLOR05,X
@@ -2348,14 +2348,14 @@ ACTION_VOID        ;$1E4E
 ; ref: action_1A
 ; Create sprite type: $28
 s1E4F   JSR ACTION_NEW_MORTAR_ENEMY
-        LDA #$28     ;#%00101000
+        LDA #$28        ;anim_type_28:
         STA SPRITES_TYPE05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_19
 s1E58   JSR ACTION_NEW_SOLDIER_BEHIND_TRENCH
-        LDA #$27     ;#%00100111
+        LDA #$27        ;anim_type_27: tower in lvl3 shoot
         STA SPRITES_TYPE05,X
         RTS
 
@@ -2399,7 +2399,7 @@ j1E7D   LDY a00FD,b
         STA SPRITES_TICK05,X
         LDA #$FF
         STA SPRITES_BKG_PRI05,X
-        LDA #$26
+        LDA #$26            ;anim_type_26:
         STA SPRITES_TYPE05,X
         RTS
 
@@ -2408,28 +2408,28 @@ f1EAD   .BYTE $78,$D2
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_15
 s1EAF   JSR GET_RANDOM
-        AND #$01     ;#%00000001
+        AND #$01
         TAY
         LDA f1EAD,Y
         STA SPRITES_X_LO05,X
-        LDA #$B8     ;#%10111000
+        LDA #$B8
         STA SPRITES_Y05,X
-        LDA #$FE     ;#%11111110
+        LDA #$FE
         STA SPRITES_DELTA_Y05,X
-        LDA #$F3     ;#%11110011
+        LDA #$F3
         STA SPRITES_PTR05,X
         LDA #$06     ;blue
         STA SPRITES_COLOR05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_X_HI05,X
         STA SPRITES_BKG_PRI05,X
         STA SPRITES_DELTA_X05,X
         STA SPRITES_TICK05,X
-        LDA #$08     ;#%00001000
+        LDA #$08
         STA a04AC,X
-        LDA #$25     ;#%00100101
+        LDA #$25            ;anim_type_25: cart in lvl2 going up
         STA SPRITES_TYPE05,X
-        LDA #$05     ;#%00000101
+        LDA #$05
         JSR SFX_PLAY
         RTS
 
@@ -2451,7 +2451,7 @@ s1EED   LDA #$3E
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$23                        ;void sprite type
+        LDA #$23            ;anim_type_23: void
         STA SPRITES_TYPE05,X
 
         ;Try to find an extra empty seat
@@ -2482,7 +2482,7 @@ _L01    TYA
         STA SPRITES_DELTA_Y05,Y
         STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
-        LDA #$24
+        LDA #$24            ;anim_type_24:solider jump (from truck)
         STA SPRITES_TYPE05,Y
         TXA
         STA a04A1,Y                     ;links X with Y
@@ -2539,7 +2539,7 @@ _L01    TYA
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$22
+        LDA #$22                ;anim_type_22
         STA SPRITES_TYPE05,X
 
         TXA
@@ -2560,7 +2560,7 @@ _L01    TYA
         STA SPRITES_DELTA_Y05,Y
         STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
-        LDA #$10
+        LDA #$10                ;anim_type_10: void
         STA SPRITES_TYPE05,Y
         RTS
 
@@ -2714,7 +2714,7 @@ ACTION_NEW_SOLDIER_FROM_SIDE_R_B ;$20F6
         LDA #$00
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$18        ;soldier from side B
+        LDA #$18        ;anim_type_1B: soldier from side B
         STA SPRITES_TYPE05,X
         LDA #$0C     ;#%00001100
         STA a04A1,X
@@ -2741,7 +2741,7 @@ ACTION_NEW_GRENADE_BOX  ;$212F
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$16        ;grenade box
+        LDA #$16        ;anim_type_16: grenade box
         STA SPRITES_TYPE05,X
         RTS
 
@@ -2764,7 +2764,7 @@ ACTION_NEW_POW      ;$215F
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$12        ;POW
+        LDA #$12        ;anim_type_12: POW
         STA SPRITES_TYPE05,X
         STX a04ED
         RTS
@@ -2789,7 +2789,7 @@ ACTION_NEW_POW_GUARD    ;$2190
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         STA a04EC
-        LDA #$11     ;POW guard
+        LDA #$11     ;anim_type_11: POW guard
         STA SPRITES_TYPE05,X
         RTS
 
@@ -2816,7 +2816,7 @@ ACTION_NEW_BIKE         ;$21C1
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$0F
+        LDA #$0F            ;anim_type_0F: bike in bridge (lvl 1)
         STA SPRITES_TYPE05,X
 
         ; If there is additional room, create the back bike sprite type
@@ -2847,7 +2847,7 @@ _L01    TYA
         STA SPRITES_DELTA_Y05,Y
         STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
-        LDA #$10     ;#%00010000
+        LDA #$10            ;anim_type_10: void
         STA SPRITES_TYPE05,Y
         RTS
 
@@ -2884,7 +2884,7 @@ ACTION_NEW_MORTAR_ENEMY    ;$223C
         STA a04EA
         LDA #$FF     ;#%11111111
         STA SPRITES_BKG_PRI05,X
-        LDA #$0D     ;#%00001101
+        LDA #$0D            ;anim_type_0D: mortar enemy
         STA SPRITES_TYPE05,X
         RTS
 
@@ -2911,7 +2911,7 @@ ACTION_NEW_SOLDIER_BEHIND_TRENCH       ;$2271
         LDA #$08
         STA a04A1,X
         STA a04AC,X
-        LDA #$07
+        LDA #$07            ;anim_type_07: soldier behind trench
         STA SPRITES_TYPE05,X
         RTS
 
@@ -2971,9 +2971,9 @@ ACTION_NEW_JUMPING_SOLDIER_R       ;$22E4
         LDA #$00
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$0A
+        LDA #$0A            ;anim_type_0A: jumping soldier
         STA SPRITES_TYPE05,X
-        LDA #$0C     ;#%00001100
+        LDA #$0C
         STA a04A1,X
         STA a04AC,X
         RTS
@@ -3007,7 +3007,7 @@ ACTION_NEW_JUMPING_SOLDIER_L       ;$2329
         LDA #$00
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$0A
+        LDA #$0A            ;anim_type_0A: jumping soldier
         STA SPRITES_TYPE05,X
         LDA #$04
         STA a04A1,X
@@ -3053,7 +3053,7 @@ NEW_SOLDIER_FROM_SIDE
         LDA #$00
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$17    ;soldier from side type
+        LDA #$17            ;anim_type_17: soldier from side type
         STA SPRITES_TYPE05,X
         LDY a00FD,b
         LDA (p26),Y
@@ -3089,7 +3089,7 @@ s23CC   LDA #$1E
         LDA #$00
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$19    ;anim_type_19
+        LDA #$19            ;anim_type_19
         STA SPRITES_TYPE05,X
         LDA #$0C     ;#%00001100
         STA a04A1,X
@@ -3113,7 +3113,7 @@ DIE_ANIM_AND_SCORE  ;$2405
         BEQ _L00
         CMP #$1C     ;#%00011100
         BNE _L01
-_L00    LDA #$1D     ;#%00011101
+_L00    LDA #$1D            ;anim_type_1D: soldier in trench die
         STA SPRITES_TYPE05,Y
         LDA #$CB     ;#%11001011
         STA SPRITES_PTR05,Y
@@ -3126,7 +3126,7 @@ _L01    LDA SPRITES_TYPE05,Y
         STA SPRITES_PTR05,Y
         LDA #$01     ;white
         STA SPRITES_COLOR05,Y
-        LDA #$13     ;#%00010011
+        LDA #$13            ;anim_type_13: delayed cleanup
         STA SPRITES_TYPE05,Y
         JMP _L06
 
@@ -3140,7 +3140,7 @@ _L02    LDA SPRITES_TYPE05,Y
         STA SPRITES_PTR05,Y
         LDA #$0E     ;light blue
         STA SPRITES_COLOR05,Y
-        LDA #$13     ;#%00010011
+        LDA #$13            ;anim_type_13: delayed cleanup
         STA SPRITES_TYPE05,Y
         INC a04EC
         LDA a04EC
@@ -3149,7 +3149,7 @@ _L02    LDA SPRITES_TYPE05,Y
         TXA
         PHA
         LDX a04ED
-        LDA #$14     ;#%00010100
+        LDA #$14            ;anim_type_14: POW is freed
         STA SPRITES_TYPE05,X
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X05,X
@@ -3160,9 +3160,9 @@ _L02    LDA SPRITES_TYPE05,Y
         JMP _L06
 
 _L03    LDA SPRITES_TYPE05,Y
-        CMP #$23     ;#%00100011
+        CMP #$23            ;anim_type_23: void
         BEQ _L04
-        CMP #$24     ;#%00100100
+        CMP #$24            ;anim_type_24: solider jumping (from truck)
         BNE _L05
 _L04    TXA
         PHA
@@ -3175,7 +3175,7 @@ _L04    TXA
         TAX
         JMP _L06
 
-_L05    LDA #$06     ;#%00000110
+_L05    LDA #$06            ;anim_type_06: soldier die
         STA SPRITES_TYPE05,Y
 
 _L06    LDA #$00     ;#%00000000
