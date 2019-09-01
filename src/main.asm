@@ -326,6 +326,11 @@ START   ;$0883
         STA GRENADES
         STA LIVES
 
+        ;riq
+;        inc LEVEL_NR
+;        inc LEVEL_NR
+;        inc LEVEL_NR
+
 START_LEVEL          ;$08B8
         LDA #$A5     ;#%10100101
         STA V_SCROLL_ROW_IDX
@@ -3217,7 +3222,7 @@ TYPE_ANIM_TBL_LO
         .ADDR TYPE_ANIM_MORTAR_ENEMY            ;$0D
         .ADDR TYPE_ANIM_MORTAR_BOMB             ;$0E
         .ADDR TYPE_ANIM_BIKE_IN_BRIDGE          ;$0F
-        .ADDR TYPE_ANIM_VOID                    ;$10
+        .ADDR TYPE_ANIM_VOID0                   ;$10
         .ADDR TYPE_ANIM_POW_GUARD               ;$11
         .ADDR TYPE_ANIM_POW                     ;$12
         .ADDR TYPE_ANIM_DELAYED_CLEANUP         ;$13
@@ -3235,9 +3240,9 @@ TYPE_ANIM_TBL_LO
         .ADDR TYPE_ANIM_TURRET_FIRE_END         ;$1F
         .ADDR TYPE_ANIM_BAZOOKA_ENEMY           ;$20
         .ADDR TYPE_ANIM_TURRET_FIRE_END         ;$21
-        .ADDR s26DD
-        .ADDR s2696
-        .ADDR s2697
+        .ADDR s26DD                             ;$22
+        .ADDR TYPE_ANIM_VOID1                   ;$23
+        .ADDR TYPE_ANIM_SOLDIER_JUMPING_FROM_TRUCK  ;$24
         .ADDR s2675
         .ADDR s25F9
         .ADDR s25F0
@@ -3264,7 +3269,7 @@ f2596   ;Label used in self-modifying code
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_10
-TYPE_ANIM_VOID      ;$2596
+TYPE_ANIM_VOID0      ;$2596
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -3383,29 +3388,33 @@ s2675   INC SPRITES_TICK05,X
         JSR j33D0
         LDA SPRITES_TICK05,X
         CMP #$46     ;#%01000110
-        BEQ b268A
+        BEQ _L00
         CMP #$8C     ;#%10001100
-        BEQ b2690
+        BEQ _L01
         RTS
 
-b268A   LDA #$FF     ;#%11111111
+_L00    LDA #$FF     ;#%11111111
         STA SPRITES_DELTA_Y05,X
         RTS
 
-b2690   LDA #$FE     ;#%11111110
+_L01    LDA #$FE     ;#%11111110
         STA SPRITES_DELTA_Y05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_23
-s2696   RTS
+TYPE_ANIM_VOID1     ;$2696
+        RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_24
-s2697   INC SPRITES_TICK05,X
+; Truck from right that appears on level3 contains soldiers.
+; This is the animation for those soldiers.
+TYPE_ANIM_SOLDIER_JUMPING_FROM_TRUCK    ;$2697
+        INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         AND #$3F     ;#%00111111
-        BNE s2696
+        BNE TYPE_ANIM_VOID1
 
         ;Try to find an empty seat
 
@@ -3417,7 +3426,7 @@ _L00    LDA SPRITES_TYPE05,Y
         BNE _L00
         RTS
 
-        ; Create a sprite type $0A
+        ; Create a anim type $0A: jumping soldier
 
 _L01    LDA SPRITES_X_LO05,X
         CLC
@@ -3445,25 +3454,31 @@ s26DD   INC SPRITES_TICK05,X
         LDY a04A1,X
         LDA SPRITES_TICK05,X
         AND #$0F     ;#%00001111
-        BNE b26F3
+        BNE _L00
+
         INC SPRITES_Y05,X
         LDA SPRITES_Y05,X
         STA SPRITES_Y05,Y
-b26F3   CMP #$10     ;#%00010000
-        BNE b2700
+_L00    CMP #$10
+        BNE _L01
+
         DEC SPRITES_Y05,X
         LDA SPRITES_Y05,X
         STA SPRITES_Y05,Y
-b2700   RTS
+_L01    RTS
 
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: anim_type_unk
+; Seems like an unsued animation
+TYPE_ANIM_UNUSED0
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$3C     ;#%00111100
-        BEQ b270C
+        BEQ _L00
         RTS
 
-
-b270C   LDA #$0C     ;#%00001100
+_L00    LDA #$0C     ;#%00001100
         STA SPRITES_TYPE05,X
         LDA #$00     ;#%00000000
         STA SPRITES_TICK05,X
@@ -3568,7 +3583,7 @@ FRAME_BAZOOKA_GUY       ;$27E0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_1E
-TYPE_ANIM_TURRET_FIRE   ;$27E4   
+TYPE_ANIM_TURRET_FIRE   ;$27E4
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         AND #$1F
