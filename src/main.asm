@@ -3230,11 +3230,11 @@ TYPE_ANIM_TBL_LO
         .ADDR TYPE_ANIM_BOSS_L1                 ;$1A
         .ADDR TYPE_ANIM_SOLDIER_IN_FORT_L1      ;$1B
         .ADDR TYPE_ANIM_SOLDIER_IN_TRENCH       ;$1C
-        .ADDR s2860                             ;$1D
-        .ADDR s27E4                             ;$1E
-        .ADDR s2F7F                             ;$1F
-        .ADDR s2724                             ;$20
-        .ADDR s2F7F
+        .ADDR TYPE_ANIM_SOLDIER_IN_TRENCH_DIE   ;$1D
+        .ADDR TYPE_ANIM_TURRET_FIRE             ;$1E
+        .ADDR TYPE_ANIM_TURRET_FIRE_END         ;$1F
+        .ADDR TYPE_ANIM_BAZOOKA_ENEMY           ;$20
+        .ADDR TYPE_ANIM_TURRET_FIRE_END         ;$21
         .ADDR s26DD
         .ADDR s2696
         .ADDR s2697
@@ -3476,7 +3476,9 @@ b270C   LDA #$0C     ;#%00001100
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_20
-s2724   INC SPRITES_TICK05,X
+; Animation for the guys that fire the bazooka
+TYPE_ANIM_BAZOOKA_ENEMY     ;$2724
+        INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         AND #$07     ;#%00000111
         BNE b274C
@@ -3566,7 +3568,8 @@ FRAME_BAZOOKA_GUY       ;$27E0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_1E
-s27E4   INC SPRITES_TICK05,X
+TYPE_ANIM_TURRET_FIRE   ;$27E4   
+        INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         AND #$1F
         BEQ _L01
@@ -3594,7 +3597,7 @@ _L04    LDA SPRITES_X_LO05,X
         STA SPRITES_TYPE05,Y
         LDA #$00     ;black
         STA SPRITES_COLOR05,Y
-        LDA #$D2
+        LDA #$D2        ;bullet frame
         STA SPRITES_PTR05,Y
         LDA SPRITES_X_HI05,X
         STA SPRITES_X_HI05,Y
@@ -3628,7 +3631,10 @@ _L05    LDA #$02
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_1D
-s2860   INC SPRITES_TICK05,X
+; Found in lvl2 (might work other levels as well).
+; Performs the "sprite in trench" die animation and then cleansup.
+TYPE_ANIM_SOLDIER_IN_TRENCH_DIE     ;$2860
+        INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$0A     ;#%00001010
         BEQ _L00
@@ -4559,7 +4565,8 @@ _L01    LDA #$09     ;#%00001001
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_1F / sprite_type_21
-s2F7F   INC SPRITES_TICK05,X
+TYPE_ANIM_TURRET_FIRE_END ;2F7F
+        INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         CMP #$5A     ;#%01011010
         BEQ _L00
