@@ -18,7 +18,7 @@ co2.prg: src/co2.asm src/main-charset.bin src/l3-charset.bin
 	64tass -Wall --cbm-prg -o bin/co2.prg -L bin/list-co2.txt src/co2.asm
 	md5sum bin/co2.prg orig/co2.prg
 
-co3.prg: src/sprites.bin
+co3.prg: src/sprites.bin src/main-map.bin src/main-padding.bin
 	64tass -Wall --cbm-prg -o bin/co3.prg -L bin/list-co3.txt src/co3.asm
 	md5sum bin/co3.prg orig/co3.prg
 
