@@ -8,19 +8,17 @@ ROM_LOAD = $FFD5
 
         * = $032C
 
-
-; $032C (ind) - close or abort all files
-ROM_CLALLi
-        .BYTE $34,$03,$66,$FE
-
-; $0330 (ind) - load after call SETLFS,SETNAM
-ROM_LOADi
-        .BYTE $A5,$F4
-
-; $0332 (ind) - save after call SETLFS,SETNAM
-ROM_SAVEi
-        .BYTE $ED,$F5,$A9,$2F,$8D,$2C,$03,$A9
-        .BYTE $F3,$8D,$2D,$03,$20,$E7,$FF,$A9
+        .ADDR $0334     ;$032C: Kernal CLALL routine
+        .ADDR $FE66     ;$032E: User defined
+        .ADDR $F4A5     ;$0330: Kernal LOAD routine
+        .ADDR $F5ED     ;$0332: Kernal SAVE routine
+        .ADDR $2FA9     ;$0334:
+        .ADDR $2C8D     ;$0336:
+        .ADDR $A903     ;$0338
+        .ADDR $8DF3     ;$033A
+        .ADDR $032D     ;$033C
+        .ADDR $E720     ;$033E
+        .ADDR $A9FF     ;$0340
         .BYTE $00,$20,$90,$FF,$A2,$00,$BD,$56
         .BYTE $03,$F0,$06,$20,$D2,$FF,$E8,$D0
         .BYTE $F5,$4C,$D0,$03,$93
