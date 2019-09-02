@@ -2219,7 +2219,7 @@ ACTION_TBL_LO               ;$1C06
         .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_R_B  ;$0A
         .ADDR ACTION_OPEN_DOOR          ;$0B
         .ADDR s23CC                     ;$0C
-        .ADDR ACTION_NEW_BOSS_L1        ;$0D
+        .ADDR ACTION_NEW_BOSS_LVL1      ;$0D
         .ADDR ACTION_NEW_SOLDIER_IN_TRENCH  ;$0E
         .ADDR ACTION_NEW_TURRET_CANNON_L    ;$0F
         .ADDR ACTION_NEW_TURRET_CANNON_R    ;$10
@@ -2660,7 +2660,7 @@ ACTION_NEW_TURRET_CANNON_R     ;$2082
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_0D
 ; Creates the boss from level 1
-ACTION_NEW_BOSS_L1  ;$20B1
+ACTION_NEW_BOSS_LVL1  ;$20B1
         LDA #$A0
         STA SPRITES_X_LO05,X
         LDA #$50
@@ -3250,8 +3250,8 @@ TYPE_ANIM_TBL_LO
         .ADDR TYPE_ANIM_SOLDIER_FROM_SIDE_A     ;$17
         .ADDR TYPE_ANIM_SOLDIER_FROM_SIDE_B     ;$18
         .ADDR s2956                             ;$19
-        .ADDR TYPE_ANIM_BOSS_L1                 ;$1A
-        .ADDR TYPE_ANIM_SOLDIER_IN_FORT_L1      ;$1B
+        .ADDR TYPE_ANIM_BOSS_LVL1               ;$1A
+        .ADDR TYPE_ANIM_SOLDIER_IN_FORT_LVL1    ;$1B
         .ADDR TYPE_ANIM_SOLDIER_IN_TRENCH       ;$1C
         .ADDR TYPE_ANIM_SOLDIER_IN_TRENCH_DIE   ;$1D
         .ADDR TYPE_ANIM_TURRET_FIRE             ;$1E
@@ -3799,7 +3799,7 @@ _L00    RTS
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_1A
 ; Animation for Level 1 Boss
-TYPE_ANIM_BOSS_L1     ;$2924
+TYPE_ANIM_BOSS_LVL1     ;$2924
         JSR UPDATE_ENEMY_PATH
         JSR s28D8
         JSR UPDATE_ENEMY_BKG_PRI
@@ -4954,7 +4954,7 @@ _L12    LDA #$0A     ;#%00001010
 ; ref: anim_type_1B
 ; Sprites that goes out for the fort in LVL1
 ; Same logic as regular soldier but with some randomness at the beginning
-TYPE_ANIM_SOLDIER_IN_FORT_L1  ;$31F0
+TYPE_ANIM_SOLDIER_IN_FORT_LVL1  ;$31F0
         INC a04F4
         JSR GET_RANDOM
         AND #$3F     ;#%00111111
