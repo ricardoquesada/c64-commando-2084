@@ -2724,7 +2724,7 @@ ACTION_NEW_SOLDIER_FROM_SIDE_R_B ;$20F6
         LDA #$00
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$18        ;anim_type_1B: soldier from side B
+        LDA #$18        ;anim_type_18: soldier from side B
         STA SPRITES_TYPE05,X
         LDA #$0C     ;#%00001100
         STA a04A1,X
@@ -3234,7 +3234,7 @@ JMP_FB              ;$24EF
         ; Anim table
 TYPE_ANIM_TBL_HI =*+1
 TYPE_ANIM_TBL_LO
-        .ADDR TYPE_ANIM_MAIN                    ;$00
+        .ADDR TYPE_ANIM_SPAWN_SOLDIER           ;$00
         .ADDR TYPE_ANIM_HERO_BULLET             ;$01
         .ADDR TYPE_ANIM_HERO_GRENADE            ;$02
         .ADDR TYPE_ANIM_HERO_BULLET_END         ;$03
@@ -3261,7 +3261,7 @@ TYPE_ANIM_TBL_LO
         .ADDR TYPE_ANIM_SOLDIER_FROM_SIDE_B     ;$18
         .ADDR s2956                             ;$19
         .ADDR TYPE_ANIM_BOSS_LVL1               ;$1A
-        .ADDR TYPE_ANIM_SOLDIER_IN_FORT_LVL1    ;$1B
+        .ADDR TYPE_ANIM_SOLDIER_IN_FORT         ;$1B
         .ADDR TYPE_ANIM_SOLDIER_IN_TRENCH       ;$1C
         .ADDR TYPE_ANIM_SOLDIER_IN_TRENCH_DIE   ;$1D
         .ADDR TYPE_ANIM_TURRET_FIRE             ;$1E
@@ -4301,12 +4301,13 @@ f2CD5   .BYTE $00,$00,$FF,$FF
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_00
-; Main logic
-TYPE_ANIM_MAIN      ;$2CD9
+; The animation that spawns regular soliders, even at the end of the level
+TYPE_ANIM_SPAWN_SOLDIER      ;$2CD9
         LDA V_SCROLL_ROW_IDX
         BEQ _L00
         JMP _L05
 
+        ; End of level
 _L00    LDA ENEMIES_IN_FORT
         BEQ b2CC0
         JSR GET_RANDOM
@@ -4315,16 +4316,21 @@ _L00    LDA ENEMIES_IN_FORT
         LDA #$3F     ;#%00111111
         STA a0504
         DEC ENEMIES_IN_FORT
-        BNE _L01        ;LOL!?!
+        BNE _L01        ;FIXME: LOL!?!
+
 _L01    LDA LEVEL_NR
-        AND #$03     ;#%00000011
-        CMP #$03     ;#%00000011
+        AND #$03
+        CMP #$03
         BEQ _L04
-        CMP #$01     ;#%00000001
+
+        CMP #$01
         BNE _L02
+
         JSR GET_RANDOM
-        AND #$01     ;#%00000001
+        AND #$01
         BEQ _L03
+
+        ; End of level 1 - door
 _L02    JSR GET_RANDOM
         AND #$3F     ;#%00111111
         CLC
@@ -4332,11 +4338,12 @@ _L02    JSR GET_RANDOM
         STA SPRITES_X_LO05,X
         LDA #$3C
         STA SPRITES_Y05,X
-        LDA #$1B            ;anim_type_1B: soldier in fort (lvl1)
+        LDA #$1B            ;anim_type_1B: soldier in fort lvl1,2,3
         STA SPRITES_TYPE05,X
         INC a04F4
         JMP _L06
 
+        ; End of level 2 - soldiers from sides
 _L03    JSR GET_RANDOM
         AND #$03     ;#%00000011
         TAY
@@ -4351,17 +4358,18 @@ _L03    JSR GET_RANDOM
         STA SPRITES_X_HI05,X
         LDA f2CC9,Y
         STA SPRITES_DELTA_X05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_Y05,X
         LDA f2CCD,Y
         STA a04A1,X
         STA a04AC,X
         LDA f2CD1,Y
         STA SPRITES_PTR05,X
-        LDA #$1B            ;anim_type_1B: soldier in fort lvl1
+        LDA #$1B            ;anim_type_1B: soldier in fort lvl1,2,3
         STA SPRITES_TYPE05,X
         JMP _L07
 
+        ; End of level 3
 _L04    JSR GET_RANDOM
         AND #$3F     ;#%00111111
         CLC
@@ -4369,7 +4377,7 @@ _L04    JSR GET_RANDOM
         STA SPRITES_X_LO05,X
         LDA #$64
         STA SPRITES_Y05,X
-        LDA #$1B            ;anim_type_1B: soldier in fort lvl1
+        LDA #$1B            ;anim_type_1B: soldier in fort lvl1,2,3
         STA SPRITES_TYPE05,X
         INC a04F4
         JMP _L06
@@ -4501,7 +4509,7 @@ _L12    JSR GET_RANDOM
         STA SPRITES_COLOR05,X
         LDA #$14     ;#%00010100
         STA SPRITES_TICK05,X
-        LDA #$18            ;anim_type_1B: soldier from side B
+        LDA #$18            ;anim_type_18: soldier from side B
         STA SPRITES_TYPE05,X
         JSR GET_RANDOM
         AND #$03     ;#%00000011
@@ -4961,9 +4969,9 @@ _L12    LDA #$0A     ;#%00001010
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_1B
-; Sprites that goes out for the fort in LVL1
+; Sprites that goes out of the fort in LVL1, LVL2 and LVL3
 ; Same logic as regular soldier but with some randomness at the beginning
-TYPE_ANIM_SOLDIER_IN_FORT_LVL1  ;$31F0
+TYPE_ANIM_SOLDIER_IN_FORT       ;$31F0
         INC a04F4
         JSR GET_RANDOM
         AND #$3F     ;#%00111111
