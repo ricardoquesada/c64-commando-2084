@@ -1744,25 +1744,25 @@ INIT_LEVEL_DATA                 ;$1445
         STA $D018    ;VIC Memory Control Register
         RTS
 
-        ; Data for levels 0-3, although level 3 does not exist
+        ; Data for lvl0-3, although lvl2 was not included in the game
 f14A4   =*+1
-f14A3   .ADDR LVL1_SPRITE_X_LO_TBL
-        .ADDR LVL2_SPRITE_X_LO_TBL
+f14A3   .ADDR LVL0_SPRITE_X_LO_TBL
+        .ADDR LVL1_SPRITE_X_LO_TBL
         .ADDR LVL3_SPRITE_X_LO_TBL
         .ADDR LVL3_SPRITE_X_LO_TBL
 f14AC   =*+1
-f14AB   .ADDR LVL1_TRIGGER_ROW_TBL
-        .ADDR LVL2_TRIGGER_ROW_TBL
+f14AB   .ADDR LVL0_TRIGGER_ROW_TBL
+        .ADDR LVL1_TRIGGER_ROW_TBL
         .ADDR LVL3_TRIGGER_ROW_TBL
         .ADDR LVL3_TRIGGER_ROW_TBL
 f14B4   =*+1
-f14B3   .ADDR LVL1_SPRITE_X_HI_TBL
-        .ADDR LVL2_SPRITE_X_HI_TBL
+f14B3   .ADDR LVL0_SPRITE_X_HI_TBL
+        .ADDR LVL1_SPRITE_X_HI_TBL
         .ADDR LVL3_SPRITE_X_HI_TBL
         .ADDR LVL3_SPRITE_X_HI_TBL
 f14BC   =*+1
-f14BB   .ADDR LVL1_ACTION_TBL
-        .ADDR LVL2_ACTION_TBL
+f14BB   .ADDR LVL0_ACTION_TBL
+        .ADDR LVL1_ACTION_TBL
         .ADDR LVL3_ACTION_TBL
         .ADDR LVL3_ACTION_TBL
 f14C4   =*+1
@@ -1808,7 +1808,7 @@ _L04    CPX #$36     ;#%00110110
         BCC _L00
         RTS
 
-; Turrets to draw: left turrent / right turrent, destroyed, restored
+; Turrets to draw: left turret / right turret, destroyed, restored
 f1502   .BYTE $30,$30,$30,$7A,$71,$30
         .BYTE $30,$30,$7A,$D7,$DD,$71
         .BYTE $30,$7A,$B7,$7B,$7B,$73
@@ -1933,6 +1933,7 @@ f16A8   .BYTE $CC,$45,$00,$00,$00,$00,$00,$00
         .BYTE $00,$00,$00,$00,$00,$30,$90
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; riq
 j172F   LDA TMP_SPRITE_X_LO
         SEC
         SBC #$10     ;#%00010000
@@ -1993,7 +1994,7 @@ _L00    STA a00FB,b
         STA a00FD,b
         RTS
 
-        ;Level 1 data. Used by ($2A)
+        ; LVL0 data. Used by ($2A)
 f17A9   .BYTE $00,$02,$02,$02,$02,$02,$02,$02
         .BYTE $02,$02,$02,$02,$02,$02,$02,$02
         .BYTE $02,$02,$00,$00,$00,$02,$02,$00
@@ -2027,7 +2028,7 @@ f17A9   .BYTE $00,$02,$02,$02,$02,$02,$02,$02
         .BYTE $02,$01,$01,$01,$01,$03,$02,$01
         .BYTE $03,$02,$01,$03,$00,$01,$01,$00
 
-        ;Level 2 data. Used by ($2A)
+        ; LVL1 data. Used by ($2A)
 f18A9   .BYTE $00,$04,$04,$04,$04,$04,$04,$04
         .BYTE $04,$04,$04,$04,$04,$04,$04,$04
         .BYTE $02,$02,$02,$02,$02,$02,$00,$00
@@ -2060,6 +2061,8 @@ f18A9   .BYTE $00,$04,$04,$04,$04,$04,$04,$04
         .BYTE $00,$00,$00,$00,$00,$00,$00,$01
         .BYTE $02,$00,$01,$01,$01,$03,$02,$01
         .BYTE $03,$02,$01,$03,$00,$01,$01,$00
+
+        ; LVL2 data (not used)
         .BYTE $00,$04,$04,$04,$04,$04,$04,$04
         .BYTE $04,$04,$04,$04,$04,$04,$04,$04
         .BYTE $02,$02,$01,$01,$01,$01,$00,$00
@@ -2093,7 +2096,7 @@ f18A9   .BYTE $00,$04,$04,$04,$04,$04,$04,$04
         .BYTE $02,$01,$01,$01,$01,$03,$02,$01
         .BYTE $03,$02,$01,$03,$00,$01,$01,$00
 
-        ;Level 3 data. Used by ($2A)
+        ; LVL3 data. Used by $2A
 f1AA9   .BYTE $00,$02,$02,$02,$02,$02,$02,$02
         .BYTE $02,$02,$00,$02,$02,$02,$02,$00
         .BYTE $00,$02,$00,$00,$00,$02,$02,$02
@@ -2220,7 +2223,7 @@ ACTION_TBL_LO               ;$1C06
         .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_R_B  ;$0A
         .ADDR ACTION_OPEN_DOOR          ;$0B
         .ADDR s23CC                     ;$0C
-        .ADDR ACTION_NEW_BOSS_LVL1      ;$0D
+        .ADDR ACTION_NEW_BOSS_LVL0      ;$0D
         .ADDR ACTION_NEW_SOLDIER_IN_TRENCH  ;$0E
         .ADDR ACTION_NEW_TURRET_CANNON_L    ;$0F
         .ADDR ACTION_NEW_TURRET_CANNON_R    ;$10
@@ -2228,7 +2231,7 @@ ACTION_TBL_LO               ;$1C06
         .ADDR ACTION_NEW_BAZOOKA_ENEMY_L    ;$12
         .ADDR s1F8F                     ;$13
         .ADDR s1EED                     ;$14
-        .ADDR ACTION_NEW_CART_UP_LVL2   ;$15
+        .ADDR ACTION_NEW_CART_UP_LVL1   ;$15
         .ADDR s1F5F                     ;$16
         .ADDR s1E73                     ;$17
         .ADDR s1E66                     ;$18
@@ -2237,26 +2240,26 @@ ACTION_TBL_LO               ;$1C06
         .ADDR ACTION_VOID               ;$1B
 
 ; Level 1 data
-LVL1_TRIGGER_ROW_TBL    ;$1C3E
+LVL0_TRIGGER_ROW_TBL    ;$1C3E
         .BYTE $9E,$9B,$98,$90,$8E,$84,$81,$7E
         .BYTE $7B,$7B,$7B,$66,$64,$5B,$5B,$57
         .BYTE $56,$54,$53,$50,$4D,$4A,$46,$3E
         .BYTE $3E,$3E,$37,$34,$2E,$2E,$29,$26
         .BYTE $1E,$19,$19,$14,$11,$01,$00,$00
         .BYTE $FF
-LVL1_SPRITE_X_LO_TBL
+LVL0_SPRITE_X_LO_TBL
         .BYTE $00,$00,$00,$14,$F0,$00,$00,$00
         .BYTE $E6,$D2,$BE,$32,$1E,$00,$00,$50
         .BYTE $00,$50,$AE,$1E,$50,$76,$BE,$2B
         .BYTE $A5,$1D,$46,$28,$14,$2E,$2E,$28
         .BYTE $A4,$1E,$3C,$1E,$14,$00,$00,$00
-LVL1_SPRITE_X_HI_TBL    ;$1C8F
+LVL0_SPRITE_X_HI_TBL    ;$1C8F
         .BYTE $00,$00,$00,$FF,$00,$00,$00,$00
         .BYTE $00,$00,$00,$FF,$FF,$00,$00,$58
         .BYTE $00,$58,$00,$00,$58,$00,$00,$00
         .BYTE $00,$FF,$00,$00,$FF,$FF,$00,$00
         .BYTE $00,$00,$00,$FF,$FF,$00,$00,$00
-LVL1_ACTION_TBL            ;$1CB7
+LVL0_ACTION_TBL            ;$1CB7
         .BYTE $01,$01,$01,$00,$07,$02,$02,$02
         .BYTE $05,$06,$05,$03,$07,$04,$0C,$08
         .BYTE $0C,$09,$00,$00,$08,$00,$00,$00
@@ -2264,51 +2267,51 @@ LVL1_ACTION_TBL            ;$1CB7
         .BYTE $00,$00,$00,$00,$07,$0B,$0D,$1B
 
 ; Level 2 data
-LVL2_TRIGGER_ROW_TBL    ;$1CDF
+LVL1_TRIGGER_ROW_TBL    ;$1CDF
         .BYTE $A5,$A2,$9D,$9B,$9B,$96,$95,$95
         .BYTE $93,$8C,$8C,$8A,$88,$83,$7B,$7B
         .BYTE $7B,$74,$70,$68,$61,$5E,$52,$51
         .BYTE $46,$3D,$3D,$3A,$29,$1B,$01,$00
         .BYTE $FF
-LVL2_SPRITE_X_LO_TBL    ;$1D00
+LVL1_SPRITE_X_LO_TBL    ;$1D00
         .BYTE $00,$32,$00,$DC,$0A,$00,$3C,$5A
         .BYTE $F0,$96,$B4,$28,$32,$32,$D2,$F0
         .BYTE $14,$32,$C8,$00,$50,$50,$00,$00
         .BYTE $C8,$6E,$00,$00,$00,$00,$00,$00
-LVL2_SPRITE_X_HI_TBL    ;$1D20
+LVL1_SPRITE_X_HI_TBL    ;$1D20
         .BYTE $00,$00,$00,$00,$FF,$00,$00,$00
         .BYTE $00,$00,$00,$FF,$FF,$00,$00,$00
         .BYTE $FF,$00,$00,$00,$63,$63,$00,$00
         .BYTE $00,$3F,$00,$00,$00,$00,$00,$00
-LVL2_ACTION_TBL            ;$1D40
+LVL1_ACTION_TBL            ;$1D40
         .BYTE $15,$07,$0E,$16,$0E,$13,$0E,$0E
         .BYTE $0E,$0E,$0E,$07,$0E,$0E,$0E,$0E
         .BYTE $0E,$0E,$07,$0C,$08,$09,$12,$11
         .BYTE $0E,$09,$0F,$0C,$10,$0F,$0B,$1B
 
-        ; An unknown level data: The code, all over the place, was designed
-        ; to support 4 levels. And this data reinforces the idea that
-        ; a 4th level was being made but was not released for... who knows.
-        ; Based on the position of this data, it seems that this was
-        ; level 3.
+        ; This is the data for LVL2, a level that apparently was "almost finished"
+        ; but was not included in the final game, because who knows.
+        ; What's not included is the charset/map, which is the part that
+        ; takes more space, so probably it was not included to make it
+        ; easier to ship it in a cassette (?). Pure especulation from my part.
 
-        ; Trigger rows
+        ; LVL2-Trigger rows
         .BYTE $C6,$C4,$B5,$B4,$A7,$9D,$97,$95
         .BYTE $87,$81,$68,$68,$5E,$5E,$50,$4B
         .BYTE $3C,$36,$32,$28,$09,$09,$01,$00
         .BYTE $00,$FF
 
-        ; X lo values
+        ; LVL2-X lo values
         .BYTE $F5,$3F,$21,$E9,$90,$38,$1E,$AA
         .BYTE $E2,$5F,$00,$00,$50,$50,$00,$00
         .BYTE $00,$00,$00,$00,$0E,$4A,$00,$00
         .BYTE $00
-        ; X hi values
+        ; LVL2-X hi values
         .BYTE $00,$00,$00,$00,$00,$00,$FF,$00
         .BYTE $00,$00,$00,$00,$63,$63,$00,$00
         .BYTE $00,$00,$00,$00,$FF,$00,$00,$00
         .BYTE $00
-        ; Actions
+        ; LVL2-Actions
         .BYTE $18,$18,$17,$17,$18,$18,$07,$17
         .BYTE $18,$18,$04,$0C,$08,$09,$14,$14
         .BYTE $16,$13,$16,$16,$03,$1A,$0B,$0D
@@ -2408,7 +2411,7 @@ f1EAD   .BYTE $78,$D2
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_15
-ACTION_NEW_CART_UP_LVL2     ;$1EAF
+ACTION_NEW_CART_UP_LVL1     ;$1EAF
         JSR GET_RANDOM
         AND #$01
         TAY
@@ -2621,7 +2624,7 @@ INIT_NEW_BAZOOKA_ENEMY
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_0F
-; creates the left cannon (inside the turrent). Appears in level2
+; creates the left cannon (inside the turret). Appears in lvl1
 ACTION_NEW_TURRET_CANNON_L      ;$2053
         LDA #$2C
         STA SPRITES_X_LO05,X
@@ -2645,7 +2648,7 @@ ACTION_NEW_TURRET_CANNON_L      ;$2053
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_10
-; creates the right cannon (inside the turrent). Appears in level2
+; creates the right cannon (inside the turret). Appears in lvl1
 ACTION_NEW_TURRET_CANNON_R     ;$2082
         LDA #$30
         STA SPRITES_X_LO05,X
@@ -2655,7 +2658,7 @@ ACTION_NEW_TURRET_CANNON_R     ;$2082
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$FD     ;Cannon in turrent
+        LDA #$FD     ;Cannon in turret
         STA SPRITES_PTR05,X
         LDA #$08     ;orange
         STA SPRITES_COLOR05,X
@@ -2669,8 +2672,8 @@ ACTION_NEW_TURRET_CANNON_R     ;$2082
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_0D
-; Creates the boss from level 1
-ACTION_NEW_BOSS_LVL1  ;$20B1
+; Creates the boss from lvl0
+ACTION_NEW_BOSS_LVL0  ;$20B1
         LDA #$A0
         STA SPRITES_X_LO05,X
         LDA #$50
@@ -3260,7 +3263,7 @@ TYPE_ANIM_TBL_LO
         .ADDR TYPE_ANIM_SOLDIER_FROM_SIDE_A     ;$17
         .ADDR TYPE_ANIM_SOLDIER_FROM_SIDE_B     ;$18
         .ADDR s2956                             ;$19
-        .ADDR TYPE_ANIM_BOSS_LVL1               ;$1A
+        .ADDR TYPE_ANIM_BOSS_LVL0               ;$1A
         .ADDR TYPE_ANIM_SOLDIER_IN_FORT         ;$1B
         .ADDR TYPE_ANIM_SOLDIER_IN_TRENCH       ;$1C
         .ADDR TYPE_ANIM_SOLDIER_IN_TRENCH_DIE   ;$1D
@@ -3271,7 +3274,7 @@ TYPE_ANIM_TBL_LO
         .ADDR s26DD                             ;$22
         .ADDR TYPE_ANIM_VOID1                   ;$23
         .ADDR TYPE_ANIM_SOLDIER_JUMPING_FROM_TRUCK  ;$24
-        .ADDR TYPE_ANIM_CART_UP_LVL2            ;$25
+        .ADDR TYPE_ANIM_CART_UP_LVL1            ;$25
         .ADDR s25F9                             ;$26
         .ADDR TYPE_ANIM_TOWER_FIRE_LVL3         ;$27
         .ADDR s2597                             ;$28
@@ -3348,7 +3351,7 @@ _L04    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_27
-; The animation of the tower in level3 with a guy firing at the hero.
+; The animation of the tower in lvl3 with a guy firing at the hero.
 TYPE_ANIM_TOWER_FIRE_LVL3   ;$25F0
         INC SPRITES_TICK05,X
         JSR SOLIDER_IN_TRENCH_AIM_TO_HERO
@@ -3422,8 +3425,8 @@ _L05    LDA SPRITES_X_LO05,X
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_25
 ; The animation for the "cart" that appears going up at the very beginning of
-; level2.
-TYPE_ANIM_CART_UP_LVL2  ;$2675
+; lvl1
+TYPE_ANIM_CART_UP_LVL1  ;$2675
         INC SPRITES_TICK05,X
         JSR s3128
         JSR j33D0
@@ -3449,7 +3452,7 @@ TYPE_ANIM_VOID1     ;$2696
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_24
-; Truck from right that appears on level3 contains soldiers.
+; Truck from right that appears on lvl3 contains soldiers.
 ; This is the animation for those soldiers.
 TYPE_ANIM_SOLDIER_JUMPING_FROM_TRUCK    ;$2697
         INC SPRITES_TICK05,X
@@ -3625,7 +3628,7 @@ FRAME_BAZOOKA_GUY       ;$27E0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_1E
-; Turrets are thow small houses that can be destroyed and appear on level 2
+; Turrets are thow small houses that can be destroyed and appear on lvl1
 TYPE_ANIM_TURRET_FIRE   ;$27E4
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
@@ -3689,7 +3692,7 @@ _L05    LDA #$02
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_1D
-; Found in lvl2 (might work other levels as well).
+; Found in lvl1 (might work other levels as well).
 ; Performs the "sprite in trench" die animation and then cleansup.
 TYPE_ANIM_SOLDIER_IN_TRENCH_DIE     ;$2860
         INC SPRITES_TICK05,X
@@ -3762,16 +3765,17 @@ UPDATE_ENEMY_PATH     ;$28A3
         STA TMP_SPRITE_X_HI
         JMP j172F
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s28D8   LDY #$00     ;#%00000000
         LDA (pFC),Y
         TAY
         LDA (p2A),Y
         AND #$01     ;#%00000001
-        BNE b28E9
+        BNE _L00
         LDA (p2A),Y
         AND #$04     ;#%00000100
-        BEQ b290D
-b28E9   JSR GET_RANDOM
+        BEQ _L01
+_L00    JSR GET_RANDOM
         AND #$07     ;#%00000111
         SEC
         SBC #$04     ;#%00000100
@@ -3787,7 +3791,7 @@ b28E9   JSR GET_RANDOM
         STA SPRITES_DELTA_X05,X
         LDA DELTA_Y_TBL,Y
         STA SPRITES_DELTA_Y05,X
-b290D   RTS
+_L01    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 UPDATE_ENEMY_BKG_PRI    ;$290E
@@ -3808,7 +3812,7 @@ _L00    RTS
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_1A
 ; Animation for Level 1 Boss
-TYPE_ANIM_BOSS_LVL1     ;$2924
+TYPE_ANIM_BOSS_LVL0     ;$2924
         JSR UPDATE_ENEMY_PATH
         JSR s28D8
         JSR UPDATE_ENEMY_BKG_PRI
@@ -3893,7 +3897,7 @@ _L04    LDA a04AC,X
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_18
-; Appears from the sides, specially at the beginning of level 1
+; Appears from the sides, specially at the beginning of lvl0
 ; Very common solider.
 TYPE_ANIM_SOLDIER_FROM_SIDE_B   ;$29BB
         INC SPRITES_TICK05,X
@@ -3958,7 +3962,7 @@ _L03    JSR UPDATE_ENEMY_PATH
 ; ref: anim_type_17
 ; Animates the soliders that appears from the sides and moves mostly
 ; horizontally.
-; Appears in level 1, more or less after crossing the bridge
+; Appears in lvl0, more or less after crossing the bridge
 TYPE_ANIM_SOLDIER_FROM_SIDE_A     ;$2A34
         INC SPRITES_TICK05,X
         LDA a04AC,X
@@ -4302,12 +4306,15 @@ f2CD5   .BYTE $00,$00,$FF,$FF
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_00
 ; The animation that spawns regular soliders, even at the end of the level
+; This is called when there is at least an empty seat, since this is the
+; animation handler for "empty seat". If there are no empty seats, then no
+; extra "regular soliders" are spawned, which makes sense.
 TYPE_ANIM_SPAWN_SOLDIER      ;$2CD9
         LDA V_SCROLL_ROW_IDX
         BEQ _L00
         JMP _L05
 
-        ; End of level
+        ; End of level logic
 _L00    LDA ENEMIES_IN_FORT
         BEQ b2CC0
         JSR GET_RANDOM
@@ -4330,7 +4337,7 @@ _L01    LDA LEVEL_NR
         AND #$01
         BEQ _L03
 
-        ; End of level 1 - door
+        ; End of lvl0 - door
 _L02    JSR GET_RANDOM
         AND #$3F     ;#%00111111
         CLC
@@ -4338,12 +4345,12 @@ _L02    JSR GET_RANDOM
         STA SPRITES_X_LO05,X
         LDA #$3C
         STA SPRITES_Y05,X
-        LDA #$1B            ;anim_type_1B: soldier in fort lvl1,2,3
+        LDA #$1B            ;anim_type_1B: soldier in fort lvl0,1,3
         STA SPRITES_TYPE05,X
         INC a04F4
         JMP _L06
 
-        ; End of level 2 - soldiers from sides
+        ; End of lvl1 - soldiers from sides
 _L03    JSR GET_RANDOM
         AND #$03     ;#%00000011
         TAY
@@ -4369,7 +4376,7 @@ _L03    JSR GET_RANDOM
         STA SPRITES_TYPE05,X
         JMP _L07
 
-        ; End of level 3
+        ; End of lvl3
 _L04    JSR GET_RANDOM
         AND #$3F     ;#%00111111
         CLC
@@ -4969,7 +4976,7 @@ _L12    LDA #$0A     ;#%00001010
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_1B
-; Sprites that goes out of the fort in LVL1, LVL2 and LVL3
+; Sprites that goes out of the fort in LVL0, LVL1 and LVL3
 ; Same logic as regular soldier but with some randomness at the beginning
 TYPE_ANIM_SOLDIER_IN_FORT       ;$31F0
         INC a04F4
@@ -6768,9 +6775,11 @@ SET_LEVEL_COLOR_RAM             ;$4033
         LDA LEVEL_NR
         AND #$03     ;#%00000011
         TAX
-        LDA #<pD800  ;#%00000000
+
+        ; $FB/$FC -> Color RAM
+        LDA #<pD800
         STA a00FB,b
-        LDA #>pD800  ;#%11011000
+        LDA #>pD800
         STA a00FC,b
 
         LDY #$00     ;#%00000000
