@@ -8,7 +8,7 @@ This is the decompiled source code for the Commodore 64.
 * [VICE][vice]
 
 [64tass]: http://tass64.sourceforge.net/
-[vice]: http://vice.pokefinder.org/
+[vice]: http://vice-emu.sourceforge.net/
 
 To compile it to generate the binary:
 
