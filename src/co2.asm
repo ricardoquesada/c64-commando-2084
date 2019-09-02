@@ -1,23 +1,23 @@
-
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
         * = $E000
-
         .BINARY "main-charset.bin"
+
+        * = $E800
         .BINARY "l3-charset.bin"
 
         * = $F000
-
         .BYTE $05,$00,$15,$00,$05,$00,$15,$00
         .BYTE $39,$00
 
         ; copy from e000-efff to d000-dfff
 COPY_FROM_E000_TO_D000      ;$F00A
-        LDA $DC0E    ;CIA1: CIA Control Register A
-        AND #$FE     ;#%11111110
-        STA $DC0E    ;CIA1: CIA Control Register A
+        LDA $DC0E           ;CIA1: CIA Control Register A
+        AND #$FE            ;#%11111110
+        STA $DC0E           ;CIA1: CIA Control Register A
         LDA $01
-        AND #$FB     ;#%11111011
+        AND #$FB            ;#%11111011
         STA $01
-        LDX #$00     ;#%00000000
+        LDX #$00            ;#%00000000
 _L00
         LDA $E000,X
         STA $D000,X
@@ -55,14 +55,16 @@ _L00
         BNE _L00
 
         LDA $01
-        ORA #$04     ;#%00000100
+        ORA #$04            ;#%00000100
         STA $01
-        LDA $DC0E    ;CIA1: CIA Control Register A
-        ORA #$01     ;#%00000001
-        STA $DC0E    ;CIA1: CIA Control Register A
+        LDA $DC0E           ;CIA1: CIA Control Register A
+        ORA #$01            ;#%00000001
+        STA $DC0E           ;CIA1: CIA Control Register A
         RTS
 
-        ; Unused most probably
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+        ; FIXME: Remove me, since it is unused most probably
 
         .BYTE $DC,$29,$FE
 
