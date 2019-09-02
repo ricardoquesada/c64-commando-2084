@@ -1,4 +1,4 @@
-e080D = $080D
+GAME_MAIN = $080D
 ;
 ; **** PREDEFINED LABELS ****
 ;
@@ -99,7 +99,7 @@ j03D0   LDA #$01
         LDX #$FD
         JSR ROM_SETNAM      ;$FFBD - set file name
         JSR s03F0
-        JMP e080D           ;Game main entry point
+        JMP GAME_MAIN       ;Game main entry point
 
         .BYTE $00,$00,$00,$00,$00,$00,$00,$00
         .BYTE $00
