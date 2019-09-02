@@ -1254,6 +1254,7 @@ _L00    LDA SPRITES_TYPE05,Y
         LDY a00FB,b
         AND #$01     ;#%00000001
         BEQ _L01
+
         LDA SPRITES_X_HI00
         CMP SPRITES_X_HI05,Y
         BNE _L01
@@ -1303,7 +1304,7 @@ f1074   .BYTE $00,$00,$00,$00,$00,$01,$00,$00
 ; Re-execute actions based on the row index. Called when the level is restared.
 ; E.g: after losing a life.
 RERUN_ACTIONS             ;$109B
-        LDY #$00     ;#%00000000
+        LDY #$00
 _L00    LDA (p24),Y  ;End of trigger-rows?
         CMP #$FF
         BEQ _L04
@@ -1323,11 +1324,11 @@ _L00    LDA (p24),Y  ;End of trigger-rows?
         STA a00FC,b
 
         ; Find empty seat
-        LDX #$00     ;#%00000000
+        LDX #$00
 _L01    LDA SPRITES_TYPE05,X
         BEQ _L02
         INX
-        CPX #$0B     ;#%00001011
+        CPX #$0B
         BNE _L01
         JMP _L03
 
@@ -2150,8 +2151,8 @@ RUN_ACTIONS   ;$1BA9
 
 _L00    INC TRIGGER_ROW_IDX
 
-        ; Try to find an empty seat, when type is 0
-        LDX #$0A     ;#%00001010
+        ; Find empty seat
+        LDX #$0A
 _L01    LDA SPRITES_TYPE05,X
         BEQ _L04
         DEX
@@ -2159,7 +2160,7 @@ _L01    LDA SPRITES_TYPE05,X
 
         ; TODO: Loop tried twice, probably a bug. Remove
 
-        LDX #$0A     ;#%00001010
+        LDX #$0A
 _L02    LDA SPRITES_TYPE05,X
         BEQ _L04
         DEX
@@ -2227,7 +2228,7 @@ ACTION_TBL_LO               ;$1C06
         .ADDR ACTION_NEW_BAZOOKA_ENEMY_L    ;$12
         .ADDR s1F8F                     ;$13
         .ADDR s1EED                     ;$14
-        .ADDR s1EAF                     ;$15
+        .ADDR ACTION_NEW_CART_UP_LVL2   ;$15
         .ADDR s1F5F                     ;$16
         .ADDR s1E73                     ;$17
         .ADDR s1E66                     ;$18
@@ -2407,16 +2408,17 @@ f1EAD   .BYTE $78,$D2
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_15
-s1EAF   JSR GET_RANDOM
+ACTION_NEW_CART_UP_LVL2     ;$1EAF
+        JSR GET_RANDOM
         AND #$01
         TAY
         LDA f1EAD,Y
         STA SPRITES_X_LO05,X
         LDA #$B8
         STA SPRITES_Y05,X
-        LDA #$FE
+        LDA #$FE            ;go up
         STA SPRITES_DELTA_Y05,X
-        LDA #$F3
+        LDA #$F3            ;cart going up frame
         STA SPRITES_PTR05,X
         LDA #$06     ;blue
         STA SPRITES_COLOR05,X
@@ -2454,13 +2456,12 @@ s1EED   LDA #$3E
         LDA #$23            ;anim_type_23: void
         STA SPRITES_TYPE05,X
 
-        ;Try to find an extra empty seat
-
-        LDY #$00     ;#%00000000
+        ; Find empty seat
+        LDY #$00
 _L00    LDA SPRITES_TYPE05,Y
         BEQ _L01
         INY
-        CPY #$0B     ;#%00001011
+        CPY #$0B
         BNE _L00
         RTS
 
@@ -2490,46 +2491,55 @@ _L01    TYA
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_16
-s1F5F   JSR s1F8F
-        LDA #$1E     ;#%00011110
+; Create car
+; requires an extra empty seat
+s1F5F
+        ; FIXME: Might override existing seat. s1F8F might fail if no extra
+        ; seat is found. The fix should be:
+        ; If Y == #$0B, ret
+        JSR s1F8F
+
+        LDA #$1E
         STA SPRITES_X_LO05,X
-        LDA #$36     ;#%00110110
+        LDA #$36
         STA SPRITES_X_LO05,Y
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_X_HI05,X
         STA SPRITES_X_HI05,Y
-        LDA #$B6     ;#%10110110
+        LDA #$B6            ;car back frame
         STA SPRITES_PTR05,X
-        LDA #$B7     ;#%10110111
+        LDA #$B7            ;car front frame
         STA SPRITES_PTR05,Y
-        LDA #$04     ;purple
+        LDA #$04            ;purple
         STA SPRITES_COLOR05,X
         STA SPRITES_COLOR05,Y
-        LDA #$02     ;#%00000010
+        LDA #$02            ;Move right
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_X05,Y
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_13
+; Create bike
 ; requires an extra empty seat
-s1F8F   LDY #$00     ;#%00000000
+s1F8F   LDY #$00
+        ; Find empty seat
 _L00    LDA SPRITES_TYPE05,Y
         BEQ _L01
         INY
-        CPY #$0B     ;#%00001011
+        CPY #$0B
         BNE _L00
         RTS
 
 _L01    TYA
-        STA a04A1,X                 ;links Y with X
+        STA a04A1,X             ;links Y with X
         LDA #$3E
         STA SPRITES_X_LO05,X
         LDA #$82
         STA SPRITES_Y05,X
-        LDA #$B0
+        LDA #$B0                ;bike front frame
         STA SPRITES_PTR05,X
-        LDA #$0B     ;dark grey
+        LDA #$0B                ;dark grey
         STA SPRITES_COLOR05,X
         LDA #$FF
         STA SPRITES_X_HI05,X
@@ -2543,24 +2553,24 @@ _L01    TYA
         STA SPRITES_TYPE05,X
 
         TXA
-        STA a04A1,Y                 ;links X with Y
+        STA a04A1,Y             ;links X with Y
         LDA #$56
         STA SPRITES_X_LO05,Y
         LDA #$82
         STA SPRITES_Y05,Y
-        LDA #$B1
+        LDA #$B1                ;bike back frame
         STA SPRITES_PTR05,Y
-        LDA #$0B     ;dark grey
+        LDA #$0B                ;dark grey
         STA SPRITES_COLOR05,Y
         LDA #$FF
         STA SPRITES_X_HI05,Y
-        LDA #$FE
+        LDA #$FE                ;move left
         STA SPRITES_DELTA_X05,Y
         LDA #$00
         STA SPRITES_DELTA_Y05,Y
         STA SPRITES_TICK05,Y
         STA SPRITES_BKG_PRI05,Y
-        LDA #$10                ;anim_type_10: void
+        LDA #$10                ;anim_type_10: void. No amin for back part
         STA SPRITES_TYPE05,Y
         RTS
 
@@ -3371,7 +3381,7 @@ _L02    LDA #$00
 _L03    LDA #$01
         STA SPRITES_DELTA_Y05,X
 
-        ; Search empty seat
+        ; Find empty seat
         LDY #$00
 _L04    LDA SPRITES_TYPE05,Y
         BEQ _L05
@@ -3418,17 +3428,17 @@ TYPE_ANIM_CART_UP_LVL2  ;$2675
         JSR s3128
         JSR j33D0
         LDA SPRITES_TICK05,X
-        CMP #$46     ;#%01000110
+        CMP #$46
         BEQ _L00
-        CMP #$8C     ;#%10001100
+        CMP #$8C
         BEQ _L01
         RTS
 
-_L00    LDA #$FF     ;#%11111111
+_L00    LDA #$FF
         STA SPRITES_DELTA_Y05,X
         RTS
 
-_L01    LDA #$FE     ;#%11111110
+_L01    LDA #$FE
         STA SPRITES_DELTA_Y05,X
         RTS
 
@@ -3447,13 +3457,12 @@ TYPE_ANIM_SOLDIER_JUMPING_FROM_TRUCK    ;$2697
         AND #$3F     ;#%00111111
         BNE TYPE_ANIM_VOID1
 
-        ;Try to find an empty seat
-
-        LDY #$00     ;#%00000000
+        ; Find empty seat
+        LDY #$00
 _L00    LDA SPRITES_TYPE05,Y
         BEQ _L01
         INY
-        CPY #$0B     ;#%00001011
+        CPY #$0B
         BNE _L00
         RTS
 
@@ -3484,8 +3493,8 @@ _L01    LDA SPRITES_X_LO05,X
 s26DD   INC SPRITES_TICK05,X
         LDY a04A1,X
         LDA SPRITES_TICK05,X
-        AND #$0F     ;#%00001111
-        BNE _L00
+        AND #$0F            ;#%00001111
+        BNE _L00            ;FIXME; probably it should say _L01 instead
 
         INC SPRITES_Y05,X
         LDA SPRITES_Y05,X
@@ -3550,7 +3559,7 @@ b2754   LDA SPRITES_Y00
         CMP SPRITES_Y05,X
         BCC b2753
 
-        ; Search for empty seat
+        ; Find empty seat
         LDY #$00
 b275E   LDA SPRITES_TYPE05,Y
         BEQ b2769
@@ -3628,7 +3637,7 @@ _L01    LDA SPRITES_Y00
         CMP SPRITES_Y05,X
         BCC _L03
 
-        ; Search for empty seat
+        ; Find empty seat
         LDY #$00
 _L02    LDA SPRITES_TYPE05,Y
         BEQ _L04
@@ -4223,7 +4232,7 @@ b2C31   LDA SPRITES_TICK05,X
         BEQ b2C39
         RTS
 
-        ; Search for empty seat
+        ; Find empty seat
 b2C39   LDY #$00     ;#%00000000
 b2C3B   LDA SPRITES_TYPE05,Y
         BEQ b2C46
@@ -5076,7 +5085,7 @@ THROW_GRENADE   ;$32ED
         CMP SPRITES_X_HI00
         BNE _L01
 
-        ; Search for empty seat
+        ; Find empty seat
         LDY #$00
 _L00    LDA SPRITES_TYPE05,Y
         BEQ _L02
@@ -5173,12 +5182,12 @@ _L06    LDA a00FB,b
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; riq
+; riq: related to shoot
 j33D0   LDA SPRITES_TICK05,X
         AND a0504
         BNE _L01
 
-        ; Search empty seat
+        ; Find empty seat
         LDY #$00
 _L00    LDA SPRITES_TYPE05,Y
         BEQ _L02
