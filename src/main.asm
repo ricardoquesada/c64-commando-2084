@@ -1,6 +1,12 @@
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Main routine
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Note about levels:
+; LVL0 -> Is "level 1" in the game
+; LVL1 -> Is "level 2" in the game
+; LVL2 -> Is a level that was not enabled in the game, since charset/map data
+;         is not present, but the rest of the data is included.
+; LVL3 -> Is "level 3" in the game
 
 ;
 ; **** ZP FIELDS ****
