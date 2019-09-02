@@ -34,7 +34,7 @@ p22 = $22                       ;sprite to create: X lo
 p24 = $24                       ;rows that trigger sprite type init
 p26 = $26                       ;sprite to create: X hi
 p28 = $28                       ;what sprite type to create at row
-p2A = $2A
+p2A = $2A                       ;256 bytes of Collision map?
 p5D = $5D
 p5F = $5F
 p83 = $83
@@ -42,9 +42,10 @@ pA9 = $A9
 pD0 = $D0
 pD2 = $D2
 pF7 = $F7
-pFB = $FB
-pFC = $FC
-pFD = $FD
+pFB = $FB                       ;$FB/$FC: different meanings depending to the game state
+pFC = $FC                       ; On Hiscore, it points to Screen RAM
+                                ; During the game, it points to the Actions table
+pFD = $FD                       ;But $FC/$FD is also used during the game. See j172F
 ;
 ; **** FIELDS ****
 ;
@@ -1318,6 +1319,8 @@ _L00    LDA (p24),Y  ;End of trigger-rows?
         LDA (p28),Y     ;Object to init
         ASL A
         TAY
+
+        ; $FB/$FC -> action table
         LDA ACTION_TBL_LO,Y   ;Prepare jump table for actions
         STA a00FB,b
         LDA ACTION_TBL_HI,Y
@@ -1359,14 +1362,18 @@ _L04    STY TRIGGER_ROW_IDX
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 PRINT_CREDITS       ;$10FC
+        ; $FB/$FC -> Screen RAM
         LDA #<pE029  ;Screen RAM lo
         STA a00FB,b
         LDA #>pE029  ;Screen RAM hi
         STA a00FC,b
+
+        ; $FD/$FE -> Color RAM
         LDA #<pD829  ;Color RAM lo
         STA a00FD,b
         LDA #>pD829  ;Color RAM hi
         STA a00FE,b
+
         LDX #$00     ;#%00000000
 _L00    LDY #$00     ;#%00000000
 _L01    LDA CREDITS_TXT,X
@@ -1787,8 +1794,8 @@ LEVEL_PATCH_TURRET         ;$14D3
         STA _L01
         LDA f14CC,X
         STA _L02
-        LDX #$00     ;#%00000000
-_L00    LDY #$00     ;#%00000000
+        LDX #$00
+_L00    LDY #$00
 _L01    =*+$01
 _L02    =*+$02
 _L03    LDA f2596,X
@@ -1943,10 +1950,13 @@ j172F   LDA TMP_SPRITE_X_LO
         LSR A
         PLP
         BCC _L00
+
         LDY TMP_SPRITE_X_HI
         BEQ _L00
+
         CLC
         ADC #$20     ;#%00100000
+
 _L00    STA a00FB,b
         LDA #$00     ;#%00000000
         STA a00FC,b
@@ -3772,9 +3782,11 @@ s28D8   LDY #$00     ;#%00000000
         LDA (p2A),Y
         AND #$01     ;#%00000001
         BNE _L00
+
         LDA (p2A),Y
         AND #$04     ;#%00000100
         BEQ _L01
+
 _L00    JSR GET_RANDOM
         AND #$07     ;#%00000111
         SEC
@@ -5784,9 +5796,9 @@ b3848   LDA SPRITES_X_LO05,Y
         SEC
         SBC #$0A
         STA SPRITES_Y05,Y
-        LDA #<$859A  ;Turret location in lvl2 lo
+        LDA #<$859A  ;Turret location in lvl1 lo
         STA a00FB,b
-        LDA #>$859A  ;Turrent location in lvl2 hi
+        LDA #>$859A  ;Turrent location in lvl1 hi
         STA a00FC,b
         LDA #$06
         JSR LEVEL_PATCH_TURRET
@@ -6512,11 +6524,14 @@ SETUP_LEVEL             ;$3DFE
         AND #$03     ;#%00000011
         ASL A
         TAX
+
+        ; $FB/$FC -> points to tbl related to levels
         LDA f3EEE,X
         STA a00FB,b
         LDA f3EEF,X
         STA a00FC,b
-        LDY #$00     ;#%00000000
+
+        LDY #$00
 _L00    LDA (pFB),Y
         CMP V_SCROLL_ROW_IDX
         BCS _L01
@@ -6524,7 +6539,7 @@ _L00    LDA (pFB),Y
         JMP _L00
 
 _L01    STA V_SCROLL_ROW_IDX
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA V_SCROLL_BIT_IDX
         STA a04EE
         LDA #$14     ;Number of enemies that leaves the final fort/warehouse
@@ -6536,7 +6551,7 @@ _L01    STA V_SCROLL_ROW_IDX
         STA IS_ANIM_EXIT_DOOR
         STA a04FD
 
-        ;Draw Left turret at row 56 ($88c0) in lvl 2
+        ;Draw Left turret at row 56 ($88c0) in lvl1
         LDA #<$88C0
         STA a00FB,b
         LDA #>$88C0
@@ -6544,7 +6559,7 @@ _L01    STA V_SCROLL_ROW_IDX
         LDA #$00     ;Draw left turret Ok
         JSR LEVEL_PATCH_TURRET
 
-        ;Draw right turret at row  35 ($859a) in lvl 2
+        ;Draw right turret at row  35 ($859a) in lvl1
         LDA #<$859A
         STA a00FB,b
         LDA #>$859A
@@ -6552,7 +6567,7 @@ _L01    STA V_SCROLL_ROW_IDX
         LDA #$02     ;Draw right turret Ok
         JSR LEVEL_PATCH_TURRET
 
-        ;Draw Left turret at row 22 ($859a) in lvl 2
+        ;Draw Left turret at row 22 ($859a) in lvl1
         LDA #<$8370
         STA a00FB,b
         LDA #>$8370
@@ -6567,7 +6582,7 @@ _L01    STA V_SCROLL_ROW_IDX
         TAX
         LDA f3ED2,X
         STA a0504
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA FIRE_COOLDOWN
 
         LDX #$00     ;Set sprite $ff as empty
@@ -6596,10 +6611,10 @@ f3EDF   .BYTE $13,$3D,$61
 f3EE9   .BYTE $13,$3D,$61,$83,$A6
 
 f3EEF    =*+1
-f3EEE   .ADDR f3EDA
-        .ADDR f3EDF
-        .ADDR f3EDF
-        .ADDR f3EE9
+f3EEE   .ADDR f3EDA         ;LVL0
+        .ADDR f3EDF         ;LVL1
+        .ADDR f3EDF         ;LVL2
+        .ADDR f3EE9         ;LVL3
 
         ; Unused (?)
 b3EF6   LDX #$00     ;#%00000000
