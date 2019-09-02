@@ -7,6 +7,10 @@ C1541 = c1541
 
 all: clean d64 run
 
+commando.prg: src/commando.asm
+	64tass -Wall --cbm-prg -o bin/commando.prg -L bin/list-commando.txt src/commando.asm
+	md5sum bin/commando.prg orig/commando.prg
+
 co1.prg: src/main.asm src/music.asm \
 		src/l0-charset.bin src/l1-charset.bin \
 		src/l0-map.bin src/l0-padding.bin src/l1-map.bin \
@@ -24,7 +28,7 @@ co3.prg: src/sprites.bin src/main-map.bin src/main-padding.bin
 
 d64: co1.prg co2.prg co3.prg
 	$(C1541) -format "commando 2084,rq" d64 $(D64_IMAGE)
-	$(C1541) $(D64_IMAGE) -write orig/commando.prg "commando"
+	$(C1541) $(D64_IMAGE) -write bin/commando.prg "commando"
 	$(C1541) $(D64_IMAGE) -write bin/co1.prg co1
 	$(C1541) $(D64_IMAGE) -write bin/co2.prg co2
 	$(C1541) $(D64_IMAGE) -write bin/co3.prg co3
@@ -38,4 +42,4 @@ runsc: d64
 
 clean:
 	-rm $(D64_IMAGE)
-	-rm bin/co1.prg bin/co2.prg bin/co3.prg
+	-rm bin/commando.prg bin/co1.prg bin/co2.prg bin/co3.prg
