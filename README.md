@@ -16,6 +16,26 @@ To compile it to generate the binary:
 $ make
 ```
 
+## What's included
+
+All the code + data needed to generate exactly the same orginal version (same
+md5 hash).
+
+### Code
+
+The code is using labels for everything. All the harcoded addresses were
+converted to lables (think of tables with hundreds of addresses).
+The game runs pefectly Ok, even you if add a `nop` in
+the middle of the code.
+
+### Data
+
+* The charset + maps can be viewed using [VChar64][vchar64].
+* The sprites can be viewed using SpritePad (or any other editor) by importing
+  the file `sprites.bin`
+
+[vchar64]: https://gitlab.com/ricardoquesada/vchar64
+
 ## Original
 
 Although I do own the original copy of Commando, my copy crashes.
@@ -23,8 +43,8 @@ Probably my original floppy disk is corrupted.
 
 * ![commando][commando_img]
 
-So, instead of using my own copy, I used the following one, which seems to be the
-cracked version, without any other additional code.
+So, instead of using my own copy, I used the following one, which seems to be
+the cracked version, without any other additional code.
 
 * https://csdb.dk/release/?id=101400
 
@@ -51,3 +71,12 @@ TODO: Explain the following
 * row-trigger
 * animations
 * animation-0
+
+## Tools used
+
+* [Regenerator][regenerator]: To do the first-pass decompilation
+* [Infiltrator Disassembler][infiltrator]: To analyze data
+* [VICE][vice]: For testing + analyze data
+
+[regenerator]: https://csdb.dk/release/?id=149429
+[infiltrator]: https://csdb.dk/release/?id=100129
