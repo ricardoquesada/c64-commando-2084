@@ -2,30 +2,45 @@ e080D = $080D
 ;
 ; **** PREDEFINED LABELS ****
 ;
+ROM_SETMSG = $FF90
 ROM_SETLFS = $FFBA
 ROM_SETNAM = $FFBD
+ROM_CHROUT = $FFD2
 ROM_LOAD = $FFD5
+ROM_CLALL = $FFE7
 
         * = $032C
 
-        .ADDR $0334     ;$032C: Kernal CLALL routine
-        .ADDR $FE66     ;$032E: User defined
-        .ADDR $F4A5     ;$0330: Kernal LOAD routine
-        .ADDR $F5ED     ;$0332: Kernal SAVE routine
-        .ADDR $2FA9     ;$0334:
-        .ADDR $2C8D     ;$0336:
-        .ADDR $A903     ;$0338
-        .ADDR $8DF3     ;$033A
-        .ADDR $032D     ;$033C
-        .ADDR $E720     ;$033E
-        .ADDR $A9FF     ;$0340
-        .BYTE $00,$20,$90,$FF,$A2,$00,$BD,$56
-        .BYTE $03,$F0,$06,$20,$D2,$FF,$E8,$D0
-        .BYTE $F5,$4C,$D0,$03,$93
+a032D   =*+$01
+a032C
+        .ADDR AUTOBOOT      ;autoboot code. Jumps to $0334
+        .ADDR $FE66
+        .ADDR $F4A5
+        .ADDR $F5ED
 
-        .BYTE $0D,$0D,$0D, $0D,$0D,$0D,$0D
+AUTOBOOT
+        ; Restore "CLALL" to original vector
+        LDA #<$F32F
+        STA a032C
+        LDA #>$F32F
+        STA a032D
+
+        ; Call original CLALL
+        JSR ROM_CLALL       ;$FFE7 - close or abort all files
+
+        LDA #$00
+        JSR ROM_SETMSG      ;$FF90 - enable/disable KERNAL messages
+        LDX #$00
+b0348   LDA f0356,X
+        BEQ b0353
+        JSR ROM_CHROUT      ;$FFD2 - output character
+        INX
+        BNE b0348
+b0353   JMP j03D0
+
+f0356   .TEXT $93, $0D, $0D, $0D, $0D, $0D, $0D, $0D
         .TEXT "          COMPLIMENTS OF FLOP"
-        .BYTE $0D, $0D
+        .TEXT $0D, $0D
         .TEXT "     THE FLORIDA LEAGUE OF PIRATES ", $00
         NOP
         NOP
@@ -74,22 +89,23 @@ ROM_LOAD = $FFD5
         NOP
         NOP
         NOP
-        LDA #$01     ;#%00000001
+
+j03D0   LDA #$01
         TAY
-        LDX #$08     ;#%00001000
-        JSR ROM_SETLFS ;$FFBA - set file parameters
-        LDA #$03     ;#%00000011
-        LDY #$03     ;#%00000011
-        LDX #$FD     ;#%11111101
-        JSR ROM_SETNAM ;$FFBD - set file name
+        LDX #$08
+        JSR ROM_SETLFS      ;$FFBA - set file parameters
+        LDA #$03
+        LDY #$03
+        LDX #$FD
+        JSR ROM_SETNAM      ;$FFBD - set file name
         JSR s03F0
-        JMP e080D
+        JMP e080D           ;Game main entry point
 
         .BYTE $00,$00,$00,$00,$00,$00,$00,$00
         .BYTE $00
 
 s03F0   LDA #$00
-        JSR ROM_LOAD ;$FFD5 - load after call SETLFS,SETNAM
+        JSR ROM_LOAD        ;$FFD5 - load after call SETLFS,SETNAM
         INC a03FF
         RTS
 
