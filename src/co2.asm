@@ -9,6 +9,8 @@
         .BYTE $05,$00,$15,$00,$05,$00,$15,$00
         .BYTE $39,$00
 
+        ; copy from e000-efff to d000-dfff
+COPY_FROM_E000_TO_D000      ;$F00A
         LDA $DC0E    ;CIA1: CIA Control Register A
         AND #$FE     ;#%11111110
         STA $DC0E    ;CIA1: CIA Control Register A
@@ -16,8 +18,9 @@
         AND #$FB     ;#%11111011
         STA $01
         LDX #$00     ;#%00000000
+_L00
         LDA $E000,X
-        STA $D000,X  ;Sprite 0 X Pos
+        STA $D000,X
         LDA $E100,X
         STA $D100,X
         LDA $E200,X
@@ -25,7 +28,7 @@
         LDA $E300,X
         STA $D300,X
         LDA $E400,X
-        STA $D400,X  ;Voice 1: Frequency Control - Low-Byte
+        STA $D400,X
         LDA $E500,X
         STA $D500,X
         LDA $E600,X
@@ -41,15 +44,16 @@
         LDA $EB00,X
         STA $DB00,X
         LDA $EC00,X
-        STA $DC00,X  ;CIA1: Data Port Register A
+        STA $DC00,X
         LDA $ED00,X
-        STA $DD00,X  ;CIA2: Data Port Register A
+        STA $DD00,X
         LDA $EE00,X
         STA $DE00,X
         LDA $EF00,X
         STA $DF00,X
         INX
-        BNE $F01A
+        BNE _L00
+
         LDA $01
         ORA #$04     ;#%00000100
         STA $01
