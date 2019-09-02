@@ -283,6 +283,10 @@ BOOT    ;$0850
         LDA #>NMI_HANDLER
         STA $0319    ;NMI
         CLI
+
+        ; FIXME: Probably this is not really needed. In fact, it generates
+        ; a small artifact at the end of LVL1, since it is overwritting the
+        ; data
         LDX #$00     ;#%00000000
 _L00    LDA RESET_ROUTINE,X
         STA $8000,X  ;Sets the reset routine (CBM80)
@@ -305,20 +309,20 @@ _L01    TXA
         STA a0502
         STA a0501
 
-START   ;$0883
-        LDA #$A5     ;Set initial starting row
+START                   ;$0883
+        LDA #$A5        ;Set initial starting row
         STA V_SCROLL_ROW_IDX
         JSR SETUP_LEVEL
         JSR SETUP_SCREEN
         JSR SETUP_IRQ
 
         ; Display main title screen
-        LDA #$00     ;Song to play (main theme)
+        LDA #$00        ;Song to play (main theme)
         JSR MUSIC_INIT
         JSR SCREEN_MAIN_TITLE
 
-        JSR s5006    ;Music stop?
-        LDA #$00     ;#%00000000
+        JSR s5006       ;Music stop?
+        LDA #$00        ;#%00000000
         STA SCORE_LSB
         STA SCORE_MSB
         STA V_SCROLL_BIT_IDX
@@ -399,14 +403,19 @@ _L02    LDA #$02     ;Song to play (Level complete)
         JSR MUSIC_INIT
         JSR PRINT_LVL_COMPLETE
         INC LEVEL_NR
+
+        ; Since LVL2 was removed from the game, when LVL2 is reached,
+        ; the level is changed to LVL3.
         LDA LEVEL_NR
         AND #$03     ;#%00000011
         CMP #$02     ;#%00000010
         BNE _L03
         INC LEVEL_NR
+
 _L03    JMP START_LEVEL
 
-        ; Animate hero "is dead"
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Animate hero "is dead"
 HERO_DIED               ;b0953
         LDA IS_HERO_DEAD
         CMP #$02     ;Died of fall in trench/water?
@@ -7740,13 +7749,13 @@ MASK_1000_0000   .BYTE $80           ;1000_0000
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
         *= $6000
-.binary "l1-map.bin"
-.binary "l1-padding.bin"        ;TODO: can be removed
+.binary "l0-map.bin"
+.binary "l0-padding.bin"        ;TODO: can be removed
                                 ;only needed to make md5sum identical
 
         *= $8000
-.binary "l2-map.bin"
-.binary "l2-padding.bin"        ;TODO: can be removed
+.binary "l1-map.bin"
+.binary "l1-padding.bin"        ;TODO: can be removed
                                 ;only needed to make md5sum identical
 
         *= $a000
@@ -7755,5 +7764,5 @@ MASK_1000_0000   .BYTE $80           ;1000_0000
                                 ;only needed to make md5sum identical
 
         *= $c000
+.binary "l0-charset.bin"
 .binary "l1-charset.bin"
-.binary "l2-charset.bin"
