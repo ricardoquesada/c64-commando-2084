@@ -3261,9 +3261,9 @@ TYPE_ANIM_TBL_LO
         .ADDR s26DD                             ;$22
         .ADDR TYPE_ANIM_VOID1                   ;$23
         .ADDR TYPE_ANIM_SOLDIER_JUMPING_FROM_TRUCK  ;$24
-        .ADDR TYPE_ANIM_CART_UP_L2              ;$25
+        .ADDR TYPE_ANIM_CART_UP_LVL2            ;$25
         .ADDR s25F9                             ;$26
-        .ADDR TYPE_ANIM_TOWER_FIRE_L3           ;$27
+        .ADDR TYPE_ANIM_TOWER_FIRE_LVL3         ;$27
         .ADDR s2597                             ;$28
 
 f2544   .BYTE $00,$00,$00,$00,$00,$03,$00,$02
@@ -3339,7 +3339,7 @@ _L04    RTS
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_27
 ; The animation of the tower in level3 with a guy firing at the hero.
-TYPE_ANIM_TOWER_FIRE_L3     ;$25F0
+TYPE_ANIM_TOWER_FIRE_LVL3   ;$25F0
         INC SPRITES_TICK05,X
         JSR SOLIDER_IN_TRENCH_AIM_TO_HERO
         JMP j33D0
@@ -3413,7 +3413,7 @@ _L05    LDA SPRITES_X_LO05,X
 ; ref: anim_type_25
 ; The animation for the "cart" that appears going up at the very beginning of
 ; level2.
-TYPE_ANIM_CART_UP_L2   ;$2675
+TYPE_ANIM_CART_UP_LVL2  ;$2675
         INC SPRITES_TICK05,X
         JSR s3128
         JSR j33D0
