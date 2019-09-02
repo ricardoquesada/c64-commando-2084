@@ -45,7 +45,9 @@ pF7 = $F7
 pFB = $FB                       ;$FB/$FC: different meanings depending to the game state
 pFC = $FC                       ; On Hiscore, it points to Screen RAM
                                 ; During the game, it points to the Actions table
-pFD = $FD                       ;But $FC/$FD is also used during the game. See j172F
+pFD = $FD                       ;But $FC/$FD is also used during the game to point
+                                ; to the level data and is uses with $2A to determine
+                                ; the sprite-background priority/collision
 ;
 ; **** FIELDS ****
 ;
@@ -1773,10 +1775,10 @@ f14BB   .ADDR LVL0_ACTION_TBL
         .ADDR LVL3_ACTION_TBL
         .ADDR LVL3_ACTION_TBL
 f14C4   =*+1
-f14C3   .ADDR f17A9
-        .ADDR f18A9
-        .ADDR f1AA9
-        .ADDR f1AA9
+f14C3   .ADDR LVL0_CHARSET_MASK_TBL
+        .ADDR LVL1_CHARSET_MASK_TBL
+        .ADDR LVL3_CHARSET_MASK_TBL
+        .ADDR LVL3_CHARSET_MASK_TBL
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Patches the level data with the turret destroyed/restored
@@ -1869,10 +1871,10 @@ LEVEL_PATCH_DOOR         ;$15DA
         LDA f161E,X
         STA _L02
 
-        ; Only lvl 1 and 2 has doors. Skip in lvl 3
+        ; Only lvl 0 and 1 has doors. Skip in lvl 3
         LDA LEVEL_NR
-        AND #$03     ;#%00000011
-        CMP #$03     ;#%00000011
+        AND #$03
+        CMP #$03
         BEQ _SKIP
 
         LDA #$0D     ;#%00001101
@@ -1996,7 +1998,7 @@ _L00    STA a00FB,b
         ADC a00FB,b
         STA a00FC,b
         LDA a00FD,b
-        ADC #$00     ;#%00000000
+        ADC #$00
         STA a00FD,b
         LDA a00FD,b
         CLC
@@ -2004,8 +2006,13 @@ _L00    STA a00FB,b
         STA a00FD,b
         RTS
 
+        ; CHARSET_MASK_TBL
+        ; Bit 0 = ??
+        ; Bit 1 = Used for sprite-char background priority.
+        ; Bit 2 = ??
         ; LVL0 data. Used by ($2A)
-f17A9   .BYTE $00,$02,$02,$02,$02,$02,$02,$02
+LVL0_CHARSET_MASK_TBL    ;$17A9
+        .BYTE $00,$02,$02,$02,$02,$02,$02,$02
         .BYTE $02,$02,$02,$02,$02,$02,$02,$02
         .BYTE $02,$02,$00,$00,$00,$02,$02,$00
         .BYTE $00,$00,$01,$01,$00,$00,$00,$00
@@ -2039,7 +2046,8 @@ f17A9   .BYTE $00,$02,$02,$02,$02,$02,$02,$02
         .BYTE $03,$02,$01,$03,$00,$01,$01,$00
 
         ; LVL1 data. Used by ($2A)
-f18A9   .BYTE $00,$04,$04,$04,$04,$04,$04,$04
+LVL1_CHARSET_MASK_TBL   ;$18A9
+        .BYTE $00,$04,$04,$04,$04,$04,$04,$04
         .BYTE $04,$04,$04,$04,$04,$04,$04,$04
         .BYTE $02,$02,$02,$02,$02,$02,$00,$00
         .BYTE $00,$04,$00,$00,$00,$00,$00,$00
@@ -2107,7 +2115,8 @@ f18A9   .BYTE $00,$04,$04,$04,$04,$04,$04,$04
         .BYTE $03,$02,$01,$03,$00,$01,$01,$00
 
         ; LVL3 data. Used by $2A
-f1AA9   .BYTE $00,$02,$02,$02,$02,$02,$02,$02
+LVL3_CHARSET_MASK_TBL   ;$1AA9
+        .BYTE $00,$02,$02,$02,$02,$02,$02,$02
         .BYTE $02,$02,$00,$02,$02,$02,$02,$00
         .BYTE $00,$02,$00,$00,$00,$02,$02,$02
         .BYTE $00,$00,$01,$01,$02,$04,$00,$00
@@ -3776,7 +3785,9 @@ UPDATE_ENEMY_PATH     ;$28A3
         JMP j172F
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s28D8   LDY #$00     ;#%00000000
+s28D8
+        ; Get charset mask info
+        LDY #$00
         LDA (pFC),Y
         TAY
         LDA (p2A),Y
@@ -3807,6 +3818,8 @@ _L01    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 UPDATE_ENEMY_BKG_PRI    ;$290E
+
+        ; Get charset mask info
         LDY #$00
         LDA (pFC),Y
         TAY
@@ -4414,39 +4427,42 @@ _L05    JSR GET_RANDOM
         LDA #>a0028  ;#%00000000
         STA TMP_SPRITE_X_HI
         JSR j172F
-        LDY #$00     ;#%00000000
+
+        ; Get charset mask info
+        LDY #$00
         LDA (pFC),Y
         TAY
         LDA (p2A),Y
         BNE _L09
+
         LDA TMP_SPRITE_X_LO
         STA SPRITES_X_LO05,X
         LDA TMP_SPRITE_Y
         STA SPRITES_Y05,X
         LDA #$05            ;anim_type_05: regular soldier
         STA SPRITES_TYPE05,X
-_L06    LDA #$01     ;#%00000001
+_L06    LDA #$01
         STA SPRITES_DELTA_Y05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_X05,X
-        LDA #$08     ;#%00001000
+        LDA #$08
         STA a04A1,X
         STA a04AC,X
-        LDA #$9B     ;#%10011011
+        LDA #$9B            ;soldier head south
         STA SPRITES_PTR05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_X_HI05,X
-_L07    LDA #$0B     ;dark grey
+_L07    LDA #$0B            ;dark grey
         STA SPRITES_COLOR05,X
         JSR GET_RANDOM
-        AND #$1F     ;#%00011111
+        AND #$1F
         STA SPRITES_TICK05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_BKG_PRI05,X
 _L08    RTS
 
 _L09    JSR GET_RANDOM
-        AND #$FF     ;#%11111111
+        AND #$FF            ;#%11111111
         BEQ _L10
         RTS
 
@@ -4463,7 +4479,9 @@ _L10    JSR GET_RANDOM
         LDA #$00     ;#%00000000
         STA TMP_SPRITE_X_HI
         JSR j172F
-        LDY #$00     ;#%00000000
+
+        ; Get charset mask info
+        LDY #$00
         LDA (pFC),Y
         TAY
         LDA (p2A),Y
@@ -4474,18 +4492,18 @@ _L11    LDA TMP_SPRITE_X_LO
         STA SPRITES_X_LO05,X
         LDA TMP_SPRITE_Y
         STA SPRITES_Y05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_X_HI05,X
-        LDA #$01     ;#%00000001
+        LDA #$01
         STA SPRITES_DELTA_X05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$D9     ;#%11011001
+        LDA #$D9            ;soldier head east
         STA SPRITES_PTR05,X
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
-        LDA #$14     ;#%00010100
+        LDA #$14
         STA SPRITES_TICK05,X
         LDA #$18            ;anim_type_18: soldier from side B
         STA SPRITES_TYPE05,X
@@ -4623,17 +4641,21 @@ TYPE_ANIM_SOLDIER_BULLET       ;$2F37
         CMP #$16     ;#%00010110
         BCC _L00
         JSR UPDATE_ENEMY_PATH
+
+        ; Get charset mask info
         LDY #$00     ;#%00000000
         LDA (pFC),Y
         TAY
         LDA (p2A),Y
         AND #$01     ;#%00000001
         BNE _L01
-        LDA #$00     ;#%00000000
+
+        LDA #$00
         STA SPRITES_BKG_PRI05,X
         LDA (p2A),Y
         AND #$02     ;#%00000010
         BEQ _L00
+
         LDA #$FF     ;#%11111111
         STA SPRITES_BKG_PRI05,X
 _L00    RTS
@@ -5584,12 +5606,15 @@ _L01    CMP #$28     ;#%00101000
         JSR j172F
         LDA #$00     ;#%00000000
         STA SPRITES_BKG_PRI01,X
+
+        ; Get charset mask info
         LDY #$00     ;#%00000000
         LDA (pFC),Y
         TAY
         LDA (p2A),Y
         AND #$02     ;#%00000010
         BEQ _L02
+
         LDA #$FF     ;#%11111111
         STA SPRITES_BKG_PRI01,X
 _L02    RTS
@@ -5940,15 +5965,19 @@ _L02    INY
         LDA SPRITES_X_HI01,X
         STA TMP_SPRITE_X_HI
         JSR j172F
+
+        ; Get charset mask info
         LDY #$00     ;#%00000000
         LDA (pFC),Y
         TAY
         LDA (p2A),Y
         AND #$01     ;#%00000001
         BNE _L04
+
         LDA (p2A),Y
         AND #$02     ;#%00000010
         BEQ _L03
+
         LDA #$FF     ;#%11111111
         STA SPRITES_BKG_PRI01,X
         RTS
@@ -6257,15 +6286,19 @@ b3BF8   PLA
         ADC V_SCROLL_DELTA
         STA TMP_SPRITE_Y
         JSR j172F
+
+        ; Get charset mask info
         LDY #$00     ;#%00000000
         LDA (pFC),Y
         TAY
         LDA (p2A),Y
         AND #$01     ;#%00000001
         BNE b3C8F
+
         LDA (p2A),Y
         AND #$04     ;#%00000100
         BEQ b3C7D
+
         LDA #$02     ;Hero fell in trench/water
         STA IS_HERO_DEAD
         LDA #$04     ;#%00000100
@@ -6301,9 +6334,12 @@ b3BF8   PLA
         STA SPRITES_DELTA_X00
         STA SPRITES_DELTA_Y00
         STA V_SCROLL_DELTA
+
+        ; Get charset mask info
 b3C7D   LDA (p2A),Y
         AND #$02     ;#%00000010
         BEQ b3C89
+
         LDA #$FF     ;#%11111111
         STA SPRITES_BKG_PRI00
         RTS
