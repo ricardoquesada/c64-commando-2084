@@ -63,8 +63,11 @@ There is a lot of code/data that indicates that a "level 2" (the levels that are
 shipped with Commando are level 0, 1 and 3) was in progress, or finished.
 
 All the actions, charset-mask, trigger rows are present. What's missing is the
-charset and the map. They were probably removed due to lack of time (?) or
-due lack of RAM to create a single-load game (?).
+the map and a partial charset. The charset used for the main screen is likely
+the one designed for level2.
+
+"Level 2" was probably removed due to lack of time (?) or due lack of RAM to
+create a single-load game (?).
 
 For more info about this level, search for "lvl2" in the `main.asm` file.
 

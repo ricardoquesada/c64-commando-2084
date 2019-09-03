@@ -1183,8 +1183,11 @@ SCREEN_MAIN_TITLE
         JSR CLEAR_SCREEN
         LDA #$00     ;#%00000000
         STA BKG_COLOR0
+
+        ; HACK: Sets level number to LVL2 in order to use the charset from $D000
         LDA #$02     ;#%00000010
         STA LEVEL_NR
+
         LDA #$FF     ;#%11111111
         STA $D01D    ;Sprites Expand 2x Horizontal (X)
         STA $D017    ;Sprites Expand 2x Vertical (Y)
@@ -1243,8 +1246,10 @@ _WAIT_FIRE
         JSR LEVEL_DRAW_VIEWPORT
         INC SPRITES_COUNTER00
         LDA SPRITES_COUNTER00
-        CMP #$08     ;Total number of screens to display
-        BNE _L01
+
+        CMP #$08        ;Total number of screens to display
+        BNE _L01        ;FIXME: actually the loop does it one extra time
+                        ; a fixes it in SCREEN_MAIN_TITLE
 
         JMP SCREEN_MAIN_TITLE
 
@@ -1760,8 +1765,13 @@ INIT_LEVEL_DATA                 ;$1445
         STA a002A,b
         LDA f14C4,Y
         STA a002B,b
-        STY a00FB,b
 
+        ; Charsets:
+        ; lvl0 = $c000
+        ; lvl1 = $c800
+        ; main screen / lvl2: $d000
+        ; lvl3 = $d800
+        STY a00FB,b
         LDA $D018    ;VIC Memory Control Register
         AND #$F0     ;#%11110000
         ORA a00FB,b  ;Set charset address
@@ -7004,6 +7014,8 @@ _L0     LDA #$FF     ;#%11111111
         LDA #$00     ;#%00000000
         STA $D021    ;Background Color 0
 
+        ; Charset at $D000 is the one used that contains the letters/numbers
+        ; needed to print "SCORE", "MEN", etc.
         LDA $D018    ;VIC Memory Control Register
         AND #$F0     ;#%11110000
         ORA #$04     ;#%00000100    bitmap at $c000 / charset at 010 = $D000
@@ -7126,6 +7138,7 @@ _L0     LDX a004B,b,Y
         CPY #$08
         BNE _L0
 
+        ; Set the correct charset for the level
         LDA LEVEL_NR
         AND #$03     ;#%00000011
         ASL A        ;Shift to left, since bit 0 is unused in $D018
@@ -7133,7 +7146,7 @@ _L0     LDX a004B,b,Y
 
         LDA $D018    ;VIC Memory Control Register
         AND #$F0     ;#%11110000
-        ORA a00A7,b  ; Charset Idx. l1=$c000, l2=$c800, l3=$d000
+        ORA a00A7,b  ; Charset Idx. lvl0=$c000, lvl1=$c800, main=$d000, lvl3=$d800
         STA $D018    ;VIC Memory Control Register
 
         LDX a004E,b
