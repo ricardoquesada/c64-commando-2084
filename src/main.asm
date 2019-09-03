@@ -7796,4 +7796,5 @@ MASK_1000_0000   .BYTE $80           ;1000_0000
 
         *= $c000
 .binary "l0-charset.bin"
+        *= $c800
 .binary "l1-charset.bin"
