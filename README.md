@@ -69,7 +69,9 @@ the one designed for level2.
 "Level 2" was probably removed due to lack of time (?) or due lack of RAM to
 create a single-load game (?).
 
-For more info about this level, search for "lvl2" in the `main.asm` file.
+For more info about this level, search for "lvl2" in the [`main.asm`][main.asm] file.
+
+[main.asm]: src/main.asm
 
 ## Analysis
 
