@@ -2248,7 +2248,7 @@ ACTION_TBL_LO               ;$1C06
         .ADDR ACTION_NEW_JUMPING_SOLDIER_R  ;$01
         .ADDR ACTION_NEW_JUMPING_SOLDIER_L  ;$02
         .ADDR ACTION_NEW_MORTAR_ENEMY   ;$03
-        .ADDR ACTION_NEW_BIKE           ;$04
+        .ADDR ACTION_NEW_BIKE_LVL0      ;$04
         .ADDR ACTION_NEW_POW_GUARD      ;$05
         .ADDR ACTION_NEW_POW            ;$06
         .ADDR ACTION_NEW_GRENADE_BOX    ;$07
@@ -2263,13 +2263,13 @@ ACTION_TBL_LO               ;$1C06
         .ADDR ACTION_NEW_TURRET_CANNON_R    ;$10
         .ADDR ACTION_NEW_BAZOOKA_ENEMY_R    ;$11
         .ADDR ACTION_NEW_BAZOOKA_ENEMY_L    ;$12
-        .ADDR ACTION_13                 ;$13
-        .ADDR ACTION_14                 ;$14
+        .ADDR ACTION_NEW_BIKE_LVL1      ;$13
+        .ADDR ACTION_NEW_TRUCK          ;$14
         .ADDR ACTION_NEW_CART_UP_LVL1   ;$15
-        .ADDR ACTION_16                 ;$16
+        .ADDR ACTION_NEW_PINK_CAR       ;$16
         .ADDR ACTION_17                 ;$17
         .ADDR ACTION_18                 ;$18
-        .ADDR ACTION_19                 ;$19
+        .ADDR ACTION_NEW_SOLDIER_IN_TOWER   ;$19
         .ADDR ACTION_1A                 ;$1A
         .ADDR ACTION_VOID               ;$1B
 
@@ -2385,6 +2385,8 @@ ACTION_VOID        ;$1E4E
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_1A
 ; Create sprite type: $28
+; Unused. Only referenced from LVL2.
+; FIXME: remove me
 ACTION_1A       ;$1E4F
         JSR ACTION_NEW_MORTAR_ENEMY
         LDA #$28        ;anim_type_28:
@@ -2393,7 +2395,7 @@ ACTION_1A       ;$1E4F
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_19
-ACTION_19       ;$1E58
+ACTION_NEW_SOLDIER_IN_TOWER       ;$1E58
         JSR ACTION_NEW_SOLDIER_BEHIND_TRENCH
         LDA #$27        ;anim_type_27: tower in lvl3 shoot
         STA SPRITES_TYPE05,X
@@ -2409,6 +2411,7 @@ ACTION_OPEN_DOOR    ;$1E61
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_18
 ; Unused action. Only used in LVL2, which is not present in the game.
+; Uses anim_type_26
 ; FIXME: remove me
 ACTION_18       ;$1E66
         LDA #$06     ;#%00000110
@@ -2482,7 +2485,9 @@ ACTION_NEW_CART_UP_LVL1     ;$1EAF
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_14
-ACTION_14       ;$1EED
+; Create truck that carries soldiers in LVL3.
+; Moves horizontally from R to L.
+ACTION_NEW_TRUCK       ;$1EED
         LDA #$3E
         STA SPRITES_X_LO05,X
         LDA #$64
@@ -2537,13 +2542,15 @@ _L01    TYA
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_16
-; Create car
-; requires an extra empty seat
-ACTION_16       ;$1F5F
-        ; FIXME: Might override existing seat. ACTION_13 might fail if no extra
-        ; seat is found. The fix should be:
+; Create the pink car that moves horizontally, from left to right at the
+; beginning of LVL1.
+; Uses anim_type_22.
+; Requires an extra empty seat
+ACTION_NEW_PINK_CAR     ;$1F5F
+        ; FIXME: Might override existing seat. ACTION_NEW_BIKE_LVL1 might fail
+        ; if no extra seat is found. The fix should be:
         ; If Y == #$0B, ret
-        JSR ACTION_13
+        JSR ACTION_NEW_BIKE_LVL1
 
         LDA #$1E
         STA SPRITES_X_LO05,X
@@ -2566,9 +2573,9 @@ ACTION_16       ;$1F5F
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_13
-; Create bike
-; requires an extra empty seat
-ACTION_13       ;$1F8F
+; Create bike that moves horizontally from R to L at LVL1.
+; Requires an extra empty seat
+ACTION_NEW_BIKE_LVL1       ;$1F8F
         LDY #$00
         ; Find empty seat
 _L00    LDA SPRITES_TYPE05,Y
@@ -2852,11 +2859,10 @@ ACTION_NEW_POW_GUARD    ;$2190
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_04
-; Init object bike (sprite types $0f and $10)
-; From lvl1, the one that crosses the bridge
+; Create bike (sprite types $0f and $10) that crosses bridge in LVL0.
 ; This object requires two different sprite types: front and back bike.
 ; Creates the back one only if there is space for it.
-ACTION_NEW_BIKE         ;$21C1
+ACTION_NEW_BIKE_LVL0         ;$21C1
         LDA #$20     ;#%00100000
         STA SPRITES_X_LO05,X
         LDA #$21     ;#%00100001
@@ -3350,6 +3356,8 @@ TYPE_ANIM_VOID0      ;$2596
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_28
+; Only referenced from ACTION_1A, which is only used in LVL2.
+; FIXME: remove me
 TYPE_ANIM_28        ;$2597
         INC SPRITES_TICK05,X
         LDA a04EA
@@ -3405,7 +3413,8 @@ TYPE_ANIM_TOWER_FIRE_LVL3   ;$25F0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_26
-; Unused, since it is only referenced only from LVL2.
+; Unused, since it is only referenced from ACTION_17 and ACTION_18, only used
+; in LVL2.
 ; FIXME: remove me
 TYPE_ANIM_26            ;$25F9
         INC SPRITES_TICK05,X
@@ -3547,7 +3556,7 @@ TYPE_ANIM_22        ;$26DD
         LDY a04A1,X
         LDA SPRITES_TICK05,X
         AND #$0F            ;#%00001111
-        BNE _L00            ;FIXME; probably it should say _L01 instead
+        BNE _L00            ;FIXME: probably it should say _L01 instead
 
         INC SPRITES_Y05,X
         LDA SPRITES_Y05,X
