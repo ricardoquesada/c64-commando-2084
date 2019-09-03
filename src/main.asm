@@ -2256,21 +2256,21 @@ ACTION_TBL_LO               ;$1C06
         .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_R    ;$09
         .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_R_B  ;$0A
         .ADDR ACTION_OPEN_DOOR          ;$0B
-        .ADDR s23CC                     ;$0C
+        .ADDR ACTION_0C                 ;$0C
         .ADDR ACTION_NEW_BOSS_LVL0      ;$0D
         .ADDR ACTION_NEW_SOLDIER_IN_TRENCH  ;$0E
         .ADDR ACTION_NEW_TURRET_CANNON_L    ;$0F
         .ADDR ACTION_NEW_TURRET_CANNON_R    ;$10
         .ADDR ACTION_NEW_BAZOOKA_ENEMY_R    ;$11
         .ADDR ACTION_NEW_BAZOOKA_ENEMY_L    ;$12
-        .ADDR s1F8F                     ;$13
-        .ADDR s1EED                     ;$14
+        .ADDR ACTION_13                 ;$13
+        .ADDR ACTION_14                 ;$14
         .ADDR ACTION_NEW_CART_UP_LVL1   ;$15
-        .ADDR s1F5F                     ;$16
-        .ADDR s1E73                     ;$17
-        .ADDR s1E66                     ;$18
-        .ADDR s1E58                     ;$19
-        .ADDR s1E4F                     ;$1A
+        .ADDR ACTION_16                 ;$16
+        .ADDR ACTION_17                 ;$17
+        .ADDR ACTION_18                 ;$18
+        .ADDR ACTION_19                 ;$19
+        .ADDR ACTION_1A                 ;$1A
         .ADDR ACTION_VOID               ;$1B
 
 ; Level 1 data
@@ -2385,14 +2385,16 @@ ACTION_VOID        ;$1E4E
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_1A
 ; Create sprite type: $28
-s1E4F   JSR ACTION_NEW_MORTAR_ENEMY
+ACTION_1A       ;$1E4F
+        JSR ACTION_NEW_MORTAR_ENEMY
         LDA #$28        ;anim_type_28:
         STA SPRITES_TYPE05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_19
-s1E58   JSR ACTION_NEW_SOLDIER_BEHIND_TRENCH
+ACTION_19       ;$1E58
+        JSR ACTION_NEW_SOLDIER_BEHIND_TRENCH
         LDA #$27        ;anim_type_27: tower in lvl3 shoot
         STA SPRITES_TYPE05,X
         RTS
@@ -2406,7 +2408,10 @@ ACTION_OPEN_DOOR    ;$1E61
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_18
-s1E66   LDA #$06     ;#%00000110
+; Unused action. Only used in LVL2, which is not present in the game.
+; FIXME: remove me
+ACTION_18       ;$1E66
+        LDA #$06     ;#%00000110
         STA a04AC,X
         LDA #$F5     ;Frame: Door right open?
         STA SPRITES_PTR05,X
@@ -2414,7 +2419,10 @@ s1E66   LDA #$06     ;#%00000110
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_17
-s1E73   LDA #$0A     ;#%00001010
+; Unused action. Only used in LVL2, which is not present in the game.
+; FIXME: remove me
+ACTION_17       ;$1E73
+        LDA #$0A     ;#%00001010
         STA a04AC,X
         LDA #$F4     ;Frame: Door left open?
         STA SPRITES_PTR05,X
@@ -2474,7 +2482,8 @@ ACTION_NEW_CART_UP_LVL1     ;$1EAF
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_14
-s1EED   LDA #$3E
+ACTION_14       ;$1EED
+        LDA #$3E
         STA SPRITES_X_LO05,X
         LDA #$64
         STA SPRITES_Y05,X
@@ -2530,11 +2539,11 @@ _L01    TYA
 ; ref: action_16
 ; Create car
 ; requires an extra empty seat
-s1F5F
-        ; FIXME: Might override existing seat. s1F8F might fail if no extra
+ACTION_16       ;$1F5F
+        ; FIXME: Might override existing seat. ACTION_13 might fail if no extra
         ; seat is found. The fix should be:
         ; If Y == #$0B, ret
-        JSR s1F8F
+        JSR ACTION_13
 
         LDA #$1E
         STA SPRITES_X_LO05,X
@@ -2559,7 +2568,8 @@ s1F5F
 ; ref: action_13
 ; Create bike
 ; requires an extra empty seat
-s1F8F   LDY #$00
+ACTION_13       ;$1F8F
+        LDY #$00
         ; Find empty seat
 _L00    LDA SPRITES_TYPE05,Y
         BEQ _L01
@@ -3119,7 +3129,8 @@ NEW_SOLDIER_FROM_SIDE
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_0C
 ; Creates a soldier from side that throws grenades
-s23CC   LDA #$1E
+ACTION_0C       ;$23CC
+        LDA #$1E
         STA SPRITES_Y05,X
         LDA #$5A
         STA SPRITES_X_LO05,X
@@ -3309,9 +3320,9 @@ TYPE_ANIM_TBL_LO
         .ADDR TYPE_ANIM_VOID1                   ;$23
         .ADDR TYPE_ANIM_SOLDIER_JUMPING_FROM_TRUCK  ;$24
         .ADDR TYPE_ANIM_CART_UP_LVL1            ;$25
-        .ADDR s25F9                             ;$26
+        .ADDR TYPE_ANIM_26                      ;$26
         .ADDR TYPE_ANIM_TOWER_FIRE_LVL3         ;$27
-        .ADDR s2597                             ;$28
+        .ADDR TYPE_ANIM_28                      ;$28
 
 f2544   .BYTE $00,$00,$00,$00,$00,$03,$00,$02
         .BYTE $00,$00,$03,$00,$00,$02,$00,$00
@@ -3339,7 +3350,8 @@ TYPE_ANIM_VOID0      ;$2596
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_28
-s2597   INC SPRITES_TICK05,X
+TYPE_ANIM_28        ;$2597
+        INC SPRITES_TICK05,X
         LDA a04EA
         BEQ _L02
         LDA SPRITES_TICK05,X
@@ -3393,7 +3405,10 @@ TYPE_ANIM_TOWER_FIRE_LVL3   ;$25F0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_26
-s25F9   INC SPRITES_TICK05,X
+; Unused, since it is only referenced only from LVL2.
+; FIXME: remove me
+TYPE_ANIM_26            ;$25F9
+        INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
         AND #$7F     ;#%01111111
         BNE _L00
@@ -4412,7 +4427,7 @@ _L03    JSR GET_RANDOM
         STA a04AC,X
         LDA f2CD1,Y
         STA SPRITES_PTR05,X
-        LDA #$1B            ;anim_type_1B: soldier in fort lvl1,2,3
+        LDA #$1B            ;anim_type_1B: soldier in fort lvl0,1,3
         STA SPRITES_TYPE05,X
         JMP _L07
 
@@ -4424,7 +4439,7 @@ _L04    JSR GET_RANDOM
         STA SPRITES_X_LO05,X
         LDA #$64
         STA SPRITES_Y05,X
-        LDA #$1B            ;anim_type_1B: soldier in fort lvl1,2,3
+        LDA #$1B            ;anim_type_1B: soldier in fort lvl0,1,3
         STA SPRITES_TYPE05,X
         INC a04F4
         JMP _L06
