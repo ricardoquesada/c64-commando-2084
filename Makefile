@@ -26,7 +26,7 @@ co3.prg: src/sprites.bin src/main-map.bin src/main-padding.bin
 	64tass -Wall --cbm-prg -o bin/co3.prg -L bin/list-co3.txt src/co3.asm
 	md5sum bin/co3.prg orig/co3.prg
 
-d64: co1.prg co2.prg co3.prg
+d64: commando.prg co1.prg co2.prg co3.prg
 	$(C1541) -format "commando 2084,rq" d64 $(D64_IMAGE)
 	$(C1541) $(D64_IMAGE) -write bin/commando.prg "commando"
 	$(C1541) $(D64_IMAGE) -write bin/co1.prg co1

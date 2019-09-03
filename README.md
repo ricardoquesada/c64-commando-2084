@@ -1,6 +1,15 @@
 # Decompiled Commando for the Commodore 64
 
-This is the decompiled source code for the Commodore 64.
+![commando64](https://lh3.googleusercontent.com/d8wonEvj2mcU2kp2gstEmZNFVUgZ8mGVxNiBTiHPXLiEC2tcs-aavTmsyoUnwm8oFBaqr7gQrHSuhvFl21gXBMDV7MUQmV7Fh7lefMMZVdd1FsDqGL5WxZ4pGp3PvKMk-ptyT123Glo=-no)
+
+This is the decompiled source code for the Commodore 64. It includes:
+
+* Well commented source code. "Easy" to follow (requires some C64 internals
+  knowledge).
+* Source code can be compiled (it actually generates the exactly
+  same binary as the original one).
+* Can be modified and game won't break. All hardcoded addresses were converted
+  to labels.
 
 ## Requirements
 
@@ -17,9 +26,6 @@ $ make
 ```
 
 ## What's included
-
-All the code + data needed to generate exactly the same orginal version (same
-md5 hash).
 
 ### Code
 
@@ -39,7 +45,7 @@ the middle of the code.
 ## Original
 
 Although I do own the original copy of Commando, my copy crashes.
-Probably my original floppy disk is corrupted.
+My original floppy disk is corrupted :(
 
 * ![commando][commando_img]
 
@@ -56,11 +62,11 @@ Apparently, the original idea was to ship Commando with 4 levels instead of 3.
 There is a lot of code/data that indicates that a "level 2" (the levels that are
 shipped with Commando are level 0, 1 and 3) was in progress, or finished.
 
-All the actions, charset-mask, trigger rows are present. What's missing in the
-charset and the map. They were probably removed due to lack of RAM(?).
+All the actions, charset-mask, trigger rows are present. What's missing is the
+charset and the map. They were probably removed due to lack of time (?) or
+due lack of RAM to create a single-load game (?).
 
-If you are interested in seeing whats included, search for "lvl2" in the
-`main.asm` file.
+For more info about this level, search for "lvl2" in the `main.asm` file.
 
 ## Analysis
 
@@ -77,6 +83,7 @@ TODO: Explain the following
 * [Regenerator][regenerator]: To do the first-pass decompilation
 * [Infiltrator Disassembler][infiltrator]: To analyze data
 * [VICE][vice]: For testing + analyze data
+* [VChar64][vchar64]: To regenerate the charsets + maps
 
 [regenerator]: https://csdb.dk/release/?id=149429
 [infiltrator]: https://csdb.dk/release/?id=100129
