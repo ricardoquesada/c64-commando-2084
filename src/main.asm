@@ -4,9 +4,20 @@
 ; Note about levels:
 ; LVL0 -> Is "level 1" in the game
 ; LVL1 -> Is "level 2" in the game
-; LVL2 -> Is a level that was not enabled in the game, since charset/map data
-;         is not present, but the rest of the data is included.
+; LVL2 -> Not present
 ; LVL3 -> Is "level 3" in the game
+;
+; LVL2:
+; Apparently, four levels were designed for Commando.
+; There is a lot of data/code that proves this, like:
+; - Action table. See: LVL2_ACTION_TBL
+; - Row trigger table. See: LVL2_TRIGGER_ROW_TBL
+; - Sprites X pos. See: LVL2_SPRITE_X_LO_TBL / LVL2_SPRITE_HI_TBL
+; - Charset mask. See: LVL2_CHARSET_MASK_TBL
+; - The "main charset (included in co2.asm) was probably the one designed for
+;   LVL2. Although part of it was overwritten with letters.
+; What in theory is missing to have a working LVL2 is the map, and if fix the
+; charset.
 
 ;
 ; **** ZP FIELDS ****
@@ -40,7 +51,7 @@ p22 = $22                       ;sprite to create: X lo
 p24 = $24                       ;rows that trigger sprite type init
 p26 = $26                       ;sprite to create: X hi
 p28 = $28                       ;what sprite type to create at row
-p2A = $2A                       ;256 bytes of Collision map?
+p2A = $2A                       ;charset attributes: background priority, collision, etc.
 p5D = $5D
 p5F = $5F
 p83 = $83
@@ -251,25 +262,25 @@ eF00A = $F00A
         LDA #$09     ;#%00001001
         JSR s0828
         JSR s083D
-        JSR eF00A   ; set charset: copy from e000-efff to d000-dfff
-        JSR s083D
+        JSR eF00A       ;set charset: copy from e000-efff to d000-dfff
+        JSR s083D       ; defined in "co2.asm"
         JSR s0828
         JMP BOOT
 
-s0828   LDA #$01     ;#%00000001
+s0828   LDA #$01
         TAX
         TAY
         NOP
         NOP
         NOP
-        LDA #$00     ;#%00000000
+        LDA #$00
         NOP
         NOP
         NOP
-        LDA #$00     ;#%00000000
-        LDX #$FF     ;#%11111111
-        LDY #$FF     ;#%11111111
-        JMP e03F0
+        LDA #$00
+        LDX #$FF
+        LDY #$FF
+        JMP e03F0       ;Load file. Defined in "commando.asm"
 
 s083D   SEI
 b083E   LDA a01
@@ -277,7 +288,7 @@ b083E   LDA a01
         STA a01
         RTS
 
-        ; TODO: unused, remove
+        ; FIXME: unused, remove
         .BYTE $E0,$09,$D0,$F5,$20,$AD,$35,$20
         .BYTE $57,$0A,$20
 
@@ -561,7 +572,7 @@ NMI_HANDLER
         RTI
 
         ;TODO: This generates small garbage in the top row of the map.
-        ;Can be safely removed once we don't care about the generating exaclty
+        ;Can be safely removed once we don't care about the generating exactly
         ;the same binary.
 RESET_ROUTINE       ;$0A4E
         .ADDR BOOT, BOOT
@@ -569,6 +580,9 @@ RESET_ROUTINE       ;$0A4E
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Sets the sight "()" sprite for high scores as sprite $41 (@ $D040)
+; Charset for LVL2 is located between D000-D7FF. Since LVL2 is not present
+; it is safe to overwrite parts of $D000 as long you don't overwrite where
+; the letters/numbers are located.
 SET_SIGHT_SPRITE    ;$0A57
         ;TODO: probably it is safe to remove the stop/start timer since
         ;timer is not being used by code, and is already stop
@@ -2105,7 +2119,8 @@ LVL1_CHARSET_MASK_TBL   ;$18A9
         .BYTE $02,$00,$01,$01,$01,$03,$02,$01
         .BYTE $03,$02,$01,$03,$00,$01,$01,$00
 
-        ; LVL2 data (not used)
+        ; LVL2 data (not used). FIXME: remove
+LVL2_CHARSET_MASK_TBL
         .BYTE $00,$04,$04,$04,$04,$04,$04,$04
         .BYTE $04,$04,$04,$04,$04,$04,$04,$04
         .BYTE $02,$02,$01,$01,$01,$01,$00,$00
@@ -2188,6 +2203,7 @@ LVL3_CHARSET_MASK_TBL   ;$1AA9
 ; type. This happens when it wants to create the same sprite type, but
 ; the sprite type must be init in a differnt way. E.g: one for placing
 ; the sprite type at the left, and the other at the right of the screen.
+;
 ; TODO: How many actions per row are possible? 8?
 RUN_ACTIONS   ;$1BA9
         LDY TRIGGER_ROW_IDX
@@ -2205,7 +2221,7 @@ _L01    LDA SPRITES_TYPE05,X
         DEX
         BPL _L01
 
-        ; TODO: Loop tried twice, probably a bug. Remove
+        ; FIXME: Loop tried twice, probably a bug. Remove
 
         LDX #$0A
 _L02    LDA SPRITES_TYPE05,X
@@ -2283,7 +2299,7 @@ ACTION_TBL_LO               ;$1C06
         .ADDR ACTION_1A                 ;$1A
         .ADDR ACTION_VOID               ;$1B
 
-; Level 1 data
+        ; LVL0 data
 LVL0_TRIGGER_ROW_TBL    ;$1C3E
         .BYTE $9E,$9B,$98,$90,$8E,$84,$81,$7E
         .BYTE $7B,$7B,$7B,$66,$64,$5B,$5B,$57
@@ -2303,14 +2319,14 @@ LVL0_SPRITE_X_HI_TBL    ;$1C8F
         .BYTE $00,$58,$00,$00,$58,$00,$00,$00
         .BYTE $00,$FF,$00,$00,$FF,$FF,$00,$00
         .BYTE $00,$00,$00,$FF,$FF,$00,$00,$00
-LVL0_ACTION_TBL            ;$1CB7
+LVL0_ACTION_TBL         ;$1CB7
         .BYTE $01,$01,$01,$00,$07,$02,$02,$02
         .BYTE $05,$06,$05,$03,$07,$04,$0C,$08
         .BYTE $0C,$09,$00,$00,$08,$00,$00,$00
         .BYTE $00,$00,$00,$07,$00,$00,$00,$07
         .BYTE $00,$00,$00,$00,$07,$0B,$0D,$1B
 
-; Level 2 data
+        ; LVL1 data
 LVL1_TRIGGER_ROW_TBL    ;$1CDF
         .BYTE $A5,$A2,$9D,$9B,$9B,$96,$95,$95
         .BYTE $93,$8C,$8C,$8A,$88,$83,$7B,$7B
@@ -2327,41 +2343,37 @@ LVL1_SPRITE_X_HI_TBL    ;$1D20
         .BYTE $00,$00,$00,$FF,$FF,$00,$00,$00
         .BYTE $FF,$00,$00,$00,$63,$63,$00,$00
         .BYTE $00,$3F,$00,$00,$00,$00,$00,$00
-LVL1_ACTION_TBL            ;$1D40
+LVL1_ACTION_TBL         ;$1D40
         .BYTE $15,$07,$0E,$16,$0E,$13,$0E,$0E
         .BYTE $0E,$0E,$0E,$07,$0E,$0E,$0E,$0E
         .BYTE $0E,$0E,$07,$0C,$08,$09,$12,$11
         .BYTE $0E,$09,$0F,$0C,$10,$0F,$0B,$1B
 
-        ; This is the data for LVL2, a level that apparently was "almost finished"
-        ; but was not included in the final game, because who knows.
-        ; What's not included is the charset/map, which is the part that
-        ; takes more space, so probably it was not included to make it
-        ; easier to ship it in a cassette (?). Pure especulation from my part.
-
-        ; LVL2-Trigger rows
+        ; LVL2 data
+        ; FIXME: all LVL2 data can be removed since it is not used.
+LVL2_TRIGGER_ROW_TBL
         .BYTE $C6,$C4,$B5,$B4,$A7,$9D,$97,$95
         .BYTE $87,$81,$68,$68,$5E,$5E,$50,$4B
         .BYTE $3C,$36,$32,$28,$09,$09,$01,$00
         .BYTE $00,$FF
 
-        ; LVL2-X lo values
+LVL2_SPRITE_X_LO_TBL
         .BYTE $F5,$3F,$21,$E9,$90,$38,$1E,$AA
         .BYTE $E2,$5F,$00,$00,$50,$50,$00,$00
         .BYTE $00,$00,$00,$00,$0E,$4A,$00,$00
         .BYTE $00
-        ; LVL2-X hi values
+LVL2_SPRITE_X_HI_TBL
         .BYTE $00,$00,$00,$00,$00,$00,$FF,$00
         .BYTE $00,$00,$00,$00,$63,$63,$00,$00
         .BYTE $00,$00,$00,$00,$FF,$00,$00,$00
         .BYTE $00
-        ; LVL2-Actions
+LVL2_ACTION_TBL
         .BYTE $18,$18,$17,$17,$18,$18,$07,$17
         .BYTE $18,$18,$04,$0C,$08,$09,$14,$14
         .BYTE $16,$13,$16,$16,$03,$1A,$0B,$0D
         .BYTE $1B
 
-; Level 3 data
+        ; LVL3 data
 LVL3_TRIGGER_ROW_TBL    ;$1DC5
         .BYTE $B4,$B3,$A4,$A3,$92,$8B,$8B,$83
         .BYTE $77,$74,$73,$61,$60,$5D,$58,$53

@@ -34,6 +34,12 @@ d64: commando.prg co1.prg co2.prg co3.prg
 	$(C1541) $(D64_IMAGE) -write bin/co3.prg co3
 	$(C1541) $(D64_IMAGE) -list
 
+md5: commando.prg co1.prg co2.prg co3.prg
+	md5sum bin/commando.prg orig/commando.prg
+	md5sum bin/co1.prg orig/co1.prg
+	md5sum bin/co2.prg orig/co2.prg
+	md5sum bin/co3.prg orig/co3.prg
+
 run: d64
 	$(X64) -verbose -moncommands bin/labels.txt $(D64_IMAGE)
 
