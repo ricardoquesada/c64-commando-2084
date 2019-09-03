@@ -3307,7 +3307,7 @@ TYPE_ANIM_TBL_LO
         .ADDR TYPE_ANIM_GRENADE_BOX             ;$16
         .ADDR TYPE_ANIM_SOLDIER_FROM_SIDE_A     ;$17
         .ADDR TYPE_ANIM_SOLDIER_FROM_SIDE_B     ;$18
-        .ADDR s2956                             ;$19
+        .ADDR TYPE_ANIM_19                      ;$19
         .ADDR TYPE_ANIM_BOSS_LVL0               ;$1A
         .ADDR TYPE_ANIM_SOLDIER_IN_FORT         ;$1B
         .ADDR TYPE_ANIM_SOLDIER_IN_TRENCH       ;$1C
@@ -3316,7 +3316,7 @@ TYPE_ANIM_TBL_LO
         .ADDR TYPE_ANIM_TURRET_FIRE_END         ;$1F
         .ADDR TYPE_ANIM_BAZOOKA_ENEMY           ;$20
         .ADDR TYPE_ANIM_TURRET_FIRE_END         ;$21
-        .ADDR s26DD                             ;$22
+        .ADDR TYPE_ANIM_22                      ;$22
         .ADDR TYPE_ANIM_VOID1                   ;$23
         .ADDR TYPE_ANIM_SOLDIER_JUMPING_FROM_TRUCK  ;$24
         .ADDR TYPE_ANIM_CART_UP_LVL1            ;$25
@@ -3542,7 +3542,8 @@ _L01    LDA SPRITES_X_LO05,X
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_22
-s26DD   INC SPRITES_TICK05,X
+TYPE_ANIM_22        ;$26DD
+        INC SPRITES_TICK05,X
         LDY a04A1,X
         LDA SPRITES_TICK05,X
         AND #$0F            ;#%00001111
@@ -3900,7 +3901,7 @@ FRAME_BOSS1_LEFT        ;$2954
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_19
-s2956
+TYPE_ANIM_19        ;$2956
         INC SPRITES_TICK05,X
         LDA SPRITES_DELTA_X05,X
         ORA SPRITES_DELTA_Y05,X
