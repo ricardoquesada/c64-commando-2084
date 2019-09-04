@@ -6387,6 +6387,9 @@ _L12    LDA $DC00    ;CIA1: Data Port Register A (in-game direction changed)
         ; Fall-through
 
 SETUP_HERO_ANIMATION            ;$3BAC
+.IF ENABLE_DOUBLE_JOYSTICKS==1
+        ;FIXME: prevent double hero setup per frame
+.ENDIF
         LDA HERO_ANIM_MOV_IDX
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
