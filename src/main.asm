@@ -213,6 +213,7 @@ HISCORE_NAME_IDX = $050F        ;Index to the hiscore name
 HISCORE_SELECTED_CHAR = $0510   ;Selected char in hiscore
 HISCORE_IS_CHAR_ANIM = $0511    ;1: if the selected char in hiscore is being animated
 HISCORE_ANIM_CHAR_COUNTER = $0512       ;Counter to the selected char animation in hiscore
+REQUIRES_SETUP_HERO_ANIM = $513       ;If 1, SETUP_HERO_ANIMATION must be called
 aE34E = $E34E
 aE34F = $E34F
 aE350 = $E350
@@ -399,9 +400,17 @@ _L00    INC GAME_TICK
         LDA IS_HERO_DEAD
         BNE HERO_DIED
 .IF ENABLE_DOUBLE_JOYSTICKS==1
+        LDA #$00
+        STA REQUIRES_SETUP_HERO_ANIM
         JSR HANDLE_JOY1
-.ENDIF
         JSR HANDLE_JOY2
+        LDA REQUIRES_SETUP_HERO_ANIM
+        BEQ _SKIP_HERO_ANIM
+        JSR SETUP_HERO_ANIMATION
+_SKIP_HERO_ANIM
+.ELSE
+        JSR HANDLE_JOY2
+.ENDIF
         LDA IS_ANIM_EXIT_DOOR
         BNE _L01
         JSR CHECK_COLLISION
@@ -6216,7 +6225,7 @@ HANDLE_JOY1
         TAX
         LDA AIM_TBL,X
         STA HERO_ANIM_MOV_IDX
-        JMP SETUP_HERO_ANIMATION
+        INC REQUIRES_SETUP_HERO_ANIM
 _L00    RTS
 
 AIM_TBL
@@ -6385,11 +6394,12 @@ _L12    LDA $DC00    ;CIA1: Data Port Register A (in-game direction changed)
         BEQ b3BCC
 
         ; Fall-through
+.IF ENABLE_DOUBLE_JOYSTICKS==1
+        INC REQUIRES_SETUP_HERO_ANIM
+        RTS
+.ENDIF
 
 SETUP_HERO_ANIMATION            ;$3BAC
-.IF ENABLE_DOUBLE_JOYSTICKS==1
-        ;FIXME: prevent double hero setup per frame
-.ENDIF
         LDA HERO_ANIM_MOV_IDX
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
@@ -6404,6 +6414,7 @@ SETUP_HERO_ANIMATION            ;$3BAC
         TAY
         LDA (pFB),Y
         STA SPRITES_PTR00
+
 b3BCC   JSR s35CE
         LDA SPRITES_X_HI00
         STA TMP_SPRITE_X_HI
