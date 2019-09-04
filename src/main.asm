@@ -5988,11 +5988,16 @@ _L00    LDA SPRITES_TYPE04
         STA SPRITES_COLOR04
         LDA SPRITES_BKG_PRI00
         STA SPRITES_BKG_PRI04
-        LDA #$02     ;#%00000010
+        LDA #$02     ;anim_type_02: hero grenade
         STA SPRITES_TYPE04
         LDA #$00     ;#%00000000
         STA SPRITES_COUNTER03
+.IF ENABLE_DOUBLE_JOYSTICKS==0
+        ; Only update sprite frame when throwing grenades in normal mode
+        ; Disabled on double-joystick mode.
+        ; FIXME: riq
         STA HERO_ANIM_MOV_IDX
+.ENDIF
         LDA #$A4     ;#%10100100
         STA SPRITES_PTR00
         SED
@@ -6379,11 +6384,11 @@ _L10    CMP #$79     ;#%01111001        down-left
 
 _L11    CMP #$7A     ;#%01111010        up-left
         BNE _L12
-        LDX #$0E     ;Anim index for SOLDIER_ANIM_FRAMES (up-left)
 .IF ENABLE_DOUBLE_JOYSTICKS==0
+        LDX #$0E     ;Anim index for SOLDIER_ANIM_FRAMES (up-left)
         STX HERO_ANIM_MOV_IDX
-        LDA #<HERO_FRAMES_UP_LEFT  ;#%10111100
 .ENDIF
+        LDA #<HERO_FRAMES_UP_LEFT  ;#%10111100
         STA a0019
         LDA #>HERO_FRAMES_UP_LEFT  ;#%00111100
         STA a001A
