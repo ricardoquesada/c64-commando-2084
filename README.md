@@ -1,4 +1,4 @@
-# Decompiled Commando for the Commodore 64
+# Commando for the Commodore 64 - decompiled
 
 ![commando64](https://lh3.googleusercontent.com/d8wonEvj2mcU2kp2gstEmZNFVUgZ8mGVxNiBTiHPXLiEC2tcs-aavTmsyoUnwm8oFBaqr7gQrHSuhvFl21gXBMDV7MUQmV7Fh7lefMMZVdd1FsDqGL5WxZ4pGp3PvKMk-ptyT123Glo=-no)
 
@@ -30,8 +30,8 @@ $ make
 ### Code
 
 The code is using labels for everything. All the harcoded addresses were
-converted to lables (think of tables with hundreds of addresses).
-The game runs pefectly Ok, even you if add a `nop` in
+converted to labels (think of tables with hundreds of addresses).
+The game runs perfectly Ok, even you if add a `nop` in
 the middle of the code.
 
 ### Data

@@ -1183,13 +1183,13 @@ HISCORE_NAME01
         .BYTE $20,$20,$20,$20,$20,$20,$20,$20
 
         ; High Scores
-HISCORE_LSB00   .BYTE $00                       ;9000
-HISCORE_MSB00   .BYTE $90
-HISCORE_LSB01   .BYTE $00                       ;8000
-HISCORE_MSB01   .BYTE $80
-        .BYTE $00,$70,$00,$60,$00,$50,$00,$40   ;7000...4000
-        .BYTE $00,$30,$00,$20                   ;3000,2000
-        .BYTE $00,$00                           ;0?
+HISCORE_MSB00 =*+1
+HISCORE_LSB00
+        .WORD $9000
+HISCORE_MSB01 =*+1
+HISCORE_LSB01
+        .WORD $8000,$7000,$6000,$5000
+        .WORD $4000,$3000,$2000,$0000
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 SCREEN_MAIN_TITLE
