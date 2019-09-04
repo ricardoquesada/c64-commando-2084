@@ -396,6 +396,7 @@ _L00    INC GAME_TICK
 
         LDA IS_HERO_DEAD
         BNE HERO_DIED
+        JSR HANDLE_JOY1
         JSR HANDLE_JOY2
         LDA IS_ANIM_EXIT_DOOR
         BNE _L01
@@ -593,11 +594,18 @@ SET_SIGHT_SPRITE    ;$0A57
         AND #$FB     ;#%11111011    Enabling RAM at $D000 I guess
         STA a01
 
-        LDX #$3F     ;size of sprite
-_L00    LDA SIGHT_SPR_DATA,X
-        STA fD040,X  ;It will be sprite $41
+        LDX #$3F    ;size of sprite
+_L00    LDA _SIGHT_SPR_DATA,X
+        STA $D040,X  ;It will be sprite $41
         DEX
         BPL _L00
+
+        ; We have to be careful to not override any chars
+        LDX #$00        ;size of 4 sprites (64 * 4 == 256)
+_L01    LDA _2084_SPR_DATA,X
+        STA $D500,X     ;It will be sprites $54,$55,$56,$57
+        INX
+        BNE _L01
 
         LDA a01
         ORA #$04     ;#%00000100    Enabling I/O at $D000 I guess
@@ -607,7 +615,8 @@ _L00    LDA SIGHT_SPR_DATA,X
         STA $DC0E    ;Start Timer
         RTS
 
-SIGHT_SPR_DATA      ;$0A7F
+_SIGHT_SPR_DATA      ;$0A7F
+        ; This is the sprite data for the "sight" (hi-scores)
         .BYTE $00,$00,$00,$02,$AA,$00,$0A,$AA
         .BYTE $80,$28,$20,$A0,$20,$20,$20,$20
         .BYTE $00,$20,$A0,$00,$28,$80,$00,$08
@@ -615,7 +624,12 @@ SIGHT_SPR_DATA      ;$0A7F
         .BYTE $28,$A0,$A8,$28,$80,$20,$08,$80
         .BYTE $20,$08,$80,$00,$08,$A0,$00,$28
         .BYTE $20,$00,$20,$20,$20,$20,$28,$20
-        .BYTE $A0,$0A,$AA,$80,$02,$AA,$00
+        .BYTE $A0,$0A,$AA,$80,$02,$AA,$00,$00
+
+_2084_SPR_DATA
+        ; Includes 4 sprites to draw "2084" in the title screen
+        .BINARY "sprites-2084.bin"
+
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Animates the selected char in hiscore
@@ -1205,26 +1219,27 @@ SCREEN_MAIN_TITLE
         LDA #$FF     ;#%11111111
         STA $D01D    ;Sprites Expand 2x Horizontal (X)
         STA $D017    ;Sprites Expand 2x Vertical (Y)
+
         LDX #$00     ;#%00000000
-_L00    LDA #$48     ;Sprite Y position
+_L00    LDA _MS_SPRITES_Y,X
         STA SPRITES_Y05,X
-        LDA _MS_SPRITES_X_LO05,X
+        LDA _MS_SPRITES_X_LO,X
         STA SPRITES_X_LO05,X
-        LDA _MS_SPRITES_PTR05,X
+        LDA _MS_SPRITES_PTR,X
         STA SPRITES_PTR05,X
-        LDA _MS_SPRITES_X_HI05,X
+        LDA _MS_SPRITES_X_HI,X
         STA SPRITES_X_HI05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
         LDA #$10            ;anim_type_10: void
         STA SPRITES_TYPE05,X
         LDA #$08     ;orange
         STA SPRITES_COLOR05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_BKG_PRI05,X
         INX
-        CPX #$07     ;total number of sprites
+        CPX #(7 + 0)        ;total number of sprites: 7 for Commando, 3 for 2084
         BNE _L00
 
         JSR APPLY_DELTA_MOV
@@ -1269,13 +1284,20 @@ _WAIT_FIRE
 
 _END    RTS
 
-; Main Screen (MS) "Commando" 7-sprites data
-_MS_SPRITES_X_LO05
+; Main Screen (MS) "Commando 2084" 7-sprites data
+_MS_SPRITES_X_LO
         .BYTE $1C,$4C,$7C,$AC,$DC,$0C,$3C
-_MS_SPRITES_X_HI05
+        .BYTE $70,$A0,$D0
+_MS_SPRITES_X_HI
         .BYTE $00,$00,$00,$00,$00,$FF,$FF
-_MS_SPRITES_PTR05
+        .BYTE $00,$00,$00
+_MS_SPRITES_Y
+        .BYTE $48,$48,$48,$48,$48,$48,$48
+        .BYTE $50,$78,$78
+_MS_SPRITES_PTR
         .BYTE $F6,$F7,$F8,$F9,$FA,$FB,$AC
+        .BYTE $54,$55,$56
+
 _LEVEL_IDX      ;$1001
         .BYTE $00,$00,$01,$01,$03,$03,$03
 _SCROLL_IDX     ;$1008
@@ -6104,15 +6126,15 @@ _L00    LDA $DC00    ;CIA1: Data Port Register A (in-game fire)
 
         LDA #$01
         STA SPRITES_TYPE01,X
-        LDA #$90     ;Bullet frame
+        LDA #$90        ;Bullet frame
         STA SPRITES_PTR01,X
         LDA #$00
         STA SPRITES_COUNTER00,X
-        LDA #$01     ;white
+        LDA #$01        ;white
         STA SPRITES_COLOR01,X
 _L01    RTS
 
-_L02    LDA #$FF     ;#%11111111
+_L02    LDA #$FF        ;#%11111111
         STA FIRE_COOLDOWN
         RTS
 
@@ -6168,6 +6190,38 @@ _L02    LDA #$01
         JMP SETUP_HERO_ANIMATION
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Joy1 handles the fire direction
+HANDLE_JOY1
+        LDA $DC01
+        AND #%00001111
+        EOR #%00001111
+        BEQ _L00
+        TAX
+        LDA AIM_TBL,X
+        STA HERO_ANIM_MOV_IDX
+        JMP SETUP_HERO_ANIMATION
+_L00    RTS
+
+AIM_TBL
+        .BYTE $FF       ;0000: no movement (skip)
+        .BYTE $00       ;0001: up
+        .BYTE $08       ;0010: down
+        .BYTE $00       ;0011: up-down (impossible)
+        .BYTE $0C       ;0100: left
+        .BYTE $0A       ;0101: left-up
+        .BYTE $0E       ;0110: left-down
+        .BYTE $00       ;0111: left-down-up (impossible)
+        .BYTE $04       ;1000: right
+        .BYTE $02       ;1001: right-up
+        .BYTE $06       ;1010: right-down
+        .BYTE $00       ;1011: right-down-up (impossible)
+        .BYTE $00       ;1100: right-left (impossible)
+        .BYTE $00       ;1101: right-left-up (impossible)
+        .BYTE $00       ;1110: right-left-down (impossible)
+        .BYTE $00       ;1111: right-left-down-up (impossible)
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Joy2 handles the hero movement direction
 HANDLE_JOY2         ;$3AAA
         LDA IS_ANIM_EXIT_DOOR
         BNE HERO_ANIM_EXIT_DOOR
@@ -6185,8 +6239,8 @@ _L00    LDA #$00     ;#%00000000
         LDA $DC00    ;CIA1: Data Port Register A (in-game up)
         AND #$01     ;#%00000001
         BNE _L03
-        LDA #$00     ;Anim index for SOLDIER_ANIM_FRAMES (up)
-        STA HERO_ANIM_MOV_IDX
+;        LDA #$00     ;Anim index for SOLDIER_ANIM_FRAMES (up)
+;        STA HERO_ANIM_MOV_IDX
         LDA V_SCROLL_ROW_IDX
         BNE _L01
 
@@ -6212,8 +6266,8 @@ _L02    LDA #$FF     ;Scroll up 1 pixel
 _L03    LDA $DC00    ;CIA1: Data Port Register A (in-game down)
         AND #$02     ;#%00000010
         BNE _L04
-        LDA #$08     ;Anim index for SOLIDER_ANIM_FRAMES (down)
-        STA HERO_ANIM_MOV_IDX
+;        LDA #$08     ;Anim index for SOLIDER_ANIM_FRAMES (down)
+;        STA HERO_ANIM_MOV_IDX
         LDA SPRITES_Y00
         CMP #$C1     ;#%11000001
         BCS _L04
@@ -6223,8 +6277,8 @@ _L03    LDA $DC00    ;CIA1: Data Port Register A (in-game down)
 _L04    LDA $DC00    ;CIA1: Data Port Register A (in-game left)
         AND #$04     ;#%00000100
         BNE _L06
-        LDA #$0C     ;Anim index for SOLDIER_ANIM_FRAMES (left)
-        STA HERO_ANIM_MOV_IDX
+;        LDA #$0C     ;Anim index for SOLDIER_ANIM_FRAMES (left)
+;        STA HERO_ANIM_MOV_IDX
         LDA SPRITES_X_HI00
         BNE _L05
         LDA SPRITES_X_LO00
@@ -6236,8 +6290,8 @@ _L05    LDA #$FE     ;#%11111110
 _L06    LDA $DC00    ;CIA1: Data Port Register A (in-game right)
         AND #$08     ;#%00001000
         BNE _L08
-        LDA #$04     ;Anim index for SOLDIER_ANIM_FRAMES (right)
-        STA HERO_ANIM_MOV_IDX
+;        LDA #$04     ;Anim index for SOLDIER_ANIM_FRAMES (right)
+;        STA HERO_ANIM_MOV_IDX
         LDA SPRITES_X_HI00
         BEQ _L07
         LDA SPRITES_X_LO00
@@ -6251,8 +6305,8 @@ _L08    LDA $DC00    ;CIA1: Data Port Register A (multiple directions)
         CMP #$76     ;#%01110110        up-right
         BNE _L09
 
-        LDX #$02     ;Anim index for SOLDIER_ANIM_FRAMES (up-right)
-        STX HERO_ANIM_MOV_IDX
+;        LDX #$02     ;Anim index for SOLDIER_ANIM_FRAMES (up-right)
+;        STX HERO_ANIM_MOV_IDX
         LDA #<HERO_FRAMES_UP_RIGHT  ;#%10111000
         STA a0019
         LDA #>HERO_FRAMES_UP_RIGHT  ;#%00111100
@@ -6262,8 +6316,8 @@ _L08    LDA $DC00    ;CIA1: Data Port Register A (multiple directions)
 
 _L09    CMP #$75     ;#%01110101        down-right
         BNE _L10
-        LDX #$06     ;Anim index for SOLDIER_ANIM_FRAMES (down-right)
-        STX HERO_ANIM_MOV_IDX
+;        LDX #$06     ;Anim index for SOLDIER_ANIM_FRAMES (down-right)
+;        STX HERO_ANIM_MOV_IDX
         LDA #<HERO_FRAMES_DOWN_RIGHT  ;#%10110000
         STA a0019
         LDA #>HERO_FRAMES_DOWN_RIGHT  ;#%00111100
@@ -6273,8 +6327,8 @@ _L09    CMP #$75     ;#%01110101        down-right
 
 _L10    CMP #$79     ;#%01111001        down-left
         BNE _L11
-        LDX #$0A     ;Anim index for SOLDER_ANIM_FRAMES (down-left)
-        STX HERO_ANIM_MOV_IDX
+;        LDX #$0A     ;Anim index for SOLDER_ANIM_FRAMES (down-left)
+;        STX HERO_ANIM_MOV_IDX
         LDA #<HERO_FRAMES_DOWN_LEFT  ;#%10110100
         STA a0019
         LDA #>HERO_FRAMES_DOWN_LEFT  ;#%00111100
@@ -6285,8 +6339,8 @@ _L10    CMP #$79     ;#%01111001        down-left
 _L11    CMP #$7A     ;#%01111010        up-left
         BNE _L12
         LDX #$0E     ;Anim index for SOLDIER_ANIM_FRAMES (up-left)
-        STX HERO_ANIM_MOV_IDX
-        LDA #<HERO_FRAMES_UP_LEFT  ;#%10111100
+;        STX HERO_ANIM_MOV_IDX
+;        LDA #<HERO_FRAMES_UP_LEFT  ;#%10111100
         STA a0019
         LDA #>HERO_FRAMES_UP_LEFT  ;#%00111100
         STA a001A
@@ -7441,363 +7495,6 @@ MASK_1000_0000   .BYTE $80           ;1000_0000
         .BYTE $0F,$0E,$0D
         .BYTE $0C,$0B,$0A
         .BYTE $09,$08,$07,$06,$05,$04,$03,$02
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FD,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$02,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$80,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$82,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FD,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$08,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$02,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$80,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$82,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$02,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$80,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$80,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$80,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$82,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$02,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$20,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FD,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$02,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$82,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$82,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FD,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$80,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$8A,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$80,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$8A,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$0A,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$80,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$82,$02,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$80,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$00,$00,$FF,$00,$FF,$00,$FF
-        .BYTE $00,$FF,$FF,$00,$FF,$00,$FF,$00
-        .BYTE $FF,$82
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
         *= $5000
