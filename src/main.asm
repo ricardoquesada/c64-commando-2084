@@ -29,7 +29,7 @@ f96 = $96
 f97 = $97
 fFF = $FF
 ;
-; **** ZP ABSOLUTE ADRESSES ****
+; **** ZP ABSOLUTE ADDRESSES ****
 ;
 a01 = $01
 a05 = $05
@@ -81,7 +81,7 @@ fE3F8 = $E3F8
 fE6DC = $E6DC
 fEFBA = $EFBA
 ;
-; **** ABSOLUTE ADRESSES ****
+; **** ABSOLUTE ADDRESSES ****
 ;
 a0014 = $0014
 a0019 = $0019                   ;Stores current hero animation, but seems unused
@@ -129,7 +129,7 @@ a0405 = $0405
 IRQ_ADDR_LO = $0406
 IRQ_ADDR_HI = $0407
 GAME_TICK = $040A               ;Incremented from main loop
-RASTER_TICK = $040B             ;Incremeted from raster routine
+RASTER_TICK = $040B             ;Incremented from raster routine
 SPRITES_X_HI00 = $040D          ;MSB for X pos
 SPRITES_X_HI01 = $040E
 SPRITES_X_HI04 = $0411
@@ -174,7 +174,7 @@ a04AC = $04AC                   ;Used as index to delta_tbl, and index to anim f
 SPRITES_TICK05 = $04B7
 SPRITES_RASTER_Y00 = $04C2      ;Raster Intr. uses values from here instead of SPRITES_Y00
 FIRE_COOLDOWN = $04DF           ;reset with $ff
-HERO_ANIM_MOV_IDX = $04E0       ;Movement anim for hero: left,right,up,down,diagoanly,etc.
+HERO_ANIM_MOV_IDX = $04E0       ;Movement anim for hero: left,right,up,down,diagonally,etc.
                                 ; See: SOLDIER_ANIM_FRAMES_HI/LO
 a04E1 = $04E1                   ;Bullet speed idx (???)
 BKG_COLOR0 = $04E2
@@ -302,7 +302,7 @@ BOOT    ;$0850
         CLI
 
         ; FIXME: Probably this is not really needed. In fact, it generates
-        ; a small artifact at the end of LVL1, since it is overwritting the
+        ; a small artifact at the end of LVL1, since it is overwriting the
         ; data
         LDX #$00     ;#%00000000
 _L00    LDA RESET_ROUTINE,X
@@ -953,7 +953,7 @@ _L00
         LDA #$00
         STA SPRITES_TYPE01
         STA HISCORE_IS_BULLET_ANIM
-        LDA #$FF                ;Emtpy sprite
+        LDA #$FF                ;Empty sprite
         STA SPRITES_PTR01
         LDA HISCORE_SELECTED_CHAR
         CMP #$77                ;"backspace" char
@@ -1330,7 +1330,7 @@ _L01    INY
         RTS
 
         ; Sprite types that can collide with hero. Starts at $05
-        ; Classes flagged: $0A,$0D,$0F,$11,$1A,$1C-$20,$24-$2A
+        ; Flagged types: $0A,$0D,$0F,$11,$1A,$1C-$20,$24-$2A
 f1074   .BYTE $00,$00,$00,$00,$00,$01,$00,$00
         .BYTE $01,$00,$01,$00,$01,$00,$00,$00
         .BYTE $00,$00,$00,$00,$00,$01,$00,$01
@@ -1338,7 +1338,7 @@ f1074   .BYTE $00,$00,$00,$00,$00,$01,$00,$00
         .BYTE $01,$01,$01,$01,$01,$01,$00
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Re-execute actions based on the row index. Called when the level is restared.
+; Re-execute actions based on the row index. Called when the level is restarted.
 ; E.g: after losing a life.
 RERUN_ACTIONS             ;$109B
         LDY #$00
@@ -2201,7 +2201,7 @@ LVL3_CHARSET_MASK_TBL   ;$1AA9
 ;
 ; It is possible that two different actions creates the same sprite
 ; type. This happens when it wants to create the same sprite type, but
-; the sprite type must be init in a differnt way. E.g: one for placing
+; the sprite type must be init in a different way. E.g: one for placing
 ; the sprite type at the left, and the other at the right of the screen.
 ;
 ; TODO: How many actions per row are possible? 8?
@@ -3594,7 +3594,7 @@ _L01    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_unk
-; Seems like an unsued animation
+; Seems like an unused animation
 TYPE_ANIM_UNUSED0
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
@@ -3700,7 +3700,7 @@ b27CA   LDA #$FE     ;#%11111110
 
 b27D5   LDA #$02     ;#%00000010
         STA SPRITES_DELTA_X05,Y
-        LDA #$EB     ;Frame bazook right-down
+        LDA #$EB     ;Frame bazooka right-down
         STA SPRITES_PTR05,Y
         RTS
 
@@ -3709,7 +3709,7 @@ FRAME_BAZOOKA_GUY       ;$27E0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_1E
-; Turrets are thow small houses that can be destroyed and appear on lvl1
+; Turrets are the small houses that can be destroyed and appear on lvl1
 TYPE_ANIM_TURRET_FIRE   ;$27E4
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
@@ -3774,7 +3774,7 @@ _L05    LDA #$02
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_1D
 ; Found in lvl1 (might work other levels as well).
-; Performs the "sprite in trench" die animation and then cleansup.
+; Performs the "sprite in trench" die animation and then cleanup.
 TYPE_ANIM_SOLDIER_IN_TRENCH_DIE     ;$2860
         INC SPRITES_TICK05,X
         LDA SPRITES_TICK05,X
@@ -4047,7 +4047,7 @@ _L03    JSR UPDATE_ENEMY_PATH
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_17
-; Animates the soliders that appears from the sides and moves mostly
+; Animates the soldiers that appears from the sides and moves mostly
 ; horizontally.
 ; Appears in lvl0, more or less after crossing the bridge
 TYPE_ANIM_SOLDIER_FROM_SIDE_A     ;$2A34
@@ -4240,7 +4240,7 @@ _L00    LDA SPRITES_TICK05,X
         JSR THROW_GRENADE
         RTS
 
-        ; Bike moving fordward (left-direction)
+        ; Bike moving forward (left-direction)
 _L01    LDA SPRITES_Y05,X
         CMP #$73
         BCC _L02
@@ -4392,10 +4392,10 @@ f2CD5   .BYTE $00,$00,$FF,$FF
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_00
-; The animation that spawns regular soliders, even at the end of the level
+; The animation that spawns regular soldiers, even at the end of the level
 ; This is called when there is at least an empty seat, since this is the
 ; animation handler for "empty seat". If there are no empty seats, then no
-; extra "regular soliders" are spawned, which makes sense.
+; extra "regular soldiers" are spawned, which makes sense.
 TYPE_ANIM_SPAWN_SOLDIER      ;$2CD9
         LDA V_SCROLL_ROW_IDX
         BEQ _L00
@@ -5602,7 +5602,7 @@ ANIM_HERO       ;$3641
         ; Sprites 1-5 are bullets / grenades
         LDX #$00     ;#%00000000
 
-        ; If bullet/grenade is outisde bounds, remove it
+        ; If bullet/grenade is outside bounds, remove it
 _L00    LDA SPRITES_Y01,X
         CMP #$1E     ;#%00011110
         BCC _L01
@@ -5885,7 +5885,7 @@ b3848   LDA SPRITES_X_LO05,Y
         STA SPRITES_Y05,Y
         LDA #<$859A  ;Turret location in lvl1 lo
         STA a00FB,b
-        LDA #>$859A  ;Turrent location in lvl1 hi
+        LDA #>$859A  ;Turret location in lvl1 hi
         STA a00FC,b
         LDA #$06
         JSR LEVEL_PATCH_TURRET
@@ -6687,7 +6687,7 @@ _L01    STA V_SCROLL_ROW_IDX
 _L02    LDA #$00
         STA aFFC0,X
         INX
-        CPX #$40     ;lenght of the sprite
+        CPX #$40     ;length of the sprite
         BNE _L02
 
         JSR s3F24
