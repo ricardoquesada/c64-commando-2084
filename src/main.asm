@@ -318,7 +318,7 @@ _L00    LDA RESET_ROUTINE,X
         ; Sprite Y pos used in raster multiplexer
         LDX #$10
 _L01    TXA
-        STA a004B,b,X
+        STA a004B,X
         DEX
         BPL _L01
 
@@ -672,11 +672,11 @@ HISCORE_GET_SELECTED_CHAR       ;$0AFA
         BEQ _L00
         CLC
         ADC #$20     ;#%00100000
-_L00    STA a00FB,b
+_L00    STA a00FB
         LDA #$00     ;#%00000000
-        STA a00FC,b
-        STA a00FD,b
-        STA a00FE,b
+        STA a00FC
+        STA a00FD
+        STA a00FE
         LDA SPRITES_Y05
         AND #$F0     ;#%11110000
         SEC
@@ -686,40 +686,40 @@ _L00    STA a00FB,b
         LSR A
         PHA
         LSR A
-        ROR a00FC,b
+        ROR a00FC
         LSR A
-        ROR a00FC,b
+        ROR a00FC
         LSR A
-        ROR a00FC,b
-        STA a00FD,b
+        ROR a00FC
+        STA a00FD
         PLA
         ASL A
-        ROL a00FE,b
+        ROL a00FE
         ASL A
-        ROL a00FE,b
+        ROL a00FE
         ASL A
-        ROL a00FE,b
+        ROL a00FE
         CLC
-        ADC a00FC,b
-        STA a00FC,b
-        LDA a00FD,b
-        ADC a00FE,b
-        STA a00FD,b
-        LDA a00FC,b
+        ADC a00FC
+        STA a00FC
+        LDA a00FD
+        ADC a00FE
+        STA a00FD
+        LDA a00FC
         CLC
-        ADC a00FB,b
-        STA a00FC,b
-        LDA a00FD,b
+        ADC a00FB
+        STA a00FC
+        LDA a00FD
         ADC #$00     ;#%00000000
-        STA a00FD,b
-        LDA a00FD,b
+        STA a00FD
+        LDA a00FD
         CLC
         ADC #$E0     ;#%11100000
-        STA a00FD,b
-        LDA a00FC,b
-        STA a00F7,b
-        LDA a00FD,b
-        STA a00F8,b
+        STA a00FD
+        LDA a00FC
+        STA a00F7
+        LDA a00FD
+        STA a00F8
         SEI
         LDA a01
         AND #$FD     ;Enable I/O to read from Screen RAM
@@ -786,9 +786,9 @@ _L00    STA HISCORE_NAME,X
 
         ; $F7/$F8 -> Screen RAM
         LDA #<pE000
-        STA a00F7,b
+        STA a00F7
         LDA #>pE000
-        STA a00F8,b
+        STA a00F8
 
         LDA #$20
         STA HISCORE_SELECTED_CHAR
@@ -877,13 +877,13 @@ SCREEN_ENTER_HI_SCORE   ;$0C88
         ; $FD/$FE -> Color RAM
         ; Row 3, Column 10
         LDA #<pE082
-        STA a00FB,b
+        STA a00FB
         LDA #>pE082
-        STA a00FC,b
+        STA a00FC
         LDA #<pD882
-        STA a00FD,b
+        STA a00FD
         LDA #>pD882
-        STA a00FE,b
+        STA a00FE
 
         LDX #$00
 _L00    LDY #$00
@@ -900,14 +900,14 @@ _L01    LDA f0D09,X
         JMP _L01
 
 _L02    INX
-        LDA a00FB,b
+        LDA a00FB
         CLC
         ADC #$28     ;Put "cursor" in next line
-        STA a00FB,b
-        STA a00FD,b
+        STA a00FB
+        STA a00FD
         BCC _L03
-        INC a00FC,b
-        INC a00FE,b
+        INC a00FC
+        INC a00FE
 _L03    JMP _L00
 
 _L04    JSR HISCORE_SETUP_SPRITES
@@ -1033,38 +1033,38 @@ DISPLAY_HI_SCORES       ;$0E0F
 
         ;  $FB/$FC -> Screen RAM: 3rd row, column 10
         LDA #<pE082
-        STA a00FB,b
+        STA a00FB
         LDA #>pE082
-        STA a00FC,b
+        STA a00FC
 
         LDX #$00
 _L00    JSR HISCORE_PRINT_PREFIX
-        LDA a00FB,b
+        LDA a00FB
         CLC
         ADC #$05
-        STA a00FB,b
+        STA a00FB
         JSR HISCORE_PRINT_NAME
-        LDA a00FB,b
+        LDA a00FB
         CLC
         ADC #$0A
-        STA a00FB,b
+        STA a00FB
         JSR HISCORE_PRINT_SCORE
-        LDA a00FB,b
+        LDA a00FB
         CLC
         ADC #$04     ;#%00000100
-        STA a00FB,b
+        STA a00FB
         LDY #$00     ;#%00000000
         LDA #$21     ;#%00100001
         STA (pFB),Y
         INY
         LDA #$21     ;#%00100001
         STA (pFB),Y
-        LDA a00FB,b
+        LDA a00FB
         CLC
         ADC #$3D     ;#%00111101
-        STA a00FB,b
+        STA a00FB
         BCC _L01
-        INC a00FC,b
+        INC a00FC
 _L01    INX
         CPX #$08     ;#%00001000
         BNE _L00
@@ -1285,10 +1285,10 @@ _SCROLL_IDX     ;$1008
 CHECK_COLLISION       ;$100F
         LDY #$00     ;#%00000000
 _L00    LDA SPRITES_TYPE05,Y
-        STY a00FB,b
+        STY a00FB
         TAY
         LDA f1074,Y
-        LDY a00FB,b
+        LDY a00FB
         AND #$01     ;#%00000001
         BEQ _L01
 
@@ -1351,16 +1351,16 @@ _L00    LDA (p24),Y  ;End of trigger-rows?
         SBC #$16     ;#%00010110
         CMP V_SCROLL_ROW_IDX
         BCS _L03
-        STY a00FD,b
+        STY a00FD
         LDA (p28),Y     ;Object to init
         ASL A
         TAY
 
         ; $FB/$FC -> action table
         LDA ACTION_TBL_LO,Y   ;Prepare jump table for actions
-        STA a00FB,b
+        STA a00FB
         LDA ACTION_TBL_HI,Y
-        STA a00FC,b
+        STA a00FC
 
         ; Find empty seat
         LDX #$00
@@ -1377,7 +1377,7 @@ _L02    TXA
         PLA
         TAX
 
-        LDY a00FD,b
+        LDY a00FD
         LDA (p24),Y     ; trigger row
         SEC
         SBC V_SCROLL_ROW_IDX
@@ -1389,7 +1389,7 @@ _L02    TXA
         STA SPRITES_Y05,X
         LDY a04A1,X
         STA SPRITES_Y05,Y
-        LDY a00FD,b
+        LDY a00FD
 _L03    INY
         JMP _L00
 
@@ -1400,15 +1400,15 @@ _L04    STY TRIGGER_ROW_IDX
 PRINT_CREDITS       ;$10FC
         ; $FB/$FC -> Screen RAM
         LDA #<pE029  ;Screen RAM lo
-        STA a00FB,b
+        STA a00FB
         LDA #>pE029  ;Screen RAM hi
-        STA a00FC,b
+        STA a00FC
 
         ; $FD/$FE -> Color RAM
         LDA #<pD829  ;Color RAM lo
-        STA a00FD,b
+        STA a00FD
         LDA #>pD829  ;Color RAM hi
-        STA a00FE,b
+        STA a00FE
 
         LDX #$00     ;#%00000000
 _L00    LDY #$00     ;#%00000000
@@ -1425,14 +1425,14 @@ _L01    LDA CREDITS_TXT,X
         JMP _L01
 
 _L02    INX
-        LDA a00FB,b
+        LDA a00FB
         CLC
         ADC #$50     ;#%01010000
-        STA a00FB,b
-        STA a00FD,b
+        STA a00FB
+        STA a00FD
         BCC _L03
-        INC a00FC,b
-        INC a00FE,b
+        INC a00FC
+        INC a00FE
 _L03    JMP _L00
 _L04    RTS
 
@@ -1579,24 +1579,24 @@ CLEAR_SCREEN    ;$1334
         ; $FB/$FC -> Screen RAM
         ; $FD/$FE -> Color RAM
         LDA #$00
-        STA a00FB,b
-        STA a00FD,b
+        STA a00FB
+        STA a00FD
         LDA #$E0
-        STA a00FC,b
+        STA a00FC
         LDA #$D8
-        STA a00FE,b
+        STA a00FE
 
         LDY #$00
 _L00    LDA #$20     ;space
         STA (pFB),Y
         LDA #$01     ;white
         STA (pFD),Y
-        INC a00FB,b
-        INC a00FD,b
+        INC a00FB
+        INC a00FD
         BNE _L00
-        INC a00FC,b
-        INC a00FE,b
-        LDA a00FC,b
+        INC a00FC
+        INC a00FE
+        LDA a00FC
         CMP #$E4
         BNE _L00
         RTS
@@ -1756,39 +1756,39 @@ INIT_LEVEL_DATA                 ;$1445
         ASL A
         TAY
         LDA f14AB,Y
-        STA a0024,b     ;Rows that trigger the creation of sprites
+        STA a0024     ;Rows that trigger the creation of sprites
         LDA f14AC,Y
-        STA a0025,b
+        STA a0025
 
         LDA f14A3,Y
-        STA a0022,b     ;X LSB of newly created sprite
+        STA a0022     ;X LSB of newly created sprite
         LDA f14A4,Y
-        STA a0023,b
+        STA a0023
 
         LDA f14B3,Y
-        STA a0026,b     ; X MSB of newly created sprite
+        STA a0026     ; X MSB of newly created sprite
         LDA f14B4,Y
-        STA a0027,b
+        STA a0027
 
         LDA f14BB,Y
-        STA a0028,b     ;Sprite type to create
+        STA a0028     ;Sprite type to create
         LDA f14BC,Y
-        STA a0029,b
+        STA a0029
 
         LDA f14C3,Y
-        STA a002A,b
+        STA a002A
         LDA f14C4,Y
-        STA a002B,b
+        STA a002B
 
         ; Charsets:
         ; lvl0 = $c000
         ; lvl1 = $c800
         ; main screen / lvl2: $d000
         ; lvl3 = $d800
-        STY a00FB,b
+        STY a00FB
         LDA $D018    ;VIC Memory Control Register
         AND #$F0     ;#%11110000
-        ORA a00FB,b  ;Set charset address
+        ORA a00FB  ;Set charset address
         STA $D018    ;VIC Memory Control Register
         RTS
 
@@ -1846,12 +1846,12 @@ _L03    LDA f2596,X
         CPY #$06     ;#%00000110
         BNE _L03
 
-        LDA a00FB,b
+        LDA a00FB
         CLC
         ADC #$28     ;#%00101000        Next row
-        STA a00FB,b
+        STA a00FB
         BCC _L04
-        INC a00FC,b
+        INC a00FC
 _L04    CPX #$36     ;#%00110110
         BCC _L00
         RTS
@@ -1917,9 +1917,9 @@ LEVEL_PATCH_DOOR         ;$15DA
         BEQ _SKIP
 
         LDA #$0D     ;#%00001101
-        STA a00FB,b
+        STA a00FB
         LDA a0405
-        STA a00FC,b
+        STA a00FC
         LDX #$00     ;#%00000000
 _L00    LDY #$00     ;#%00000000
 _L01    =*+$01
@@ -1931,12 +1931,12 @@ _L03    LDA f2596,X
         CPY #$0F     ;#%00001111
         BNE _L03
 
-        LDA a00FB,b
+        LDA a00FB
         CLC
         ADC #$28     ;#%00101000
-        STA a00FB,b
+        STA a00FB
         BCC _L04
-        INC a00FC,b
+        INC a00FC
 _L04    CPX #$86     ;#%10000110
         BCC _L00
 _SKIP   RTS
@@ -1998,11 +1998,11 @@ j172F   LDA TMP_SPRITE_X_LO
         CLC
         ADC #$20     ;#%00100000
 
-_L00    STA a00FB,b
+_L00    STA a00FB
         LDA #$00     ;#%00000000
-        STA a00FC,b
-        STA a00FD,b
-        STA a00FE,b
+        STA a00FC
+        STA a00FD
+        STA a00FE
         LDA TMP_SPRITE_Y
         SEC
         SBC #$1E     ;#%00011110
@@ -2013,36 +2013,36 @@ _L00    STA a00FB,b
         ADC V_SCROLL_ROW_IDX
         PHA
         LSR A
-        ROR a00FC,b
+        ROR a00FC
         LSR A
-        ROR a00FC,b
+        ROR a00FC
         LSR A
-        ROR a00FC,b
-        STA a00FD,b
+        ROR a00FC
+        STA a00FD
         PLA
         ASL A
-        ROL a00FE,b
+        ROL a00FE
         ASL A
-        ROL a00FE,b
+        ROL a00FE
         ASL A
-        ROL a00FE,b
+        ROL a00FE
         CLC
-        ADC a00FC,b
-        STA a00FC,b
-        LDA a00FD,b
-        ADC a00FE,b
-        STA a00FD,b
-        LDA a00FC,b
+        ADC a00FC
+        STA a00FC
+        LDA a00FD
+        ADC a00FE
+        STA a00FD
+        LDA a00FC
         CLC
-        ADC a00FB,b
-        STA a00FC,b
-        LDA a00FD,b
+        ADC a00FB
+        STA a00FC
+        LDA a00FD
         ADC #$00
-        STA a00FD,b
-        LDA a00FD,b
+        STA a00FD
+        LDA a00FD
         CLC
         ADC a0405
-        STA a00FD,b
+        STA a00FD
         RTS
 
         ; CHARSET_MASK_TBL
@@ -2258,14 +2258,14 @@ _L03    LDA SPRITES_TYPE05,X
 
         ; Create the action
 
-_L04    STY a00FD,b
+_L04    STY a00FD
         LDA (p28),Y
         ASL A
         TAY
         LDA ACTION_TBL_LO,Y
-        STA a00FB,b
+        STA a00FB
         LDA ACTION_TBL_HI,Y
-        STA a00FC,b
+        STA a00FC
         JMP (a00FB)
 
 ACTION_TBL_HI = *+1         ;$1C07
@@ -2454,7 +2454,7 @@ ACTION_17       ;$1E73
 
         ; fall-through
 
-j1E7D   LDY a00FD,b
+j1E7D   LDY a00FD
         LDA (p22),Y
         STA SPRITES_X_LO05,X
         LDA #$28
@@ -2811,7 +2811,7 @@ ACTION_NEW_SOLDIER_FROM_SIDE_R_B ;$20F6
 ; ref: action_07
 ; Create sprite type $16
 ACTION_NEW_GRENADE_BOX  ;$212F
-        LDY a00FD,b
+        LDY a00FD
         LDA (p22),Y
         STA SPRITES_X_LO05,X
         LDA #$26
@@ -2835,7 +2835,7 @@ ACTION_NEW_GRENADE_BOX  ;$212F
 ; ref: action_06
 ; Create sprite type $12
 ACTION_NEW_POW      ;$215F
-        LDY a00FD,b
+        LDY a00FD
         LDA (p22),Y
         STA SPRITES_X_LO05,X
         LDA #$21
@@ -2859,7 +2859,7 @@ ACTION_NEW_POW      ;$215F
 ; ref: action_05
 ; Create sprite type $11
 ACTION_NEW_POW_GUARD    ;$2190
-        LDY a00FD,b
+        LDY a00FD
         LDA (p22),Y
         STA SPRITES_X_LO05,X
         LDA #$21
@@ -2951,7 +2951,7 @@ b2231   LDA SPRITES_TYPE05,Y
 ; ref: action_03
 ; Create the red mortar guy (sprite type: $0D)
 ACTION_NEW_MORTAR_ENEMY    ;$223C
-        LDY a00FD,b
+        LDY a00FD
         LDA (p22),Y
         STA SPRITES_X_LO05,X
         LDA #$21     ;#%00100001
@@ -2977,7 +2977,7 @@ ACTION_NEW_MORTAR_ENEMY    ;$223C
 ; ref: action_00
 ; Create soldier behind trench (sprite type: $07)
 ACTION_NEW_SOLDIER_BEHIND_TRENCH       ;$2271
-        LDY a00FD,b
+        LDY a00FD
         LDA (p22),Y
         STA SPRITES_X_LO05,X
         LDA #$26
@@ -3003,7 +3003,7 @@ ACTION_NEW_SOLDIER_BEHIND_TRENCH       ;$2271
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_0E
 ACTION_NEW_SOLDIER_IN_TRENCH    ;$22A9
-        LDY a00FD,b
+        LDY a00FD
         LDA (p22),Y
         STA SPRITES_X_LO05,X
         LDA #$2A
@@ -3031,7 +3031,7 @@ ACTION_NEW_SOLDIER_IN_TRENCH    ;$22A9
 ; ref: action_01
 ; Create jumping sprite from right margin (sprite type: $0A)
 ACTION_NEW_JUMPING_SOLDIER_R       ;$22E4
-        LDY a00FD,b
+        LDY a00FD
         LDA #$9F     ;#%10011111
         SEC
         SBC (p24),Y
@@ -3067,7 +3067,7 @@ ACTION_NEW_JUMPING_SOLDIER_R       ;$22E4
 ; ref: action_02
 ; Create jumping sprite from left margin (sprite type: $0A)
 ACTION_NEW_JUMPING_SOLDIER_L       ;$2329
-        LDY a00FD,b
+        LDY a00FD
         LDA #$86     ;#%10000110
         SEC
         SBC (p24),Y
@@ -3140,7 +3140,7 @@ NEW_SOLDIER_FROM_SIDE
         STA SPRITES_BKG_PRI05,X
         LDA #$17            ;anim_type_17: soldier from side type
         STA SPRITES_TYPE05,X
-        LDY a00FD,b
+        LDY a00FD
         LDA (p26),Y
         SEC
         SBC (p24),Y
@@ -3293,9 +3293,9 @@ _L02    LDA SPRITES_TYPE05,X
         ASL A
         TAY
         LDA TYPE_ANIM_TBL_LO,Y
-        STA a00FB,b
+        STA a00FB
         LDA TYPE_ANIM_TBL_HI,Y
-        STA a00FC,b
+        STA a00FC
         INC a04E7
         JSR JMP_FB
         INX
@@ -3970,9 +3970,9 @@ _L04    LDA a04AC,X
         AND #$FE     ;#%11111110
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
-        STA a00FB,b
+        STA a00FB
         LDA SOLDIER_ANIM_FRAMES_HI,Y
-        STA a00FC,b
+        STA a00FC
         LDA GAME_TICK
         AND #$0C     ;#%00001100
         LSR A
@@ -4029,9 +4029,9 @@ _L02    CMP #$14
         AND #$FE
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
-        STA a00FB,b
+        STA a00FB
         LDA SOLDIER_ANIM_FRAMES_HI,Y
-        STA a00FC,b
+        STA a00FC
         LDA GAME_TICK
         AND #$0C     ;#%00001100
         LSR A
@@ -4056,9 +4056,9 @@ TYPE_ANIM_SOLDIER_FROM_SIDE_A     ;$2A34
         AND #$FE     ;#%11111110
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
-        STA a00FB,b
+        STA a00FB
         LDA SOLDIER_ANIM_FRAMES_HI,Y
-        STA a00FC,b
+        STA a00FC
         LDA GAME_TICK
         AND #$0C     ;#%00001100
         LSR A
@@ -4340,11 +4340,11 @@ b2C46   LDA SPRITES_X_HI00
         CLC
         ADC #$2F     ;#%00101111
         BCS b2CC0
-        STA a00FB,b
+        STA a00FB
         LDA SPRITES_Y00
         SEC
         SBC SPRITES_Y05,X
-        STA a00FC,b
+        STA a00FC
         LDA #$CE     ;Frame falling in hole #1?
         STA SPRITES_PTR05,X
         LDA #$01     ;#%00000001
@@ -4358,15 +4358,15 @@ b2C46   LDA SPRITES_X_HI00
         LDA SPRITES_X_HI05,X
         STA SPRITES_X_HI05,Y
         JSR s3555
-        LDA a00FB,b
+        LDA a00FB
         EOR #$FF     ;#%11111111
-        STA a00FB,b
-        INC a00FB,b
-        LDA a00FB,b
+        STA a00FB
+        INC a00FB
+        LDA a00FB
         BNE b2C97
         LDA #$FF     ;#%11111111
 b2C97   STA SPRITES_DELTA_X05,Y
-        LDA a00FC,b
+        LDA a00FC
         STA SPRITES_DELTA_Y05,Y
         LDA SPRITES_DELTA_Y05,Y
         SEC
@@ -4879,9 +4879,9 @@ _L01    BCS _L02
         AND #$FE     ;#%11111110
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
-        STA a00FB,b
+        STA a00FB
         LDA SOLDIER_ANIM_FRAMES_HI,Y
-        STA a00FC,b
+        STA a00FC
         LDA GAME_TICK
         AND #$0C     ;#%00001100
         LSR A
@@ -4927,9 +4927,9 @@ TYPE_ANIM_SOLIDER_GO_UP     ;$30DD
         AND #$FE     ;#%11111110
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
-        STA a00FB,b
+        STA a00FB
         LDA SOLDIER_ANIM_FRAMES_HI,Y
-        STA a00FC,b
+        STA a00FC
         LDA GAME_TICK
         AND #$0C     ;#%00001100
         LSR A
@@ -5097,9 +5097,9 @@ TYPE_ANIM_SOLDIER        ;$3205
         AND #$FE
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
-        STA a00FB,b
+        STA a00FB
         LDA SOLDIER_ANIM_FRAMES_HI,Y
-        STA a00FC,b
+        STA a00FC
         LDA GAME_TICK
         AND #$0C
         LSR A
@@ -5132,34 +5132,34 @@ j3255   JSR GET_RANDOM
         BEQ b3276
         BCC b326E
         LDA #$0C     ;#%00001100
-        STA a00FB,b
+        STA a00FB
         JMP j3289
 
 b326E   LDA #$04     ;#%00000100
-        STA a00FB,b
+        STA a00FB
         JMP j3289
 
 b3276   LDA #$04     ;#%00000100
-        STA a00FB,b
+        STA a00FB
         LDA SPRITES_X_LO00
         SEC
         SBC SPRITES_X_LO05,X
         BPL j3289
         LDA #$0C     ;#%00001100
-        STA a00FB,b
+        STA a00FB
 j3289   LDA SPRITES_Y00
         SEC
         SBC SPRITES_Y05,X
         BPL b329B
-        LSR a00FB,b
-        LDA a00FB,b
+        LSR a00FB
+        LDA a00FB
         JMP j32BA
 
-b329B   LDA a00FB,b
+b329B   LDA a00FB
         CLC
         ADC #$08     ;#%00001000
         LSR A
-        STA a00FB,b
+        STA a00FB
         JMP j32BA
 
 b32A8   JSR GET_RANDOM
@@ -5229,60 +5229,60 @@ _L02    TXA
         LDA SPRITES_X_LO00
         SEC
         SBC SPRITES_X_LO05,Y
-        STA a00FB,b
+        STA a00FB
         BCS _L04
-        LDA a00FB,b
+        LDA a00FB
         EOR #$FF
-        STA a00FB,b
-        INC a00FB,b
+        STA a00FB
+        INC a00FB
         LDA SPRITES_Y00
         SEC
         SBC SPRITES_Y05,Y
-        STA a00FC,b
+        STA a00FC
         BCS _L03
-        LDA a00FC,b
+        LDA a00FC
         EOR #$FF
-        STA a00FC,b
-        INC a00FC,b
+        STA a00FC
+        INC a00FC
         JSR s3555
-        LDA a00FC,b
+        LDA a00FC
         EOR #$FF
-        STA a00FC,b
-        INC a00FC,b
-        LDA a00FB,b
+        STA a00FC
+        INC a00FC
+        LDA a00FB
         EOR #$FF
-        STA a00FB,b
-        INC a00FB,b
+        STA a00FB
+        INC a00FB
         JMP _L06
 
 _L03    JSR s3555
-        LDA a00FB,b
+        LDA a00FB
         EOR #$FF
-        STA a00FB,b
-        INC a00FB,b
+        STA a00FB
+        INC a00FB
         JMP _L06
 
 _L04    LDA SPRITES_Y00
         SEC
         SBC SPRITES_Y05,Y
-        STA a00FC,b
+        STA a00FC
         BCS _L05
-        LDA a00FC,b
+        LDA a00FC
         EOR #$FF
-        STA a00FC,b
-        INC a00FC,b
+        STA a00FC
+        INC a00FC
         JSR s3555
-        LDA a00FC,b
+        LDA a00FC
         EOR #$FF
-        STA a00FC,b
-        INC a00FC,b
+        STA a00FC
+        INC a00FC
         JMP _L06
 
 _L05    JSR s3555
 
-_L06    LDA a00FB,b
+_L06    LDA a00FB
         STA SPRITES_DELTA_X05,Y
-        LDA a00FC,b
+        LDA a00FC
         STA SPRITES_DELTA_Y05,Y
         LDA SPRITES_DELTA_Y05,Y
         SEC
@@ -5444,7 +5444,7 @@ _L17    LDA a04AC,X
         BEQ _L18
         RTS
 
-_L18    STX a00FB,b
+_L18    STX a00FB
         STA a04AC,X
         TAX
         LDA _DELTA_X_TBL,X
@@ -5455,7 +5455,7 @@ _L18    STX a00FB,b
         STA SPRITES_X_LO05,Y
         LDA f3627,X
         STA SPRITES_Y05,Y
-        LDX a00FB,b
+        LDX a00FB
         LDA SPRITES_X_LO05,X
         CLC
         ADC SPRITES_X_LO05,Y
@@ -5489,8 +5489,8 @@ _DELTA_Y_TBL    ;$3545
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s3555   LDX #$05
-_L00    LSR a00FB,b
-        LSR a00FC,b
+_L00    LSR a00FB
+        LSR a00FC
         DEX
         BPL _L00
         RTS
@@ -5621,9 +5621,9 @@ _L02    LDA SPRITES_TYPE01,X
         ASL A
         TAY
         LDA HERO_TYPE_ANIM_TBL_LO,Y
-        STA a00FB,b
+        STA a00FB
         LDA HERO_TYPE_ANIM_TBL_HI,Y
-        STA a00FC,b
+        STA a00FC
         JSR _L03
         INX
         CPX #$04     ;For sprites 1-5
@@ -5744,10 +5744,10 @@ TYPE_ANIM_HERO_GRENADE_END ;$373C
         INC SPRITES_COUNTER00,X
         LDY #$00     ;#%00000000
 b3741   LDA SPRITES_TYPE05,Y
-        STY a00FB,b
+        STY a00FB
         TAY
         LDA f2544,Y
-        LDY a00FB,b
+        LDY a00FB
         AND #$02     ;#%00000010
         BEQ b3793
         LDA SPRITES_X_HI01,X
@@ -5851,10 +5851,10 @@ j37CF   TXA
         SBC #$0A     ;#%00001010
         STA SPRITES_Y05,Y
         JSR j172F
-        LDA a00FC,b
-        STA a00FB,b
-        LDA a00FD,b
-        STA a00FC,b
+        LDA a00FC
+        STA a00FB
+        LDA a00FD
+        STA a00FC
         LDA #$04
         JSR LEVEL_PATCH_TURRET
         JSR LEVEL_DRAW_VIEWPORT
@@ -5884,9 +5884,9 @@ b3848   LDA SPRITES_X_LO05,Y
         SBC #$0A
         STA SPRITES_Y05,Y
         LDA #<$859A  ;Turret location in lvl1 lo
-        STA a00FB,b
+        STA a00FB
         LDA #>$859A  ;Turret location in lvl1 hi
-        STA a00FC,b
+        STA a00FC
         LDA #$06
         JSR LEVEL_PATCH_TURRET
         JSR LEVEL_DRAW_VIEWPORT
@@ -5983,10 +5983,10 @@ TYPE_ANIM_HERO_BULLET  ;$3935
 
 _L00    LDY #$00
 _L01    LDA SPRITES_TYPE05,Y
-        STY a00FB,b
+        STY a00FB
         TAY
         LDA f2544,Y
-        LDY a00FB,b
+        LDY a00FB
         AND #$01
         BEQ _L02
         LDA SPRITES_X_HI01,X
@@ -6254,9 +6254,9 @@ _L08    LDA $DC00    ;CIA1: Data Port Register A (multiple directions)
         LDX #$02     ;Anim index for SOLDIER_ANIM_FRAMES (up-right)
         STX HERO_ANIM_MOV_IDX
         LDA #<HERO_FRAMES_UP_RIGHT  ;#%10111000
-        STA a0019,b
+        STA a0019
         LDA #>HERO_FRAMES_UP_RIGHT  ;#%00111100
-        STA a001A,b
+        STA a001A
         ;FIXME: unintended fallthrough.
         ;       a jump must be placed here
 
@@ -6265,9 +6265,9 @@ _L09    CMP #$75     ;#%01110101        down-right
         LDX #$06     ;Anim index for SOLDIER_ANIM_FRAMES (down-right)
         STX HERO_ANIM_MOV_IDX
         LDA #<HERO_FRAMES_DOWN_RIGHT  ;#%10110000
-        STA a0019,b
+        STA a0019
         LDA #>HERO_FRAMES_DOWN_RIGHT  ;#%00111100
-        STA a001A,b
+        STA a001A
         ;FIXME: unintended fallthrough.
         ;       a jump must be placed here
 
@@ -6276,9 +6276,9 @@ _L10    CMP #$79     ;#%01111001        down-left
         LDX #$0A     ;Anim index for SOLDER_ANIM_FRAMES (down-left)
         STX HERO_ANIM_MOV_IDX
         LDA #<HERO_FRAMES_DOWN_LEFT  ;#%10110100
-        STA a0019,b
+        STA a0019
         LDA #>HERO_FRAMES_DOWN_LEFT  ;#%00111100
-        STA a001A,b
+        STA a001A
         ;FIXME: unintended fallthrough.
         ;       a jump must be placed here
 
@@ -6287,9 +6287,9 @@ _L11    CMP #$7A     ;#%01111010        up-left
         LDX #$0E     ;Anim index for SOLDIER_ANIM_FRAMES (up-left)
         STX HERO_ANIM_MOV_IDX
         LDA #<HERO_FRAMES_UP_LEFT  ;#%10111100
-        STA a0019,b
+        STA a0019
         LDA #>HERO_FRAMES_UP_LEFT  ;#%00111100
-        STA a001A,b
+        STA a001A
 
 _L12    LDA $DC00    ;CIA1: Data Port Register A (in-game direction changed)
         AND #$0F     ;#%00001111
@@ -6302,9 +6302,9 @@ SETUP_HERO_ANIMATION            ;$3BAC
         LDA HERO_ANIM_MOV_IDX
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
-        STA a00FB,b
+        STA a00FB
         LDA SOLDIER_ANIM_FRAMES_HI,Y
-        STA a00FC,b
+        STA a00FC
         INC COUNTER1
         LDA COUNTER1
         AND #$0C     ;#%00001100
@@ -6319,10 +6319,10 @@ b3BCC   JSR s35CE
         LDA SPRITES_DELTA_X00
         CLC
         ADC SPRITES_DELTA_X00
-        STA a00FB,b
+        STA a00FB
         LDA SPRITES_X_LO00
         CLC
-        ADC a00FB,b
+        ADC a00FB
         PHA
         BVS b3BF8
         EOR SPRITES_X_LO00
@@ -6625,9 +6625,9 @@ SETUP_LEVEL             ;$3DFE
 
         ; $FB/$FC -> points to tbl related to levels
         LDA f3EEE,X
-        STA a00FB,b
+        STA a00FB
         LDA f3EEF,X
-        STA a00FC,b
+        STA a00FC
 
         LDY #$00
 _L00    LDA (pFB),Y
@@ -6651,25 +6651,25 @@ _L01    STA V_SCROLL_ROW_IDX
 
         ;Draw Left turret at row 56 ($88c0) in lvl1
         LDA #<$88C0
-        STA a00FB,b
+        STA a00FB
         LDA #>$88C0
-        STA a00FC,b
+        STA a00FC
         LDA #$00     ;Draw left turret Ok
         JSR LEVEL_PATCH_TURRET
 
         ;Draw right turret at row  35 ($859a) in lvl1
         LDA #<$859A
-        STA a00FB,b
+        STA a00FB
         LDA #>$859A
-        STA a00FC,b
+        STA a00FC
         LDA #$02     ;Draw right turret Ok
         JSR LEVEL_PATCH_TURRET
 
         ;Draw Left turret at row 22 ($859a) in lvl1
         LDA #<$8370
-        STA a00FB,b
+        STA a00FB
         LDA #>$8370
-        STA a00FC,b
+        STA a00FC
         LDA #$00     ;Draw left turret Ok
         JSR LEVEL_PATCH_TURRET
 
@@ -6716,66 +6716,66 @@ f3EEE   .ADDR f3EDA         ;LVL0
 
         ; Unused (?)
 b3EF6   LDX #$00     ;#%00000000
-        STX a00D7,b
-b3EFB   LDY a004C,b,X
+        STX a00D7
+b3EFB   LDY a004C,X
         LDA SPRITES_Y00,Y
-        LDY a004B,b,X
+        LDY a004B,X
         CMP SPRITES_Y00,Y
         BCS b3F19
-        LDY a004B,b,X
-        LDA a004C,b,X
-        STA a004B,b,X
+        LDY a004B,X
+        LDA a004C,X
+        STA a004B,X
         STY f4C,X
         LDA #$01     ;#%00000001
-        STA a00D7,b
+        STA a00D7
 b3F19   INX
         CPX #$0F     ;#%00001111
         BNE b3EFB
-        LDA a00D7,b
+        LDA a00D7
         BNE b3EF6
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s3F24   LDA #$0F     ;#%00001111
-        STA a0014,b
-        STA a00D7,b
-_L00    LSR a0014,b
+        STA a0014
+        STA a00D7
+_L00    LSR a0014
         BEQ _L04
-        LDA a00D7,b
+        LDA a00D7
         SEC
-        SBC a0014,b
-        STA a00C9,b
+        SBC a0014
+        STA a00C9
         LDA #$00     ;#%00000000
-        STA a003D,b
-_L01    LDA a003D,b
-        STA a003F,b
-_L02    LDA a003F,b
+        STA a003D
+_L01    LDA a003D
+        STA a003F
+_L02    LDA a003F
         CLC
-        ADC a0014,b
-        STA a0041,b
-        LDX a0041,b
-        LDY a004B,b,X
+        ADC a0014
+        STA a0041
+        LDX a0041
+        LDY a004B,X
         LDA SPRITES_Y00,Y
-        LDX a003F,b
-        LDY a004B,b,X
+        LDX a003F
+        LDY a004B,X
         CMP SPRITES_Y00,Y
         BCS _L03
-        LDX a003F,b
-        LDY a0041,b
+        LDX a003F
+        LDY a0041
         LDA a004B,Y
         PHA
-        LDA a004B,b,X
+        LDA a004B,X
         STA a004B,Y
         PLA
-        STA a004B,b,X
-        LDA a003F,b
+        STA a004B,X
+        LDA a003F
         SEC
-        SBC a0014,b
-        STA a003F,b
+        SBC a0014
+        STA a003F
         BPL _L02
-_L03    INC a003D,b
-        LDA a00C9,b
-        CMP a003D,b
+_L03    INC a003D
+        LDA a00C9
+        CMP a003D
         BCC _L00
         JMP _L01
 
@@ -6789,28 +6789,28 @@ LEVEL_DRAW_VIEWPORT             ;$3F93
         LDA #>pE000  ;Screen RAM hi
         STA _L05
         LDA #$00
-        STA a00FB,b
-        STA a00FD,b
+        STA a00FB
+        STA a00FD
         LDA V_SCROLL_ROW_IDX
         LSR A
-        ROR a00FB,b
+        ROR a00FB
         LSR A
-        ROR a00FB,b
+        ROR a00FB
         LSR A
-        ROR a00FB,b
-        STA a00FC,b
+        ROR a00FB
+        STA a00FC
         LDA V_SCROLL_ROW_IDX
         ASL A
-        ROL a00FD,b
+        ROL a00FD
         ASL A
-        ROL a00FD,b
+        ROL a00FD
         ASL A
-        ROL a00FD,b
+        ROL a00FD
         CLC
-        ADC a00FB,b
+        ADC a00FB
         STA _L01
-        LDA a00FC,b
-        ADC a00FD,b
+        LDA a00FC
+        ADC a00FD
         CLC
         ADC a0405
         STA _L02
@@ -6891,17 +6891,17 @@ SET_LEVEL_COLOR_RAM             ;$4033
 
         ; $FB/$FC -> Color RAM
         LDA #<pD800
-        STA a00FB,b
+        STA a00FB
         LDA #>pD800
-        STA a00FC,b
+        STA a00FC
 
         LDY #$00     ;#%00000000
 _L00    LDA LEVEL_COLOR_RAM,X
         STA (pFB),Y
-        INC a00FB,b
+        INC a00FB
         BNE _L00
-        INC a00FC,b
-        LDA a00FC,b
+        INC a00FC
+        LDA a00FC
         CMP #$DC     ;#%11011100
         BNE _L00
 
@@ -7099,11 +7099,11 @@ IRQ_B   NOP
 ; Renders 8 sprites
 IRQ_C   LDA V_SCROLL_BIT_IDX
         EOR #$07     ;#%00000111    Reverse Y-bits
-        STA a00A7,b
+        STA a00A7
 
         LDA $D011    ;VIC Control Register 1
         AND #$F8     ;#%11111000
-        ORA a00A7,b  ;Vertical scroll position
+        ORA a00A7  ;Vertical scroll position
         STA $D011    ;VIC Control Register 1
 
         LDA BKG_COLOR0
@@ -7118,17 +7118,17 @@ IRQ_C   LDA V_SCROLL_BIT_IDX
         STA $D01B    ;Sprite to Background Display Priority
 
         LDA #$0E     ;Points to $D00E (sprite 7 x pos)
-        STA VIC_SPRITE_IDX,b
+        STA VIC_SPRITE_IDX
         LDY #$00    ;#%00000000
-        STY a00A7,b
+        STY a00A7
 
-_L0     LDX a004B,b,Y
-        LDY VIC_SPRITE_IDX,b
+_L0     LDX a004B,Y
+        LDY VIC_SPRITE_IDX
         LDA SPRITES_RASTER_Y00,X
         STA $D001,Y  ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D000,Y  ;Sprite 0 X Pos
-        LDA VIC_SPRITE_IDX,b
+        LDA VIC_SPRITE_IDX
         LSR A
         TAY
         LDA SPRITES_PTR00,X
@@ -7143,10 +7143,10 @@ _L0     LDX a004B,b,Y
         AND MASK_0000_0001,Y
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
-        DEC VIC_SPRITE_IDX,b
-        DEC VIC_SPRITE_IDX,b
-        INC a00A7,b
-        LDY a00A7,b
+        DEC VIC_SPRITE_IDX
+        DEC VIC_SPRITE_IDX
+        INC a00A7
+        LDY a00A7
         CPY #$08
         BNE _L0
 
@@ -7154,14 +7154,14 @@ _L0     LDX a004B,b,Y
         LDA LEVEL_NR
         AND #$03     ;#%00000011
         ASL A        ;Shift to left, since bit 0 is unused in $D018
-        STA a00A7,b
+        STA a00A7
 
         LDA $D018    ;VIC Memory Control Register
         AND #$F0     ;#%11110000
-        ORA a00A7,b  ; Charset Idx. lvl0=$c000, lvl1=$c800, main=$d000, lvl3=$d800
+        ORA a00A7  ; Charset Idx. lvl0=$c000, lvl1=$c800, main=$d000, lvl3=$d800
         STA $D018    ;VIC Memory Control Register
 
-        LDX a004E,b
+        LDX a004E
         LDA SPRITES_RASTER_Y00,X
         CLC
         ADC #$14     ;#%00010100
@@ -7198,7 +7198,7 @@ IRQ_D   ;$4284
         AND #$0F     ;#%00001111
         STA $D01B    ;Sprite to Background Display Priority
 
-        LDX a0053,b
+        LDX a0053
         LDA SPRITES_RASTER_Y00,X
         STA $D00F    ;Sprite 7 Y Pos
         LDA SPRITES_X_LO00,X
@@ -7216,7 +7216,7 @@ IRQ_D   ;$4284
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
 
-        LDX a0054,b
+        LDX a0054
         LDA SPRITES_RASTER_Y00,X
         STA $D00D    ;Sprite 6 Y Pos
         LDA SPRITES_X_LO00,X
@@ -7234,7 +7234,7 @@ IRQ_D   ;$4284
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
 
-        LDX a0055,b
+        LDX a0055
         LDA SPRITES_RASTER_Y00,X
         STA $D00B    ;Sprite 5 Y Pos
         LDA SPRITES_X_LO00,X
@@ -7252,7 +7252,7 @@ IRQ_D   ;$4284
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
 
-        LDX a0056,b
+        LDX a0056
         LDA SPRITES_RASTER_Y00,X
         STA $D009    ;Sprite 4 Y Pos
         LDA SPRITES_X_LO00,X
@@ -7271,7 +7271,7 @@ IRQ_D   ;$4284
         STA $D01B    ;Sprite to Background Display Priority
 
         ; Y pos for next sprites sets the raster pos
-        LDX a0057,b
+        LDX a0057
         LDA SPRITES_RASTER_Y00,X
         SEC
         SBC #$02
@@ -7307,7 +7307,7 @@ IRQ_E
         AND #$F0     ;#%11110000
         STA $D01B    ;Sprite to Background Display Priority
 
-        LDX a0057,b
+        LDX a0057
         LDA SPRITES_RASTER_Y00,X
         STA $D007    ;Sprite 3 Y Pos
         LDA SPRITES_X_LO00,X
@@ -7325,7 +7325,7 @@ IRQ_E
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
 
-        LDX a0058,b
+        LDX a0058
         LDA SPRITES_RASTER_Y00,X
         STA $D005    ;Sprite 2 Y Pos
         LDA SPRITES_X_LO00,X
@@ -7343,7 +7343,7 @@ IRQ_E
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
 
-        LDX a0059,b
+        LDX a0059
         LDA SPRITES_RASTER_Y00,X
         STA $D003    ;Sprite 1 Y Pos
         LDA SPRITES_X_LO00,X
@@ -7361,7 +7361,7 @@ IRQ_E
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
 
-        LDX a005A,b
+        LDX a005A
         LDA SPRITES_RASTER_Y00,X
         STA $D001    ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
@@ -7427,7 +7427,7 @@ MASK_1000_0000   .BYTE $80           ;1000_0000
         AND MASK_0000_0010
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
-        LDX a005A,b
+        LDX a005A
         LDA SPRITES_RASTER_Y00,X
         STA $D001    ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
