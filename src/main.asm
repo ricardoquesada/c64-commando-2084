@@ -21,6 +21,10 @@
 
 ENABLE_AUTOFIRE = 1
 ENABLE_DOUBLE_JOYSTICKS = 1
+TOTAL_LIVES = $05               ; BCD
+TOTAL_GRENADES = $05            ; BCD
+INITIAL_LEVEL = 0
+
 ;
 ; **** ZP FIELDS ****
 ;
@@ -346,12 +350,14 @@ START                   ;$0883
         STA SCORE_LSB
         STA SCORE_MSB
         STA V_SCROLL_BIT_IDX
-        STA LEVEL_NR
         STA $D01D    ;Sprites Expand 2x Horizontal (X)
         STA $D017    ;Sprites Expand 2x Vertical (Y)
-        LDA #$05     ;#%00000101
+        LDA #TOTAL_GRENADES
         STA GRENADES
+        LDA #TOTAL_LIVES
         STA LIVES
+        LDA #INITIAL_LEVEL
+        STA LEVEL_NR
 
         ;riq
         ;lda #3
@@ -5969,9 +5975,15 @@ _L00    LDA SPRITES_TYPE04
         BNE _SKIP
         LDA GRENADES
         BEQ _SKIP
+
         LDA $DC01    ;CIA1: Data Port Register B (in-game grenades)
+.IF ENABLE_DOUBLE_JOYSTICKS==1
+        AND #%00010000
+.ELSE
         CMP #$EF     ;#%11101111
+.ENDIF
         BNE _SKIP
+
         LDA SPRITES_X_LO00
         STA SPRITES_X_LO04
         LDA SPRITES_Y00
@@ -5992,12 +6004,7 @@ _L00    LDA SPRITES_TYPE04
         STA SPRITES_TYPE04
         LDA #$00     ;#%00000000
         STA SPRITES_COUNTER03
-.IF ENABLE_DOUBLE_JOYSTICKS==0
-        ; Only update sprite frame when throwing grenades in normal mode
-        ; Disabled on double-joystick mode.
-        ; FIXME: riq
         STA HERO_ANIM_MOV_IDX
-.ENDIF
         LDA #$A4     ;#%10100100
         STA SPRITES_PTR00
         SED
