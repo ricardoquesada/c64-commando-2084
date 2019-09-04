@@ -19,6 +19,8 @@
 ; What in theory is missing to have a working LVL2 is the map, and if fix the
 ; charset.
 
+ENABLE_AUTOFIRE = 1
+ENABLE_DOUBLE_JOYSTICKS = 1
 ;
 ; **** ZP FIELDS ****
 ;
@@ -396,7 +398,9 @@ _L00    INC GAME_TICK
 
         LDA IS_HERO_DEAD
         BNE HERO_DIED
+.IF ENABLE_DOUBLE_JOYSTICKS==1
         JSR HANDLE_JOY1
+.ENDIF
         JSR HANDLE_JOY2
         LDA IS_ANIM_EXIT_DOOR
         BNE _L01
@@ -6092,7 +6096,9 @@ TYPE_ANIM_HERO_MAIN
         LDA a04F4
         BEQ _L02
 
-_L00    LDA $DC00    ;CIA1: Data Port Register A (in-game fire)
+_L00
+.IF ENABLE_AUTOFIRE==0
+        LDA $DC00    ;CIA1: Data Port Register A (in-game fire)
         AND #$10     ;#%00010000
         BNE _L02
 
@@ -6103,6 +6109,15 @@ _L00    LDA $DC00    ;CIA1: Data Port Register A (in-game fire)
         LDA FIRE_COOLDOWN
         AND #$07     ;#%00000111
         BNE _L01
+.ELSE
+        INC FIRE_COOLDOWN
+        LDA FIRE_COOLDOWN
+        CMP #$08
+        BNE _L01
+
+        LDA #$00
+        STA FIRE_COOLDOWN
+.ENDIF
 
         ; Fire routine executed when FIRE_COOLDOWN is 0
 
@@ -6132,6 +6147,7 @@ _L00    LDA $DC00    ;CIA1: Data Port Register A (in-game fire)
         STA SPRITES_COUNTER00,X
         LDA #$01        ;white
         STA SPRITES_COLOR01,X
+
 _L01    RTS
 
 _L02    LDA #$FF        ;#%11111111
@@ -6191,6 +6207,7 @@ _L02    LDA #$01
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Joy1 handles the fire direction
+.IF ENABLE_DOUBLE_JOYSTICKS==1
 HANDLE_JOY1
         LDA $DC01
         AND #%00001111
@@ -6208,8 +6225,8 @@ AIM_TBL
         .BYTE $08       ;0010: down
         .BYTE $00       ;0011: up-down (impossible)
         .BYTE $0C       ;0100: left
-        .BYTE $0A       ;0101: left-up
-        .BYTE $0E       ;0110: left-down
+        .BYTE $0E       ;0101: left-up
+        .BYTE $0A       ;0110: left-down
         .BYTE $00       ;0111: left-down-up (impossible)
         .BYTE $04       ;1000: right
         .BYTE $02       ;1001: right-up
@@ -6219,6 +6236,7 @@ AIM_TBL
         .BYTE $00       ;1101: right-left-up (impossible)
         .BYTE $00       ;1110: right-left-down (impossible)
         .BYTE $00       ;1111: right-left-down-up (impossible)
+.ENDIF
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Joy2 handles the hero movement direction
@@ -6239,8 +6257,10 @@ _L00    LDA #$00     ;#%00000000
         LDA $DC00    ;CIA1: Data Port Register A (in-game up)
         AND #$01     ;#%00000001
         BNE _L03
-;        LDA #$00     ;Anim index for SOLDIER_ANIM_FRAMES (up)
-;        STA HERO_ANIM_MOV_IDX
+.IF ENABLE_DOUBLE_JOYSTICKS==0
+        LDA #$00     ;Anim index for SOLDIER_ANIM_FRAMES (up)
+        STA HERO_ANIM_MOV_IDX
+.ENDIF
         LDA V_SCROLL_ROW_IDX
         BNE _L01
 
@@ -6266,8 +6286,10 @@ _L02    LDA #$FF     ;Scroll up 1 pixel
 _L03    LDA $DC00    ;CIA1: Data Port Register A (in-game down)
         AND #$02     ;#%00000010
         BNE _L04
-;        LDA #$08     ;Anim index for SOLIDER_ANIM_FRAMES (down)
-;        STA HERO_ANIM_MOV_IDX
+.IF ENABLE_DOUBLE_JOYSTICKS==0
+        LDA #$08     ;Anim index for SOLIDER_ANIM_FRAMES (down)
+        STA HERO_ANIM_MOV_IDX
+.ENDIF
         LDA SPRITES_Y00
         CMP #$C1     ;#%11000001
         BCS _L04
@@ -6277,8 +6299,10 @@ _L03    LDA $DC00    ;CIA1: Data Port Register A (in-game down)
 _L04    LDA $DC00    ;CIA1: Data Port Register A (in-game left)
         AND #$04     ;#%00000100
         BNE _L06
-;        LDA #$0C     ;Anim index for SOLDIER_ANIM_FRAMES (left)
-;        STA HERO_ANIM_MOV_IDX
+.IF ENABLE_DOUBLE_JOYSTICKS==0
+        LDA #$0C     ;Anim index for SOLDIER_ANIM_FRAMES (left)
+        STA HERO_ANIM_MOV_IDX
+.ENDIF
         LDA SPRITES_X_HI00
         BNE _L05
         LDA SPRITES_X_LO00
@@ -6290,8 +6314,10 @@ _L05    LDA #$FE     ;#%11111110
 _L06    LDA $DC00    ;CIA1: Data Port Register A (in-game right)
         AND #$08     ;#%00001000
         BNE _L08
-;        LDA #$04     ;Anim index for SOLDIER_ANIM_FRAMES (right)
-;        STA HERO_ANIM_MOV_IDX
+.IF ENABLE_DOUBLE_JOYSTICKS==0
+        LDA #$04     ;Anim index for SOLDIER_ANIM_FRAMES (right)
+        STA HERO_ANIM_MOV_IDX
+.ENDIF
         LDA SPRITES_X_HI00
         BEQ _L07
         LDA SPRITES_X_LO00
@@ -6305,8 +6331,10 @@ _L08    LDA $DC00    ;CIA1: Data Port Register A (multiple directions)
         CMP #$76     ;#%01110110        up-right
         BNE _L09
 
-;        LDX #$02     ;Anim index for SOLDIER_ANIM_FRAMES (up-right)
-;        STX HERO_ANIM_MOV_IDX
+.IF ENABLE_DOUBLE_JOYSTICKS==0
+        LDX #$02     ;Anim index for SOLDIER_ANIM_FRAMES (up-right)
+        STX HERO_ANIM_MOV_IDX
+.ENDIF
         LDA #<HERO_FRAMES_UP_RIGHT  ;#%10111000
         STA a0019
         LDA #>HERO_FRAMES_UP_RIGHT  ;#%00111100
@@ -6316,8 +6344,10 @@ _L08    LDA $DC00    ;CIA1: Data Port Register A (multiple directions)
 
 _L09    CMP #$75     ;#%01110101        down-right
         BNE _L10
-;        LDX #$06     ;Anim index for SOLDIER_ANIM_FRAMES (down-right)
-;        STX HERO_ANIM_MOV_IDX
+.IF ENABLE_DOUBLE_JOYSTICKS==0
+        LDX #$06     ;Anim index for SOLDIER_ANIM_FRAMES (down-right)
+        STX HERO_ANIM_MOV_IDX
+.ENDIF
         LDA #<HERO_FRAMES_DOWN_RIGHT  ;#%10110000
         STA a0019
         LDA #>HERO_FRAMES_DOWN_RIGHT  ;#%00111100
@@ -6327,8 +6357,10 @@ _L09    CMP #$75     ;#%01110101        down-right
 
 _L10    CMP #$79     ;#%01111001        down-left
         BNE _L11
-;        LDX #$0A     ;Anim index for SOLDER_ANIM_FRAMES (down-left)
-;        STX HERO_ANIM_MOV_IDX
+.IF ENABLE_DOUBLE_JOYSTICKS==0
+        LDX #$0A     ;Anim index for SOLDER_ANIM_FRAMES (down-left)
+        STX HERO_ANIM_MOV_IDX
+.ENDIF
         LDA #<HERO_FRAMES_DOWN_LEFT  ;#%10110100
         STA a0019
         LDA #>HERO_FRAMES_DOWN_LEFT  ;#%00111100
@@ -6339,8 +6371,10 @@ _L10    CMP #$79     ;#%01111001        down-left
 _L11    CMP #$7A     ;#%01111010        up-left
         BNE _L12
         LDX #$0E     ;Anim index for SOLDIER_ANIM_FRAMES (up-left)
-;        STX HERO_ANIM_MOV_IDX
-;        LDA #<HERO_FRAMES_UP_LEFT  ;#%10111100
+.IF ENABLE_DOUBLE_JOYSTICKS==0
+        STX HERO_ANIM_MOV_IDX
+        LDA #<HERO_FRAMES_UP_LEFT  ;#%10111100
+.ENDIF
         STA a0019
         LDA #>HERO_FRAMES_UP_LEFT  ;#%00111100
         STA a001A
