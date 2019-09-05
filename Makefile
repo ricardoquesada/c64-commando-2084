@@ -10,8 +10,7 @@ all: clean d64 run
 commando.prg: src/main.asm src/music.asm \
 		src/l0-charset.bin src/l1-charset.bin src/l3-charset.bin \
 		src/l0-map.bin src/l1-map.bin src/l3-map.bin \
-		src/l0-padding.bin src/l1-padding.bin src/l3-padding.bin \
-		src/main-padding.bin src/main-map.bin src/main-charset.bin \
+		src/main-charset.bin \
 		src/sprites.bin src/sprites-2084.bin
 	64tass -Wall --cbm-prg -o bin/commando.prg -L bin/list.txt -l bin/labels.txt --vice-labels src/main.asm
 
