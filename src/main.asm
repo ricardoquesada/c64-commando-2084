@@ -258,12 +258,12 @@ eF00A = $F00A
 ;
 
         *= $0801
-        .word (+), 2019  ;pointer, line number
-        .null $9e, format("%d", BOOT);will be sys BOOT
-+       .word 0          ;basic line end
+        .word (+), 2019                 ;pointer, line number
+        .null $9e, format("%d", BOOT)   ;will be sys BOOT
++       .word 0                         ;basic line end
 
 BOOT
-        LDA #$00     ;#%00000000
+        LDA #$00
         TAY
         STA aA5
         STA aAE
@@ -314,10 +314,6 @@ START                   ;$0883
         STA LIVES
         LDA #INITIAL_LEVEL
         STA LEVEL_NR
-
-        ;riq
-        ;lda #3
-        ;sta LEVEL_NR
 
 START_LEVEL          ;$08B8
         LDA #$A5     ;#%10100101
@@ -7419,6 +7415,8 @@ MASK_0001_0000   .BYTE $10           ;0001_0000
 MASK_0010_0000   .BYTE $20           ;0010_0000
 MASK_0100_0000   .BYTE $40           ;0100_0000
 MASK_1000_0000   .BYTE $80           ;1000_0000
+
+.include "exodecrunch.asm"
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
         *= $5000

@@ -1,3 +1,4 @@
+.INTERMEDIATE: commando.prg commando.exo
 .PHONY: all clean run
 
 D64_IMAGE = "bin/commando-2084.d64"
