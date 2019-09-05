@@ -275,18 +275,7 @@ BOOT
         STA $0319    ;NMI
         CLI
 
-        ; FIXME: Probably this is not really needed. In fact, it generates
-        ; a small artifact at the end of LVL1, since it is overwriting the
-        ; data
-        LDX #$00     ;#%00000000
-_L00    LDA RESET_ROUTINE,X
-        STA $8000,X  ;Sets the reset routine (CBM80)
-        INX
-        CPX #$09     ;#%00001001
-        BNE _L00
-
         JSR SETUP_VIC_BANK
-        JSR SET_SIGHT_SPRITE
         JSR INIT_RANDOM
 
         ; Sprite Y pos used in raster multiplexer
@@ -557,65 +546,6 @@ _L09    JMP START
 
 NMI_HANDLER
         RTI
-
-        ;TODO: This generates small garbage in the top row of the map.
-        ;Can be safely removed once we don't care about the generating exactly
-        ;the same binary.
-RESET_ROUTINE       ;$0A4E
-        .ADDR BOOT, BOOT
-        .BYTE $C3,$C2,$CD,$38,$30
-
-;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Sets the sight "()" sprite for high scores as sprite $41 (@ $D040)
-; Charset for LVL2 is located between D000-D7FF. Since LVL2 is not present
-; it is safe to overwrite parts of $D000 as long you don't overwrite where
-; the letters/numbers are located.
-SET_SIGHT_SPRITE    ;$0A57
-        ;TODO: probably it is safe to remove the stop/start timer since
-        ;timer is not being used by code, and is already stop
-        LDA $DC0E    ;CIA1: CIA Control Register A
-        AND #$FE     ;#%11111110 Stop timer
-        STA $DC0E    ;Stop timer
-        LDA a01
-        AND #$FB     ;#%11111011    Enabling RAM at $D000 I guess
-        STA a01
-
-        LDX #$3F    ;size of sprite
-_L00    LDA _SIGHT_SPR_DATA,X
-        STA $D040,X  ;It will be sprite $41
-        DEX
-        BPL _L00
-
-        ; We have to be careful to not override any chars
-        LDX #$00        ;size of 4 sprites (64 * 4 == 256)
-_L01    LDA _2084_SPR_DATA,X
-        STA $D500,X     ;It will be sprites $54,$55,$56,$57
-        INX
-        BNE _L01
-
-        LDA a01
-        ORA #$04     ;#%00000100    Enabling I/O at $D000 I guess
-        STA a01
-        LDA $DC0E    ;CIA1: CIA Control Register A
-        ORA #$01     ;#%00000001 Start timer (why ?)
-        STA $DC0E    ;Start Timer
-        RTS
-
-_SIGHT_SPR_DATA      ;$0A7F
-        ; This is the sprite data for the "sight" (hi-scores)
-        .BYTE $00,$00,$00,$02,$AA,$00,$0A,$AA
-        .BYTE $80,$28,$20,$A0,$20,$20,$20,$20
-        .BYTE $00,$20,$A0,$00,$28,$80,$00,$08
-        .BYTE $80,$20,$08,$80,$20,$08,$A0,$A8
-        .BYTE $28,$A0,$A8,$28,$80,$20,$08,$80
-        .BYTE $20,$08,$80,$00,$08,$A0,$00,$28
-        .BYTE $20,$00,$20,$20,$20,$20,$28,$20
-        .BYTE $A0,$0A,$AA,$80,$02,$AA,$00,$00
-
-_2084_SPR_DATA
-        ; Includes 4 sprites to draw "2084" in the title screen
-        .BINARY "sprites-2084.bin"
-
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Animates the selected char in hiscore
