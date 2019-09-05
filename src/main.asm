@@ -7127,39 +7127,26 @@ IRQ_C   LDA V_SCROLL_BIT_IDX
         STA $D010       ;Sprites 0-7 MSB of X coordinate
         STA $D01B       ;Sprite to Background Display Priority
 
-        LDA #$0E        ;Points to $D00E (sprite 7 x pos)
-        STA VIC_SPRITE_IDX
-
-        LDY #$00
-        STY a00A7
-
-_L0     LDX a004B,Y
-        LDY VIC_SPRITE_IDX
+        .FOR I := 7, I >= 0, I -= 1
+        LDX a004B + (7-I)
         LDA SPRITES_RASTER_Y00,X
-        STA $D001,Y     ;Sprite 0 Y Pos
+        STA $D001 + I * 2   ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
-        STA $D000,Y     ;Sprite 0 X Pos
-        LDA VIC_SPRITE_IDX
-        LSR A
-        TAY
+        STA $D000 + I * 2   ;Sprite 0 X Pos
+
         LDA SPRITES_PTR00,X
-        STA fE3F8,Y
+        STA fE3F8 + I
         LDA SPRITES_COLOR00,X
-        STA $D027,Y     ;Sprite 0 Color
+        STA $D027 + I   ;Sprite 0 Color
         LDA SPRITES_X_HI00,X
-        AND MASK_0000_0001,Y
+        AND #(1<<I)
         ORA $D010       ;Sprites 0-7 MSB of X coordinate
         STA $D010       ;Sprites 0-7 MSB of X coordinate
         LDA SPRITES_BKG_PRI00,X
-        AND MASK_0000_0001,Y
+        AND #(1<<I)
         ORA $D01B       ;Sprite to Background Display Priority
         STA $D01B       ;Sprite to Background Display Priority
-        DEC VIC_SPRITE_IDX
-        DEC VIC_SPRITE_IDX
-        INC a00A7
-        LDY a00A7
-        CPY #$08
-        BNE _L0
+        .NEXT
 
         ; Set the correct charset for the level
         LDA LEVEL_NR
