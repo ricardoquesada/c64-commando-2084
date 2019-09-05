@@ -257,50 +257,17 @@ eF00A = $F00A
 ; **** PREDEFINED LABELS ****
 ;
 
-        * = $0800
+        *= $0801
+        .word (+), 2019  ;pointer, line number
+        .null $9e, format("%d", BOOT);will be sys BOOT
++       .word 0          ;basic line end
 
-        .BYTE $00,$0B,$08,$0A,$00,$9E,$32,$30
-        .BYTE $36,$31,$00,$00,$00
-
+BOOT
         LDA #$00     ;#%00000000
         TAY
         STA aA5
         STA aAE
-        LDA #$09     ;#%00001001
-        JSR s0828
-        JSR s083D
-        JSR eF00A       ;set charset: copy from e000-efff to d000-dfff
-        JSR s083D       ; defined in "co2.asm"
-        JSR s0828
-        JMP BOOT
 
-s0828   LDA #$01
-        TAX
-        TAY
-        NOP
-        NOP
-        NOP
-        LDA #$00
-        NOP
-        NOP
-        NOP
-        LDA #$00
-        LDX #$FF
-        LDY #$FF
-        JMP e03F0       ;Load file. Defined in "commando.asm"
-
-s083D   SEI
-b083E   LDA a01
-        EOR #$02     ;#%00000010
-        STA a01
-        RTS
-
-        ; FIXME: unused, remove
-        .BYTE $E0,$09,$D0,$F5,$20,$AD,$35,$20
-        .BYTE $57,$0A,$20
-
-;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-BOOT    ;$0850
         SEI
         LDA #<NMI_HANDLER
         STA $0318    ;NMI
@@ -7580,3 +7547,20 @@ MASK_1000_0000   .BYTE $80           ;1000_0000
 .binary "l0-charset.bin"
         *= $c800
 .binary "l1-charset.bin"
+
+        *= $d000
+.binary "main-charset.bin"
+        *= $D800
+.binary "l3-charset.bin"
+
+        ; FIXME: can be removed, since it contains garbage.
+        *= $E000
+        .BINARY "main-map.bin"
+
+        ; FIXME: can be removed.
+        ; The 24 bytes from 1000-1024 to make to make it MD5 hash compatible.
+        .BINARY "main-padding.bin"
+
+        ; Sprites
+        * = $E400
+        .BINARY "sprites.bin"
