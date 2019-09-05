@@ -106,12 +106,11 @@ a002B = $002B
 a003D = $003D
 a003F = $003F
 a0041 = $0041
-a004B = $004B                   ;$4B-$5A Related to sprite Y pos, used in raster multiplexer
-a004C = $004C                   ; $4B-$53 processed in IRQ_C (8 sprites)
-a004E = $004E                   ; $53-$56: processed in IRQ_D (4 sprites)
-a0053 = $0053                   ; $57-$5A: processed in IRQ_E (4 sprites)
+SPRITE_IDX = $004B              ;$4B-$5A Related to sprite Y pos, used in raster multiplexer
+                                ; $4B-$53 processed in IRQ_C (8 sprites)
+                                ; $53-$56: processed in IRQ_D (SPRITE_IDX+8: 4 sprites)
+                                ; $57-$5A: processed in IRQ_E (SPRITE_IDX+12: 4 sprites)
 a00A7 = $00A7
-VIC_SPRITE_IDX = $00A8          ;Index used for sprite pos (e.g: $D000,idx) in raster intr.
 a00C9 = $00C9
 a00D7 = $00D7
 a00F7 = $00F7
@@ -275,7 +274,7 @@ BOOT
         ; Sprite Y pos used in raster multiplexer
         LDX #$10
 _L01    TXA
-        STA a004B,X
+        STA SPRITE_IDX,X
         DEX
         BPL _L01
 
@@ -6715,27 +6714,6 @@ f3EEE   .ADDR f3EDA         ;LVL0
         .ADDR f3EDF         ;LVL2
         .ADDR f3EE9         ;LVL3
 
-        ; Unused (?)
-b3EF6   LDX #$00     ;#%00000000
-        STX a00D7
-b3EFB   LDY a004C,X
-        LDA SPRITES_Y00,Y
-        LDY a004B,X
-        CMP SPRITES_Y00,Y
-        BCS b3F19
-        LDY a004B,X
-        LDA a004C,X
-        STA a004B,X
-        STY f4C,X
-        LDA #$01     ;#%00000001
-        STA a00D7
-b3F19   INX
-        CPX #$0F     ;#%00001111
-        BNE b3EFB
-        LDA a00D7
-        BNE b3EF6
-        RTS
-
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s3F24   LDA #$0F     ;#%00001111
         STA a0014
@@ -6755,20 +6733,20 @@ _L02    LDA a003F
         ADC a0014
         STA a0041
         LDX a0041
-        LDY a004B,X
+        LDY SPRITE_IDX,X
         LDA SPRITES_Y00,Y
         LDX a003F
-        LDY a004B,X
+        LDY SPRITE_IDX,X
         CMP SPRITES_Y00,Y
         BCS _L03
         LDX a003F
         LDY a0041
-        LDA a004B,Y
+        LDA SPRITE_IDX,Y
         PHA
-        LDA a004B,X
-        STA a004B,Y
+        LDA SPRITE_IDX,X
+        STA SPRITE_IDX,Y
         PLA
-        STA a004B,X
+        STA SPRITE_IDX,X
         LDA a003F
         SEC
         SBC a0014
@@ -7123,7 +7101,7 @@ IRQ_C   LDA V_SCROLL_BIT_IDX
         ; Process from $4B - $52
         ; 8 Sprites
         .FOR I := 7, I >= 0, I -= 1
-        LDX a004B + (7-I)
+        LDX SPRITE_IDX + (7-I)
         LDA SPRITES_RASTER_Y00,X
         STA $D001 + I * 2   ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
@@ -7153,22 +7131,23 @@ IRQ_C   LDA V_SCROLL_BIT_IDX
         ORA a00A7       ;Charset Idx. lvl0=$c000, lvl1=$c800, main=$d000, lvl3=$d800
         STA $D018       ;VIC Memory Control Register
 
-        LDX a004E
+        ; FIXME: Bug??? Should it be SPRITE_IDX + 7 ??
+        LDX SPRITE_IDX+3
         LDA SPRITES_RASTER_Y00,X
         CLC
-        ADC #$14     ;#%00010100
-        STA $D012    ;Raster Position
+        ADC #$14        ;#%00010100
+        STA $D012       ;Raster Position
 
-        LDA $D011    ;VIC Control Register 1
-        AND #$7F     ;#%01111111    Raster MSB off
-        STA $D011    ;VIC Control Register 1
+        LDA $D011       ;VIC Control Register 1
+        AND #$7F        ;#%01111111    Raster MSB off
+        STA $D011       ;VIC Control Register 1
 
         LDA #<IRQ_D
         STA IRQ_ADDR_LO
         LDA #>IRQ_D
         STA IRQ_ADDR_HI
 
-        ASL $D019    ;VIC Interrupt Request Register (IRR)
+        ASL $D019       ;VIC Interrupt Request Register (IRR)
 
         PLA
         TAY
@@ -7193,7 +7172,7 @@ IRQ_D   ;$4284
         ; Process from $53 - $56
         ; 4 Sprites
         .FOR I := 7, I >= 4, I -= 1
-        LDX a0053 + (7-I)
+        LDX SPRITE_IDX + 8 + (7-I)
         LDA SPRITES_RASTER_Y00,X
         STA $D001 + I * 2   ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
@@ -7213,7 +7192,7 @@ IRQ_D   ;$4284
         .NEXT
 
         ; Y pos for next sprites sets the raster pos
-        LDX a0053 + 4
+        LDX SPRITE_IDX + 8 + 4
         LDA SPRITES_RASTER_Y00,X
         SEC
         SBC #$02
@@ -7252,7 +7231,7 @@ IRQ_E
         ; Process from $57 - $5A
         ; 4 Sprites
         .FOR I := 3, I >= 0, I -= 1
-        LDX a0053 + (7-I)
+        LDX SPRITE_IDX + 8 + (7-I)
         LDA SPRITES_RASTER_Y00,X
         STA $D001 + I * 2   ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
