@@ -106,17 +106,10 @@ a002B = $002B
 a003D = $003D
 a003F = $003F
 a0041 = $0041
-a004B = $004B                   ;4b-5a Related to sprite Y pos, used in raster multiplexer
-a004C = $004C
-a004E = $004E
-a0053 = $0053
-a0054 = $0054
-a0055 = $0055
-a0056 = $0056
-a0057 = $0057
-a0058 = $0058
-a0059 = $0059
-a005A = $005A
+a004B = $004B                   ;$4B-$5A Related to sprite Y pos, used in raster multiplexer
+a004C = $004C                   ; $4B-$53 processed in IRQ_C (8 sprites)
+a004E = $004E                   ; $53-$56: processed in IRQ_D (4 sprites)
+a0053 = $0053                   ; $57-$5A: processed in IRQ_E (4 sprites)
 a00A7 = $00A7
 VIC_SPRITE_IDX = $00A8          ;Index used for sprite pos (e.g: $D000,idx) in raster intr.
 a00C9 = $00C9
@@ -7127,6 +7120,8 @@ IRQ_C   LDA V_SCROLL_BIT_IDX
         STA $D010       ;Sprites 0-7 MSB of X coordinate
         STA $D01B       ;Sprite to Background Display Priority
 
+        ; Process from $4B - $52
+        ; 8 Sprites
         .FOR I := 7, I >= 0, I -= 1
         LDX a004B + (7-I)
         LDA SPRITES_RASTER_Y00,X
@@ -7195,6 +7190,8 @@ IRQ_D   ;$4284
         AND #$0F        ;#%00001111
         STA $D01B       ;Sprite to Background Display Priority
 
+        ; Process from $53 - $56
+        ; 4 Sprites
         .FOR I := 7, I >= 4, I -= 1
         LDX a0053 + (7-I)
         LDA SPRITES_RASTER_Y00,X
@@ -7252,6 +7249,8 @@ IRQ_E
         AND #$F0     ;#%11110000
         STA $D01B    ;Sprite to Background Display Priority
 
+        ; Process from $57 - $5A
+        ; 4 Sprites
         .FOR I := 3, I >= 0, I -= 1
         LDX a0053 + (7-I)
         LDA SPRITES_RASTER_Y00,X
