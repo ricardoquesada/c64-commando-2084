@@ -31,4 +31,4 @@ runsc: d64
 
 clean:
 	-rm $(D64_IMAGE)
-	-rm bin/commando.prg bin/commando.exo.prg
+	-rm bin/*.prg bin/*.txt
