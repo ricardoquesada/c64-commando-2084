@@ -20,7 +20,7 @@ commando.exo: commando.prg
 
 d64: commando.exo
 	$(C1541) -format "commando 2084,rq" d64 $(D64_IMAGE)
-	$(C1541) $(D64_IMAGE) -write bin/commando.exo.prg "commando2084"
+	$(C1541) $(D64_IMAGE) -write bin/commando.exo.prg "commando 2084"
 	$(C1541) $(D64_IMAGE) -list
 
 run: d64

@@ -7419,39 +7419,6 @@ MASK_0001_0000   .BYTE $10           ;0001_0000
 MASK_0010_0000   .BYTE $20           ;0010_0000
 MASK_0100_0000   .BYTE $40           ;0100_0000
 MASK_1000_0000   .BYTE $80           ;1000_0000
-        ; Unused (?)
-        .BYTE $FE
-        .BYTE $FD,$FB,$F7
-        .BYTE $EF,$DF,$BF
-        .BYTE $7F,$8D,$28
-        .BYTE $D0
-
-;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; From here until $4fff - Unused data apparently?
-;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-
-        LDA SPRITES_X_HI00,X
-        AND MASK_0000_0010
-        ORA $D010    ;Sprites 0-7 MSB of X coordinate
-        STA $D010    ;Sprites 0-7 MSB of X coordinate
-        LDA SPRITES_BKG_PRI00,X
-        AND MASK_0000_0010
-        ORA $D01B    ;Sprite to Background Display Priority
-        STA $D01B    ;Sprite to Background Display Priority
-        LDX a005A
-        LDA SPRITES_RASTER_Y00,X
-        STA $D001    ;Sprite 0 Y Pos
-        LDA SPRITES_X_LO00,X
-        STA $D000    ;Sprite 0 X Pos
-        LDA SPRITES_PTR00,X
-        STA fE3F8
-        LDA SPRITES_COLOR00,X
-        STA $D027    ;Sprite 0 Color
-        LDA SPRITES_X_HI00,X
-
-        .BYTE $0F,$0E,$0D
-        .BYTE $0C,$0B,$0A
-        .BYTE $09,$08,$07,$06,$05,$04,$03,$02
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
         *= $5000
@@ -7460,37 +7427,28 @@ MASK_1000_0000   .BYTE $80           ;1000_0000
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
         *= $6000
 .binary "l0-map.bin"
-.binary "l0-padding.bin"        ;TODO: can be removed
-                                ;only needed to make md5sum identical
 
         *= $8000
 .binary "l1-map.bin"
-.binary "l1-padding.bin"        ;TODO: can be removed
-                                ;only needed to make md5sum identical
 
         *= $a000
 .binary "l3-map.bin"
-.binary "l3-padding.bin"        ;TODO: can be removed
-                                ;only needed to make md5sum identical
 
         *= $c000
 .binary "l0-charset.bin"
+
         *= $c800
 .binary "l1-charset.bin"
 
         *= $d000
 .binary "main-charset.bin"
+
         *= $D800
 .binary "l3-charset.bin"
 
-        ; FIXME: can be removed, since it contains garbage.
         *= $E000
-        .BINARY "main-map.bin"
-
-        ; FIXME: can be removed.
-        ; The 24 bytes from 1000-1024 to make to make it MD5 hash compatible.
-        .BINARY "main-padding.bin"
+        ; Empty
 
         ; Sprites
         * = $E400
-        .BINARY "sprites.bin"
+.binary "sprites.bin"
