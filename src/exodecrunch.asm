@@ -82,7 +82,7 @@ tabl_lo = decrunch_table + encoded_entries
 tabl_hi = decrunch_table + encoded_entries * 2
 
         ;; refill bits is always inlined
-mac_refill_bits .MACRO
+mac_refill_bits: .MACRO
         pha
         jsr get_crunched_byte
         rol a
@@ -95,40 +95,40 @@ mac_get_bits .MACRO
         adc #$80                ; needs c=0, affects v
         asl a
         bpl gb_skip
-gb_next
+gb_next:
         asl zp_bitbuf
         bne gb_ok
         #mac_refill_bits
-gb_ok
+gb_ok:
         rol
         bmi gb_next
-gb_skip
+gb_skip:
         bvc skip
-gb_get_hi
+gb_get_hi:
         sec
         sta zp_bits_hi
         jsr get_crunched_byte
-skip
+skip:
 .ENDM
 .ELSE
-mac_get_bits .MACRO
+mac_get_bits: .MACRO
         jsr get_bits
 .ENDM
 get_bits
         adc #$80                ; needs c=0, affects v
         asl a
         bpl gb_skip
-gb_next
+gb_next:
         asl zp_bitbuf
         bne gb_ok
         #mac_refill_bits
-gb_ok
+gb_ok:
         rol a
         bmi gb_next
-gb_skip
+gb_skip:
         bvs gb_get_hi
         rts
-gb_get_hi
+gb_get_hi:
         sec
         sta zp_bits_hi
         jmp get_crunched_byte

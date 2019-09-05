@@ -1,4 +1,5 @@
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Commando 2084: 
 ; Main routine
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Note about levels:
@@ -7014,16 +7015,17 @@ IRQ_HANDLER
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; raster = $d5
 IRQ_A   NOP
+        NOP
         LDA $D011    ;VIC Control Register 1
         ORA #$60     ;#%01100000    Extended Color = 1, Bitmap = 1
         STA $D011    ;VIC Control Register 1
 
-        ; FIXME: unroll this loop
-        LDX #$03     ;#%00000011
-_L0     LDA #$FF     ;#%11111111
-        STA fE3F8,X  ;Sprites 0,1,2,3 points to spr $ff (empty sprite)
-        DEX
-        BPL _L0
+        ; Sprites 0,1,2,3 points to spr $ff (empty sprite)
+        LDA #$FF
+        STA fE3F8 + 0
+        STA fE3F8 + 1
+        STA fE3F8 + 2
+        STA fE3F8 + 3
 
         LDA $D011    ;VIC Control Register 1
         AND #$F8     ;#%11111000
@@ -7041,6 +7043,7 @@ _L0     LDA #$FF     ;#%11111111
         STA $D018    ;VIC Memory Control Register
 
         INC RASTER_TICK
+
         LDA #$DE
         STA $D012    ;Raster Position
 
@@ -7052,8 +7055,8 @@ _L0     LDA #$FF     ;#%11111111
         STA IRQ_ADDR_LO
         LDA #>IRQ_B
         STA IRQ_ADDR_HI
-        LDA #$01
-        STA $D019    ;VIC Interrupt Request Register (IRR)
+
+        ASL $D019    ;VIC Interrupt Request Register (IRR)
 
         PLA
         TAY
@@ -7088,8 +7091,8 @@ IRQ_B   NOP
         STA IRQ_ADDR_LO
         LDA #>IRQ_C
         STA IRQ_ADDR_HI
-        LDA #$01
-        STA $D019    ;VIC Interrupt Request Register (IRR)
+
+        ASL $D019    ;VIC Interrupt Request Register (IRR)
 
         PLA
         TAY
@@ -7182,8 +7185,8 @@ _L0     LDX a004B,Y
         STA IRQ_ADDR_LO
         LDA #>IRQ_D
         STA IRQ_ADDR_HI
-        LDA #$01     ;#%00000001
-        STA $D019    ;VIC Interrupt Request Register (IRR)
+
+        ASL $D019    ;VIC Interrupt Request Register (IRR)
 
         PLA
         TAY
@@ -7291,8 +7294,8 @@ IRQ_D   ;$4284
         STA IRQ_ADDR_LO
         LDA #>IRQ_E
         STA IRQ_ADDR_HI
-        LDA #$01
-        STA $D019    ;VIC Interrupt Request Register (IRR)
+
+        ASL $D019    ;VIC Interrupt Request Register (IRR)
 
         PLA
         TAY
@@ -7396,8 +7399,8 @@ IRQ_E
         STA IRQ_ADDR_LO
         LDA #>IRQ_A
         STA IRQ_ADDR_HI
-        LDA #$01     ;#%00000001
-        STA $D019    ;VIC Interrupt Request Register (IRR)
+
+        ASL $D019    ;VIC Interrupt Request Register (IRR)
 
         PLA
         TAY

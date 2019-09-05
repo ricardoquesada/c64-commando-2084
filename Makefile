@@ -13,7 +13,7 @@ commando.prg: src/main.asm src/music.asm \
 		src/l0-map.bin src/l1-map.bin src/l3-map.bin \
 		src/main-charset.bin \
 		src/sprites.bin src/sprites-2084.bin
-	64tass -Wall --cbm-prg -o bin/commando.prg -L bin/list.txt -l bin/labels.txt --vice-labels src/main.asm
+	64tass -Wall -Werror --cbm-prg -o bin/commando.prg -L bin/list.txt -l bin/labels.txt --vice-labels src/main.asm
 
 commando.exo: commando.prg
 	exomizer sfx sys -x1 -Di_line_number=2019 bin/commando.prg -o bin/commando.exo.prg
