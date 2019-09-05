@@ -7098,7 +7098,7 @@ IRQ_C   LDA V_SCROLL_BIT_IDX
         STA $D010       ;Sprites 0-7 MSB of X coordinate
         STA $D01B       ;Sprite to Background Display Priority
 
-        ; Process from $4B - $52
+        ; Process from SPRITE_IDX 0 to 7
         ; 8 Sprites
         .FOR I := 7, I >= 0, I -= 1
         LDX SPRITE_IDX + (7-I)
@@ -7131,11 +7131,12 @@ IRQ_C   LDA V_SCROLL_BIT_IDX
         ORA a00A7       ;Charset Idx. lvl0=$c000, lvl1=$c800, main=$d000, lvl3=$d800
         STA $D018       ;VIC Memory Control Register
 
-        ; FIXME: Bug??? Should it be SPRITE_IDX + 7 ??
-        LDX SPRITE_IDX+3
+        ; Y pos for next raster interrupt based on sprite-3 Y pos
+        ; FIXME: Bug? Should it be SPRITE_IDX + 8 ?
+        LDX SPRITE_IDX + 3
         LDA SPRITES_RASTER_Y00,X
         CLC
-        ADC #$14        ;#%00010100
+        ADC #$14        ;20 (sprites are 21-pixels high)
         STA $D012       ;Raster Position
 
         LDA $D011       ;VIC Control Register 1
@@ -7169,7 +7170,7 @@ IRQ_D   ;$4284
         AND #$0F        ;#%00001111
         STA $D01B       ;Sprite to Background Display Priority
 
-        ; Process from $53 - $56
+        ; Process from SPRITE_IDX 8 to 11
         ; 4 Sprites
         .FOR I := 7, I >= 4, I -= 1
         LDX SPRITE_IDX + 8 + (7-I)
@@ -7191,12 +7192,13 @@ IRQ_D   ;$4284
         STA $D01B    ;Sprite to Background Display Priority
         .NEXT
 
-        ; Y pos for next sprites sets the raster pos
+        ; Y pos for next raster interrupt based on sprite-12 Y pos
         LDX SPRITE_IDX + 8 + 4
         LDA SPRITES_RASTER_Y00,X
         SEC
         SBC #$02
         STA $D012    ;Raster Position
+
         LDA $D011    ;VIC Control Register 1
         AND #$7F     ;#%01111111    Raster MSB off
         STA $D011    ;VIC Control Register 1
@@ -7228,7 +7230,7 @@ IRQ_E
         AND #$F0     ;#%11110000
         STA $D01B    ;Sprite to Background Display Priority
 
-        ; Process from $57 - $5A
+        ; Process from SPRITE_IDX 12 to 15
         ; 4 Sprites
         .FOR I := 3, I >= 0, I -= 1
         LDX SPRITE_IDX + 8 + (7-I)
