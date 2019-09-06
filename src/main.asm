@@ -7173,22 +7173,22 @@ IRQ_D   ;$4284
 
         ; Process from SPRITE_IDX_TBL 8 to 11
         ; 4 Sprites
-        .FOR I := 7, I >= 4, I -= 1
-        LDX SPRITE_IDX_TBL + 8 + (7-I)
+        .FOR I:=8, I<12, I+=1
+        LDX SPRITE_IDX_TBL + I,b
         LDA SPRITES_PREV_Y00,X
-        STA $D001 + I * 2   ;Sprite 0 Y Pos
+        STA $D00F - (I-8) * 2   ;Sprite 7 Y Pos
         LDA SPRITES_X_LO00,X
-        STA $D000 + I * 2   ;Sprite 0 X Pos
+        STA $D00E - (I-8) * 2   ;Sprite 7 X Pos
         LDA SPRITES_PTR00,X
-        STA fE3F8 + I       ;Sprite 7 frame
+        STA aE3FF - (I - 8)     ;Sprite 7 frame
         LDA SPRITES_COLOR00,X
-        STA $D027 + I       ;Sprite 7 Color
+        STA $D02E - (I - 8)    ;Sprite 7 Color
         LDA SPRITES_X_HI00,X
-        AND #(1 << I)
+        AND MASK_1000_0000 - (I - 8)
         ORA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D010    ;Sprites 0-7 MSB of X coordinate
         LDA SPRITES_BKG_PRI00,X
-        AND #(1 << I)
+        AND MASK_1000_0000 - (I - 8)
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
         .NEXT
@@ -7233,22 +7233,22 @@ IRQ_E
 
         ; Process from SPRITE_IDX_TBL 12 to 15
         ; 4 Sprites
-        .FOR I := 3, I >= 0, I -= 1
-        LDX SPRITE_IDX_TBL + 8 + (7-I)
+        .FOR I:=12, I<16, I+=1
+        LDX SPRITE_IDX_TBL + I,b
         LDA SPRITES_PREV_Y00,X
-        STA $D001 + I * 2   ;Sprite 0 Y Pos
+        STA $D007 - (I-12) * 2      ;Sprite 3 Y Pos
         LDA SPRITES_X_LO00,X
-        STA $D000 + I * 2   ;Sprite 0 X Pos
+        STA $D006 - (I-12) * 2      ;Sprite 3 X Pos
         LDA SPRITES_PTR00,X
-        STA fE3F8 + I       ;Sprite 7 frame
+        STA aE3FB - (I - 12)
         LDA SPRITES_COLOR00,X
-        STA $D027 + I       ;Sprite 7 Color
+        STA $D02A - (I - 12)        ;Sprite 3 Color
         LDA SPRITES_X_HI00,X
-        AND #(1 << I)
+        AND MASK_0000_1000 - (I - 12)
         ORA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D010    ;Sprites 0-7 MSB of X coordinate
         LDA SPRITES_BKG_PRI00,X
-        AND #(1 << I)
+        AND MASK_0000_1000 - (I - 12)
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
         .NEXT
