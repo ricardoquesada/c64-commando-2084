@@ -7182,13 +7182,13 @@ IRQ_D   ;$4284
         LDA SPRITES_PTR00,X
         STA aE3FF - (I - 8)     ;Sprite 7 frame
         LDA SPRITES_COLOR00,X
-        STA $D02E - (I - 8)    ;Sprite 7 Color
+        STA $D02E - (I - 8)     ;Sprite 7 Color
         LDA SPRITES_X_HI00,X
-        AND MASK_1000_0000 - (I - 8)
+        AND #(1 << (15-I))      ;Mask from 2^7 to 2^4
         ORA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D010    ;Sprites 0-7 MSB of X coordinate
         LDA SPRITES_BKG_PRI00,X
-        AND MASK_1000_0000 - (I - 8)
+        AND #(1 << (15-I))      ;Mask from 2^7 to 2^4
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
         .NEXT
@@ -7244,13 +7244,13 @@ IRQ_E
         LDA SPRITES_COLOR00,X
         STA $D02A - (I - 12)        ;Sprite 3 Color
         LDA SPRITES_X_HI00,X
-        AND MASK_0000_1000 - (I - 12)
-        ORA $D010    ;Sprites 0-7 MSB of X coordinate
-        STA $D010    ;Sprites 0-7 MSB of X coordinate
+        AND #(1 << (15-I))          ;Mask from 2^3 to 2^0
+        ORA $D010                   ;Sprites 0-7 MSB of X coordinate
+        STA $D010                   ;Sprites 0-7 MSB of X coordinate
         LDA SPRITES_BKG_PRI00,X
-        AND MASK_0000_1000 - (I - 12)
-        ORA $D01B    ;Sprite to Background Display Priority
-        STA $D01B    ;Sprite to Background Display Priority
+        AND #(1 << (15-I))          ;Mask from 2^3 to 2^0
+        ORA $D01B                   ;Sprite to Background Display Priority
+        STA $D01B                   ;Sprite to Background Display Priority
         .NEXT
 
         LDA #$D5
