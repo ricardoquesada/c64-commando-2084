@@ -106,7 +106,7 @@ a002B = $002B
 a003D = $003D
 a003F = $003F
 a0041 = $0041
-SPRITE_IDX_TBL = $004B              ;$4B-$5A Related to sprite Y pos, used in raster multiplexer
+SPRITE_IDX_TBL = $004B          ;$4B-$5A Related to sprite Y pos, used in raster multiplexer
                                 ; $4B-$53 processed in IRQ_C (8 sprites)
                                 ; $53-$56: processed in IRQ_D (SPRITE_IDX_TBL+8: 4 sprites)
                                 ; $57-$5A: processed in IRQ_E (SPRITE_IDX_TBL+12: 4 sprites)
