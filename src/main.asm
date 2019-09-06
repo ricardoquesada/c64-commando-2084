@@ -106,10 +106,10 @@ a002B = $002B
 a003D = $003D
 a003F = $003F
 a0041 = $0041
-SPRITE_IDX = $004B              ;$4B-$5A Related to sprite Y pos, used in raster multiplexer
+SPRITE_IDX_TBL = $004B              ;$4B-$5A Related to sprite Y pos, used in raster multiplexer
                                 ; $4B-$53 processed in IRQ_C (8 sprites)
-                                ; $53-$56: processed in IRQ_D (SPRITE_IDX+8: 4 sprites)
-                                ; $57-$5A: processed in IRQ_E (SPRITE_IDX+12: 4 sprites)
+                                ; $53-$56: processed in IRQ_D (SPRITE_IDX_TBL+8: 4 sprites)
+                                ; $57-$5A: processed in IRQ_E (SPRITE_IDX_TBL+12: 4 sprites)
 a00A7 = $00A7
 a00C9 = $00C9
 a00D7 = $00D7
@@ -274,7 +274,7 @@ BOOT
         ; Sprite Y pos used in raster multiplexer
         LDX #$10
 _L01    TXA
-        STA SPRITE_IDX,X
+        STA SPRITE_IDX_TBL,X
         DEX
         BPL _L01
 
@@ -6733,20 +6733,20 @@ _L02    LDA a003F
         ADC a0014
         STA a0041
         LDX a0041
-        LDY SPRITE_IDX,X
+        LDY SPRITE_IDX_TBL,X
         LDA SPRITES_Y00,Y
         LDX a003F
-        LDY SPRITE_IDX,X
+        LDY SPRITE_IDX_TBL,X
         CMP SPRITES_Y00,Y
         BCS _L03
         LDX a003F
         LDY a0041
-        LDA SPRITE_IDX,Y
+        LDA SPRITE_IDX_TBL,Y
         PHA
-        LDA SPRITE_IDX,X
-        STA SPRITE_IDX,Y
+        LDA SPRITE_IDX_TBL,X
+        STA SPRITE_IDX_TBL,Y
         PLA
-        STA SPRITE_IDX,X
+        STA SPRITE_IDX_TBL,X
         LDA a003F
         SEC
         SBC a0014
@@ -7098,10 +7098,10 @@ IRQ_C   LDA V_SCROLL_BIT_IDX
         STA $D010       ;Sprites 0-7 MSB of X coordinate
         STA $D01B       ;Sprite to Background Display Priority
 
-        ; Process from SPRITE_IDX 0 to 7
+        ; Process from SPRITE_IDX_TBL 0 to 7
         ; 8 Sprites
         .FOR I := 7, I >= 0, I -= 1
-        LDX SPRITE_IDX + (7-I)
+        LDX SPRITE_IDX_TBL + (7-I)
         LDA SPRITES_RASTER_Y00,X
         STA $D001 + I * 2   ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
@@ -7132,8 +7132,8 @@ IRQ_C   LDA V_SCROLL_BIT_IDX
         STA $D018       ;VIC Memory Control Register
 
         ; Y pos for next raster interrupt based on sprite-3 Y pos
-        ; FIXME: Bug? Should it be SPRITE_IDX + 8 ?
-        LDX SPRITE_IDX + 3
+        ; FIXME: Bug? Should it be SPRITE_IDX_TBL + 8 ?
+        LDX SPRITE_IDX_TBL + 3
         LDA SPRITES_RASTER_Y00,X
         CLC
         ADC #$14        ;20 (sprites are 21-pixels high)
@@ -7170,10 +7170,10 @@ IRQ_D   ;$4284
         AND #$0F        ;#%00001111
         STA $D01B       ;Sprite to Background Display Priority
 
-        ; Process from SPRITE_IDX 8 to 11
+        ; Process from SPRITE_IDX_TBL 8 to 11
         ; 4 Sprites
         .FOR I := 7, I >= 4, I -= 1
-        LDX SPRITE_IDX + 8 + (7-I)
+        LDX SPRITE_IDX_TBL + 8 + (7-I)
         LDA SPRITES_RASTER_Y00,X
         STA $D001 + I * 2   ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
@@ -7193,7 +7193,7 @@ IRQ_D   ;$4284
         .NEXT
 
         ; Y pos for next raster interrupt based on sprite-12 Y pos
-        LDX SPRITE_IDX + 8 + 4
+        LDX SPRITE_IDX_TBL + 8 + 4
         LDA SPRITES_RASTER_Y00,X
         SEC
         SBC #$02
@@ -7230,10 +7230,10 @@ IRQ_E
         AND #$F0     ;#%11110000
         STA $D01B    ;Sprite to Background Display Priority
 
-        ; Process from SPRITE_IDX 12 to 15
+        ; Process from SPRITE_IDX_TBL 12 to 15
         ; 4 Sprites
         .FOR I := 3, I >= 0, I -= 1
-        LDX SPRITE_IDX + 8 + (7-I)
+        LDX SPRITE_IDX_TBL + 8 + (7-I)
         LDA SPRITES_RASTER_Y00,X
         STA $D001 + I * 2   ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
