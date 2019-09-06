@@ -7100,23 +7100,23 @@ IRQ_C   LDA V_SCROLL_BIT_IDX
         STA $D01B       ;Sprite to Background Display Priority
 
         ; Process from SPRITE_IDX_TBL 0 to 7
-        ; 8 Sprites
-        .FOR I := 7, I >= 0, I -= 1
-        LDX SPRITE_IDX_TBL + (7-I)
+        ; Uses HW Sprites 7 to 0
+        .FOR I := 0, I < 8, I += 1
+        LDX SPRITE_IDX_TBL + I
         LDA SPRITES_PREV_Y00,X
-        STA $D001 + I * 2   ;Sprite 0 Y Pos
+        STA $D001 + (7-I) * 2   ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
-        STA $D000 + I * 2   ;Sprite 0 X Pos
+        STA $D000 + (7-I) * 2   ;Sprite 0 X Pos
         LDA SPRITES_PTR00,X
-        STA fE3F8 + I
+        STA fE3F8 + (7-I)
         LDA SPRITES_COLOR00,X
-        STA $D027 + I   ;Sprite 0 Color
+        STA $D027 + (7-I)       ;Sprite 0 Color
         LDA SPRITES_X_HI00,X
-        AND #(1<<I)
+        AND #(1<<(7-I))
         ORA $D010       ;Sprites 0-7 MSB of X coordinate
         STA $D010       ;Sprites 0-7 MSB of X coordinate
         LDA SPRITES_BKG_PRI00,X
-        AND #(1<<I)
+        AND #(1<<(7-I))
         ORA $D01B       ;Sprite to Background Display Priority
         STA $D01B       ;Sprite to Background Display Priority
         .NEXT
@@ -7172,7 +7172,7 @@ IRQ_D   ;$4284
         STA $D01B       ;Sprite to Background Display Priority
 
         ; Process from SPRITE_IDX_TBL 8 to 11
-        ; 4 Sprites
+        ; Uses HW Sprites 7 to 4
         .FOR I:=8, I<12, I+=1
         LDX SPRITE_IDX_TBL + I
         LDA SPRITES_PREV_Y00,X
@@ -7232,7 +7232,7 @@ IRQ_E
         STA $D01B    ;Sprite to Background Display Priority
 
         ; Process from SPRITE_IDX_TBL 12 to 15
-        ; 4 Sprites
+        ; Uses HW Sprites 3 to 0
         .FOR I:=12, I<16, I+=1
         LDX SPRITE_IDX_TBL + I
         LDA SPRITES_PREV_Y00,X
