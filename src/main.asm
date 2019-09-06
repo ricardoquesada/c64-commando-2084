@@ -6736,7 +6736,6 @@ f3EEE   .ADDR f3EDA         ;LVL0
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Sort sprites in SPRITE_IDX_TBL by Y position (?)
 SPRITES_SORT_BY_Y       ;$3F24
-        INC $D020
         LDA #$0F        ;Number of sprites to sort
         STA a0014
         STA a00D7
@@ -6781,7 +6780,6 @@ _L03    INC a003D
         JMP _L01
 
 _L04
-        DEC $D020
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
