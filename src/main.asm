@@ -1126,6 +1126,12 @@ SCREEN_MAIN_TITLE
         STA $D01D    ;Sprites Expand 2x Horizontal (X)
         STA $D017    ;Sprites Expand 2x Vertical (Y)
 
+        LDX #$0F
+        LDA #$A0
+_L000   STA SPRITES_Y00,X
+        DEX
+        BPL _L000
+
         LDX #$00     ;#%00000000
 _L00    LDA _MS_SPRITES_Y,X
         STA SPRITES_Y05,X
@@ -1145,7 +1151,7 @@ _L00    LDA _MS_SPRITES_Y,X
         LDA #$00
         STA SPRITES_BKG_PRI05,X
         INX
-        CPX #(7 + 0)        ;total number of sprites: 7 for Commando, 3 for 2084
+        CPX #7+3        ;total number of sprite "Commando"
         BNE _L00
 
         JSR APPLY_DELTA_MOV
@@ -1167,6 +1173,13 @@ _WAIT_FIRE
         JSR WAIT_RASTER_AT_BOTTOM
         DEC COUNTER1
         BNE _WAIT_FIRE
+
+        ; Enable "2084" sprite after Credits screen
+        LDX #$02
+_L02    LDA _2084_PTR,X
+        STA SPRITES_PTR05 + 7,X
+        DEX
+        BPL _L02
 
         ; Change background image
         LDA #$09     ;#%00001001
@@ -1199,10 +1212,12 @@ _MS_SPRITES_X_HI
         .BYTE $00,$00,$00
 _MS_SPRITES_Y
         .BYTE $48,$48,$48,$48,$48,$48,$48
-        .BYTE $50,$78,$78
+        .BYTE $74,$74,$74
 _MS_SPRITES_PTR
-        .BYTE $F6,$F7,$F8,$F9,$FA,$FB,$AC
-        .BYTE $54,$55,$56
+        .BYTE $F6,$F7,$F8,$F9,$FA,$FB,$AC   ;"Commando"
+        .BYTE $FF,$FF,$FF                   ;empty
+_2084_PTR
+        .BYTE $54,$55,$56                   ;"2084"
 
 _LEVEL_IDX      ;$1001
         .BYTE $00,$00,$01,$01,$03,$03,$03
@@ -1661,7 +1676,8 @@ _L00    LDA SPRITES_Y00,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-        ; Original Y positions for al 16 sprites
+; Original Y positions for all 16 sprites
+; Used also when restoring the sprites
 ORIG_SPRITE_Y00
         .BYTE $C2
 ORIG_SPRITE_Y01
@@ -6718,6 +6734,7 @@ f3EEE   .ADDR f3EDA         ;LVL0
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Sort sprites in SPRITE_IDX_TBL by Y position (?)
 SPRITES_SORT_BY_Y       ;$3F24
+        INC $D020
         LDA #$0F        ;Number of sprites to sort
         STA a0014
         STA a00D7
@@ -6761,7 +6778,9 @@ _L03    INC a003D
         BCC _L00
         JMP _L01
 
-_L04    RTS
+_L04
+        DEC $D020
+        RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Copies "current" map to screen RAM
@@ -7081,7 +7100,8 @@ IRQ_B   NOP
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; raster = $1e
 ; Renders 8 sprites
-IRQ_C   LDA V_SCROLL_BIT_IDX
+IRQ_C
+        LDA V_SCROLL_BIT_IDX
         EOR #$07        ;#%00000111    Reverse Y-bits
         STA a00A7
 
@@ -7136,11 +7156,18 @@ IRQ_C   LDA V_SCROLL_BIT_IDX
 
         ; Y pos for next raster interrupt based on sprite-3 Y pos
         ; FIXME: Bug? Should it be SPRITE_IDX_TBL + 8 ?
-        LDX SPRITE_IDX_TBL + 3
+;        LDX SPRITE_IDX_TBL + 3
+;        LDA SPRITES_PREV_Y00,X
+;        CLC
+;        ADC #$14        ;20 (sprites are 21-pixels high)
+;        STA $D012       ;Raster Position
+        LDX SPRITE_IDX_TBL + 8
         LDA SPRITES_PREV_Y00,X
-        CLC
-        ADC #$14        ;20 (sprites are 21-pixels high)
-        STA $D012       ;Raster Position
+        SEC
+        SBC #$03
+        CMP $D012
+        BCC IRQ_D       ;Jump, too late for IRQ
+        STA $D012
 
         LDA $D011       ;VIC Control Register 1
         AND #$7F        ;#%01111111    Raster MSB off
@@ -7164,6 +7191,7 @@ IRQ_C   LDA V_SCROLL_BIT_IDX
 ; sprite multiplexor: sprites 4-7
 ; raster = $??
 IRQ_D   ;$4284
+
         ; Turn off MSB and sprite-bkg pri for upper 4 sprites.
         ; Each sprite will set it individually in case it is needed
         LDA $D010       ;Sprites 0-7 MSB of X coordinate
@@ -7199,19 +7227,21 @@ IRQ_D   ;$4284
         LDX SPRITE_IDX_TBL + 8 + 4
         LDA SPRITES_PREV_Y00,X
         SEC
-        SBC #$02
-        STA $D012    ;Raster Position
+        SBC #$03
+        CMP $D012
+        BCC IRQ_E       ;Too late for IRQ. Jump directly.
+        STA $D012       ;Raster Position
 
-        LDA $D011    ;VIC Control Register 1
-        AND #$7F     ;#%01111111    Raster MSB off
-        STA $D011    ;VIC Control Register 1
+        LDA $D011       ;VIC Control Register 1
+        AND #$7F        ;#%01111111    Raster MSB off
+        STA $D011       ;VIC Control Register 1
 
         LDA #<IRQ_E
         STA IRQ_ADDR_LO
         LDA #>IRQ_E
         STA IRQ_ADDR_HI
 
-        ASL $D019    ;VIC Interrupt Request Register (IRR)
+        ASL $D019       ;VIC Interrupt Request Register (IRR)
 
         PLA
         TAY
