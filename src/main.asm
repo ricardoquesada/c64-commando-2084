@@ -20,11 +20,14 @@
 ; What in theory is missing to have a working LVL2 is the map, and if fix the
 ; charset.
 
-ENABLE_AUTOFIRE = 1
-ENABLE_DOUBLE_JOYSTICKS = 1
-TOTAL_LIVES = $05               ; BCD
-TOTAL_GRENADES = $05            ; BCD
-INITIAL_LEVEL = 0
+ENABLE_AUTOFIRE = 1             ;
+ENABLE_DOUBLE_JOYSTICKS = 1     ;
+; Using double joysticks make the game easier. Increase difficulty
+; by reducing lives, and incrementing the total enemies in fort
+TOTAL_LIVES = $03               ;BCD. Default 5
+TOTAL_GRENADES = $05            ;BCD. Default 5
+TOTAL_ENEMIES_IN_FORT = $28     ;Default $14
+INITIAL_LEVEL = 0               ;Default $00
 
 ;
 ; **** ZP FIELDS ****
@@ -6659,8 +6662,8 @@ _L01    STA V_SCROLL_ROW_IDX
         LDA #$00
         STA V_SCROLL_BIT_IDX
         STA a04EE
-        LDA #$14     ;Number of enemies that leaves the final fort/warehouse
-        STA ENEMIES_IN_FORT
+        LDA #TOTAL_ENEMIES_IN_FORT      ;Number of enemies that leaves the fort
+        STA ENEMIES_IN_FORT             ; at the end of the level
         JSR INIT_LEVEL_DATA
         LDA #$00     ;Closed door
         JSR LEVEL_PATCH_DOOR
