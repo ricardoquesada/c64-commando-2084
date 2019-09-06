@@ -1126,6 +1126,8 @@ SCREEN_MAIN_TITLE
         STA $D01D    ;Sprites Expand 2x Horizontal (X)
         STA $D017    ;Sprites Expand 2x Vertical (Y)
 
+        ; Hack: Needed so that we make sure that "Commando" is rendered in
+        ; IRQ_C, while "2084" is rendered in IRQ_D.
         LDX #$0F
         LDA #$A0
 _L000   STA SPRITES_Y00,X
