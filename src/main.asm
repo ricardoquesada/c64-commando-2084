@@ -343,7 +343,7 @@ GAME_LOOP            ;$08CB
 
 _L00    INC GAME_TICK
         JSR APPLY_DELTA_MOV
-        JSR s3F24
+        JSR SPRITES_SORT_BY_Y
         JSR TRY_THROW_GRENADE
         JSR ANIM_ENEMIES
         JSR RUN_ACTIONS
@@ -713,7 +713,7 @@ _L00    STA HISCORE_NAME,X
         LDA #$20
         STA HISCORE_SELECTED_CHAR
         JSR APPLY_DELTA_MOV
-        JSR s3F24
+        JSR SPRITES_SORT_BY_Y
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -837,7 +837,7 @@ _L05    JSR WAIT_RASTER_AT_BOTTOM
         JSR HISCORE_READ_JOY_FIRE
         JSR HISCORE_ANIM_CHAR
         JSR APPLY_DELTA_MOV
-        JSR s3F24
+        JSR SPRITES_SORT_BY_Y
         JSR s0C6F
         LDA HISCORE_SELECTED_CHAR
         CMP #$78     ;#%01111000
@@ -1140,7 +1140,7 @@ _L00    LDA _MS_SPRITES_Y,X
         STA SPRITES_DELTA_Y05,X
         LDA #$10            ;anim_type_10: void
         STA SPRITES_TYPE05,X
-        LDA #$08     ;orange
+        LDA #$08            ;orange
         STA SPRITES_COLOR05,X
         LDA #$00
         STA SPRITES_BKG_PRI05,X
@@ -1149,7 +1149,7 @@ _L00    LDA _MS_SPRITES_Y,X
         BNE _L00
 
         JSR APPLY_DELTA_MOV
-        JSR s3F24
+        JSR SPRITES_SORT_BY_Y
         LDA #$00     ;#%00000000
         STA $D025    ;Sprite Multi-Color Register 0
         LDA #$07     ;#%00000111
@@ -6470,7 +6470,7 @@ _L00    LDA f3D27,X
         BNE _L00
 
         JSR APPLY_DELTA_MOV
-        JSR s3F24
+        JSR SPRITES_SORT_BY_Y
         LDA #$FF     ;#%11111111
         STA COUNTER1
 _L01    LDX #$00     ;#%00000000
@@ -6691,7 +6691,7 @@ _L02    LDA #$00
         CPX #$40     ;length of the sprite
         BNE _L02
 
-        JSR s3F24
+        JSR SPRITES_SORT_BY_Y
         JSR RERUN_ACTIONS
 
         ; Make sure player has at least 5 grenades
@@ -6716,7 +6716,9 @@ f3EEE   .ADDR f3EDA         ;LVL0
         .ADDR f3EE9         ;LVL3
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s3F24   LDA #$0F     ;#%00001111
+; Sort sprites in SPRITE_IDX_TBL by Y position (?)
+SPRITES_SORT_BY_Y       ;$3F24
+        LDA #$0F        ;Number of sprites to sort
         STA a0014
         STA a00D7
 _L00    LSR a0014
@@ -6725,7 +6727,7 @@ _L00    LSR a0014
         SEC
         SBC a0014
         STA a00C9
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA a003D
 _L01    LDA a003D
         STA a003F
@@ -7113,12 +7115,12 @@ IRQ_C   LDA V_SCROLL_BIT_IDX
         STA $D027 + (7-I)       ;Sprite 0 Color
         LDA SPRITES_X_HI00,X
         AND #(1<<(7-I))
-        ORA $D010       ;Sprites 0-7 MSB of X coordinate
-        STA $D010       ;Sprites 0-7 MSB of X coordinate
+        ORA $D010               ;Sprites 0-7 MSB of X coordinate
+        STA $D010               ;Sprites 0-7 MSB of X coordinate
         LDA SPRITES_BKG_PRI00,X
         AND #(1<<(7-I))
-        ORA $D01B       ;Sprite to Background Display Priority
-        STA $D01B       ;Sprite to Background Display Priority
+        ORA $D01B               ;Sprite to Background Display Priority
+        STA $D01B               ;Sprite to Background Display Priority
         .NEXT
 
         ; Set the correct charset for the level
