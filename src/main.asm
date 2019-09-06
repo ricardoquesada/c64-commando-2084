@@ -7174,7 +7174,7 @@ IRQ_D   ;$4284
         ; Process from SPRITE_IDX_TBL 8 to 11
         ; 4 Sprites
         .FOR I:=8, I<12, I+=1
-        LDX SPRITE_IDX_TBL + I,b
+        LDX SPRITE_IDX_TBL + I
         LDA SPRITES_PREV_Y00,X
         STA $D00F - (I-8) * 2   ;Sprite 7 Y Pos
         LDA SPRITES_X_LO00,X
@@ -7234,7 +7234,7 @@ IRQ_E
         ; Process from SPRITE_IDX_TBL 12 to 15
         ; 4 Sprites
         .FOR I:=12, I<16, I+=1
-        LDX SPRITE_IDX_TBL + I,b
+        LDX SPRITE_IDX_TBL + I
         LDA SPRITES_PREV_Y00,X
         STA $D007 - (I-12) * 2      ;Sprite 3 Y Pos
         LDA SPRITES_X_LO00,X
