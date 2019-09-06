@@ -162,8 +162,8 @@ SPRITES_COUNTER03 = $04A0       ;referenced in throw grenade
 a04A1 = $04A1                   ;Used to link sprites together (?)
 a04AC = $04AC                   ;Used as index to delta_tbl, and index to anim frames (?)
 SPRITES_TICK05 = $04B7
-SPRITES_RASTER_Y00 = $04C2      ;Raster Intr. uses values from here instead of SPRITES_Y00
-                                ; Contains the value before applying delta, expect for the Hero
+SPRITES_PREV_Y00 = $04C2        ;Used by raster interrupt. Is the Y value before applying delta.
+                                ; Valid for all sprites expect for the Hero (SPRITE00)
 FIRE_COOLDOWN = $04DF           ;reset with $ff
 HERO_ANIM_MOV_IDX = $04E0       ;Movement anim for hero: left,right,up,down,diagonally,etc.
                                 ; See: SOLDIER_ANIM_FRAMES_HI/LO
@@ -1718,7 +1718,7 @@ SCREEN_REFRESH_LIVES
 
         LDX #$0F     ;#%00001111
 _L00    LDA SPRITES_Y00,X
-        STA SPRITES_RASTER_Y00,X
+        STA SPRITES_PREV_Y00,X
         DEX
         BPL _L00
         RTS
@@ -6513,12 +6513,12 @@ _L00    PLA
         CLC
         ADC SPRITES_DELTA_Y00
         STA SPRITES_Y00
-        STA SPRITES_RASTER_Y00
+        STA SPRITES_PREV_Y00
 
         ; For the remaining sprites: 1-15
         LDX #$01
 _L01    LDA SPRITES_Y00,X
-        STA SPRITES_RASTER_Y00,X
+        STA SPRITES_PREV_Y00,X
         LDA SPRITES_TYPE00,X
         BEQ _L03
 
@@ -7115,7 +7115,7 @@ IRQ_C   LDA V_SCROLL_BIT_IDX
 
 _L0     LDX SPRITE_IDX_TBL,b,Y
         LDY VIC_SPRITE_IDX,b
-        LDA SPRITES_RASTER_Y00,X
+        LDA SPRITES_PREV_Y00,X
         STA $D001,Y  ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D000,Y  ;Sprite 0 X Pos
@@ -7154,7 +7154,7 @@ _L0     LDX SPRITE_IDX_TBL,b,Y
 
         ; Bug (?). Should it be SPRITE_IDX_TBL + 8 (??)
         LDX SPRITE_IDX_TBL + 3,b
-        LDA SPRITES_RASTER_Y00,X
+        LDA SPRITES_PREV_Y00,X
         CLC
         ADC #$14     ;20 pixels below. Each sprite has 21 pixels.
         STA $D012    ;Raster Position
@@ -7192,7 +7192,7 @@ IRQ_D   ;$4284
 
         .FOR I:=8, I<12, I+=1
         LDX SPRITE_IDX_TBL + I,b
-        LDA SPRITES_RASTER_Y00,X
+        LDA SPRITES_PREV_Y00,X
         STA $D00F - (I-8) * 2   ;Sprite 7 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D00E - (I-8) * 2   ;Sprite 7 X Pos
@@ -7212,7 +7212,7 @@ IRQ_D   ;$4284
 
         ; Y pos for next sprites sets the raster pos
         LDX SPRITE_IDX_TBL + 12,b
-        LDA SPRITES_RASTER_Y00,X
+        LDA SPRITES_PREV_Y00,X
         SEC
         SBC #$02
         STA $D012    ;Raster Position
@@ -7249,7 +7249,7 @@ IRQ_E
 
         .FOR I:=12, I<16, I+=1
         LDX SPRITE_IDX_TBL + I,b
-        LDA SPRITES_RASTER_Y00,X
+        LDA SPRITES_PREV_Y00,X
         STA $D007 - (I-12) * 2      ;Sprite 3 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D006 - (I-12) * 2      ;Sprite 3 X Pos
@@ -7316,7 +7316,7 @@ MASK_1000_0000   .BYTE $80           ;1000_0000
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
         LDX SPRITE_IDX_TBL + 15,b
-        LDA SPRITES_RASTER_Y00,X
+        LDA SPRITES_PREV_Y00,X
         STA $D001    ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D000    ;Sprite 0 X Pos
