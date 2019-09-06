@@ -7151,6 +7151,7 @@ _L0     LDX SPRITE_IDX,b,Y
         ORA a00A7,b  ; Charset Idx. lvl0=$c000, lvl1=$c800, main=$d000, lvl3=$d800
         STA $D018    ;VIC Memory Control Register
 
+        ; Bug (?). Should it be SPRITE_IDX + 8 (??)
         LDX SPRITE_IDX + 3,b
         LDA SPRITES_RASTER_Y00,X
         CLC
@@ -7245,77 +7246,25 @@ IRQ_E
         AND #$F0     ;#%11110000
         STA $D01B    ;Sprite to Background Display Priority
 
-        LDX SPRITE_IDX + 12,b
+        .FOR I:=12, I<16, I+=1
+        LDX SPRITE_IDX + I,b
         LDA SPRITES_RASTER_Y00,X
-        STA $D007    ;Sprite 3 Y Pos
+        STA $D007 - (I-12) * 2      ;Sprite 3 Y Pos
         LDA SPRITES_X_LO00,X
-        STA $D006    ;Sprite 3 X Pos
+        STA $D006 - (I-12) * 2      ;Sprite 3 X Pos
         LDA SPRITES_PTR00,X
-        STA aE3FB
+        STA aE3FB - (I - 12)
         LDA SPRITES_COLOR00,X
-        STA $D02A    ;Sprite 3 Color
+        STA $D02A - (I - 12)        ;Sprite 3 Color
         LDA SPRITES_X_HI00,X
-        AND MASK_0000_1000
+        AND MASK_0000_1000 - (I - 12)
         ORA $D010    ;Sprites 0-7 MSB of X coordinate
         STA $D010    ;Sprites 0-7 MSB of X coordinate
         LDA SPRITES_BKG_PRI00,X
-        AND MASK_0000_1000
+        AND MASK_0000_1000 - (I - 12)
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
-
-        LDX SPRITE_IDX + 13,b
-        LDA SPRITES_RASTER_Y00,X
-        STA $D005    ;Sprite 2 Y Pos
-        LDA SPRITES_X_LO00,X
-        STA $D004    ;Sprite 2 X Pos
-        LDA SPRITES_PTR00,X
-        STA aE3FA
-        LDA SPRITES_COLOR00,X
-        STA $D029    ;Sprite 2 Color
-        LDA SPRITES_X_HI00,X
-        AND MASK_0000_0100
-        ORA $D010    ;Sprites 0-7 MSB of X coordinate
-        STA $D010    ;Sprites 0-7 MSB of X coordinate
-        LDA SPRITES_BKG_PRI00,X
-        AND MASK_0000_0100
-        ORA $D01B    ;Sprite to Background Display Priority
-        STA $D01B    ;Sprite to Background Display Priority
-
-        LDX SPRITE_IDX + 14,b
-        LDA SPRITES_RASTER_Y00,X
-        STA $D003    ;Sprite 1 Y Pos
-        LDA SPRITES_X_LO00,X
-        STA $D002    ;Sprite 1 X Pos
-        LDA SPRITES_PTR00,X
-        STA aE3F9
-        LDA SPRITES_COLOR00,X
-        STA $D028    ;Sprite 1 Color
-        LDA SPRITES_X_HI00,X
-        AND MASK_0000_0010
-        ORA $D010    ;Sprites 0-7 MSB of X coordinate
-        STA $D010    ;Sprites 0-7 MSB of X coordinate
-        LDA SPRITES_BKG_PRI00,X
-        AND MASK_0000_0010
-        ORA $D01B    ;Sprite to Background Display Priority
-        STA $D01B    ;Sprite to Background Display Priority
-
-        LDX SPRITE_IDX + 15,b
-        LDA SPRITES_RASTER_Y00,X
-        STA $D001    ;Sprite 0 Y Pos
-        LDA SPRITES_X_LO00,X
-        STA $D000    ;Sprite 0 X Pos
-        LDA SPRITES_PTR00,X
-        STA fE3F8
-        LDA SPRITES_COLOR00,X
-        STA $D027    ;Sprite 0 Color
-        LDA SPRITES_X_HI00,X
-        AND MASK_0000_0001
-        ORA $D010    ;Sprites 0-7 MSB of X coordinate
-        STA $D010    ;Sprites 0-7 MSB of X coordinate
-        LDA SPRITES_BKG_PRI00,X
-        AND MASK_0000_0001
-        ORA $D01B    ;Sprite to Background Display Priority
-        STA $D01B    ;Sprite to Background Display Priority
+        .NEXT
 
         LDA #$D5
         STA $D012    ;Raster Position
