@@ -171,7 +171,8 @@ SPRITES_COUNTER03 = $04A0       ;referenced in throw grenade
 a04A1 = $04A1                   ;Used to link sprites together (?)
 a04AC = $04AC                   ;Used as index to delta_tbl, and index to anim frames (?)
 SPRITES_TICK05 = $04B7
-SPRITES_RASTER_Y00 = $04C2      ;Raster Intr. uses values from here instead of SPRITES_Y00
+SPRITES_PREV_Y00 = $04C2        ;Value before applying delta to SPRITES_Y00. Used in raster interrupt.
+                                ; But for Hero PREV_Y is always equal to Y
 FIRE_COOLDOWN = $04DF           ;reset with $ff
 HERO_ANIM_MOV_IDX = $04E0       ;Movement anim for hero: left,right,up,down,diagonally,etc.
                                 ; See: SOLDIER_ANIM_FRAMES_HI/LO
@@ -1654,7 +1655,7 @@ SCREEN_REFRESH_LIVES
 
         LDX #$0F     ;#%00001111
 _L00    LDA SPRITES_Y00,X
-        STA SPRITES_RASTER_Y00,X
+        STA SPRITES_PREV_Y00,X
         DEX
         BPL _L00
         RTS
@@ -6522,12 +6523,12 @@ _L00    PLA
         CLC
         ADC SPRITES_DELTA_Y00
         STA SPRITES_Y00
-        STA SPRITES_RASTER_Y00
+        STA SPRITES_PREV_Y00
 
         ; For the remaining sprites: 1-15
         LDX #$01
 _L01    LDA SPRITES_Y00,X
-        STA SPRITES_RASTER_Y00,X
+        STA SPRITES_PREV_Y00,X
         LDA SPRITES_TYPE00,X
         BEQ _L03
 
@@ -7102,7 +7103,7 @@ IRQ_C   LDA V_SCROLL_BIT_IDX
         ; 8 Sprites
         .FOR I := 7, I >= 0, I -= 1
         LDX SPRITE_IDX_TBL + (7-I)
-        LDA SPRITES_RASTER_Y00,X
+        LDA SPRITES_PREV_Y00,X
         STA $D001 + I * 2   ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D000 + I * 2   ;Sprite 0 X Pos
@@ -7134,7 +7135,7 @@ IRQ_C   LDA V_SCROLL_BIT_IDX
         ; Y pos for next raster interrupt based on sprite-3 Y pos
         ; FIXME: Bug? Should it be SPRITE_IDX_TBL + 8 ?
         LDX SPRITE_IDX_TBL + 3
-        LDA SPRITES_RASTER_Y00,X
+        LDA SPRITES_PREV_Y00,X
         CLC
         ADC #$14        ;20 (sprites are 21-pixels high)
         STA $D012       ;Raster Position
@@ -7174,7 +7175,7 @@ IRQ_D   ;$4284
         ; 4 Sprites
         .FOR I := 7, I >= 4, I -= 1
         LDX SPRITE_IDX_TBL + 8 + (7-I)
-        LDA SPRITES_RASTER_Y00,X
+        LDA SPRITES_PREV_Y00,X
         STA $D001 + I * 2   ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D000 + I * 2   ;Sprite 0 X Pos
@@ -7194,7 +7195,7 @@ IRQ_D   ;$4284
 
         ; Y pos for next raster interrupt based on sprite-12 Y pos
         LDX SPRITE_IDX_TBL + 8 + 4
-        LDA SPRITES_RASTER_Y00,X
+        LDA SPRITES_PREV_Y00,X
         SEC
         SBC #$02
         STA $D012    ;Raster Position
@@ -7234,7 +7235,7 @@ IRQ_E
         ; 4 Sprites
         .FOR I := 3, I >= 0, I -= 1
         LDX SPRITE_IDX_TBL + 8 + (7-I)
-        LDA SPRITES_RASTER_Y00,X
+        LDA SPRITES_PREV_Y00,X
         STA $D001 + I * 2   ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
         STA $D000 + I * 2   ;Sprite 0 X Pos
