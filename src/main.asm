@@ -21,7 +21,7 @@
 ; charset.
 
 ENABLE_AUTOFIRE = 1             ;
-TOTAL_FIRE_COOLDOWN = $0A       ;Frames to wait before autofiring again
+TOTAL_FIRE_COOLDOWN = $0F       ;Frames to wait before autofiring again
 ENABLE_DOUBLE_JOYSTICKS = 1     ;
 ENABLE_NEW_SORT_ALGO = 1        ;4x faster
 INITIAL_LEVEL = 0               ;Default $00. For testing only
@@ -6571,22 +6571,22 @@ _L03    INX
 ; CLEANUP_SPRITES
 ; All 16 sprites are init and make them invisible
 CLEANUP_SPRITES     ;$3DD3
-        LDX #$00     ;#%00000000
-_L00    LDA #$64     ;#%01100100
+        LDX #$00
+_L00    LDA #$64
         STA SPRITES_X_LO00,X
         LDA ORIG_SPRITE_Y00,X
         STA SPRITES_Y00,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_X00,X
         STA SPRITES_DELTA_Y00,X
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_X_HI00,X
         STA SPRITES_PTR00,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_BKG_PRI00,X
         STA SPRITES_TYPE00,X
         INX
-        CPX #$10     ;#%00010000
+        CPX #TOTAL_MAX_SPRITES
         BNE _L00
         RTS
 
@@ -6737,7 +6737,7 @@ SORTRELOAD:
         LDX #$00
 SORTSKIP:
         INX
-        CPX #16-1
+        CPX #(TOTAL_MAX_SPRITES-1)
         BCC SORTLOOP
         RTS
 .ELSE
