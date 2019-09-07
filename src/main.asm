@@ -24,7 +24,7 @@ ENABLE_AUTOFIRE = 1             ;
 TOTAL_FIRE_COOLDOWN = $0F       ;Frames to wait before autofiring again
 ENABLE_DOUBLE_JOYSTICKS = 1     ;
 ENABLE_NEW_SORT_ALGO = 1        ;4x faster
-ENABLE_NEW_IRQ = 1              ;Logic a bit simpler
+ENABLE_NEW_IRQ = 0              ;Logic a bit simpler
 INITIAL_LEVEL = 0               ;Default $00. For testing only
 TOTAL_MAX_SPRITES = 16          ;Default 16
 ; Using double joysticks make the game easier. Increase difficulty
