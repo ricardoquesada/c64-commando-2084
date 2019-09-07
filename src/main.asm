@@ -22,6 +22,7 @@
 
 ENABLE_AUTOFIRE = 1             ;
 ENABLE_DOUBLE_JOYSTICKS = 1     ;
+ENABLE_NEW_SORT_ALGO = 1
 ; Using double joysticks make the game easier. Increase difficulty
 ; by reducing lives, and incrementing the total enemies in fort
 TOTAL_LIVES = $03               ;BCD. Default 5
@@ -6698,9 +6699,48 @@ f3EEE   .ADDR f3EDA         ;LVL0
         .ADDR f3EDF         ;LVL2
         .ADDR f3EE9         ;LVL3
 
+.IF ENABLE_NEW_SORT_ALGO == 1
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Sort sprites in SPRITE_IDX_TBL by Y position (?)
-OLD_SORT_SPRITES_BY_Y       ;$3F24
+; New sort routine, about 4x faster.
+; Taken from:
+; http://selmiak.bplaced.net/games/c64/index.php?lang=eng&game=Tutorials&page=Sprite-Multiplexing
+SORT_SPRITES_BY_Y
+        INC $D020
+        LDX #$00
+SORTLOOP:
+        LDY SPRITE_IDX_TBL+1,X
+        LDA SPRITES_Y00,Y
+        LDY SPRITE_IDX_TBL,X
+        CMP SPRITES_Y00,Y
+        BCS SORTSKIP
+        STX SORTRELOAD+1
+SORTSWAP:
+        LDA SPRITE_IDX_TBL+1,X
+        STA SPRITE_IDX_TBL,X
+        STY SPRITE_IDX_TBL+1,X
+        CPX #$00
+        BEQ SORTRELOAD
+        DEX
+        LDY SPRITE_IDX_TBL+1,X
+        LDA SPRITES_Y00,Y
+        LDY SPRITE_IDX_TBL,X
+        CMP SPRITES_Y00,Y
+        BCC SORTSWAP
+SORTRELOAD:
+        LDX #$00
+SORTSKIP:
+        INX
+        CPX #16-1
+        BCC SORTLOOP
+        DEC $D020
+        RTS
+.ELSE
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Sort sprites in SPRITE_IDX_TBL by Y position
+; This is the original sorting algorithm. Kind of slow
+SORT_SPRITES_BY_Y       ;$3F24
+        INC $D020
         LDA #$0F        ;Number of sprites to sort
         STA a0014
         STA a00D7
@@ -6745,43 +6785,10 @@ _L03    INC a003D
         JMP _L01
 
 _L04
-        RTS
-
-
-;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; New sort routine, about 4x faster.
-; Taken from:
-; http://selmiak.bplaced.net/games/c64/index.php?lang=eng&game=Tutorials&page=Sprite-Multiplexing
-SORT_SPRITES_BY_Y
-        INC $D020
-        LDX #$00
-SORTLOOP:
-        LDY SPRITE_IDX_TBL+1,X
-        LDA SPRITES_Y00,Y
-        LDY SPRITE_IDX_TBL,X
-        CMP SPRITES_Y00,Y
-        BCS SORTSKIP
-        STX SORTRELOAD+1
-SORTSWAP:
-        LDA SPRITE_IDX_TBL+1,X
-        STA SPRITE_IDX_TBL,X
-        STY SPRITE_IDX_TBL+1,X
-        CPX #$00
-        BEQ SORTRELOAD
-        DEX
-        LDY SPRITE_IDX_TBL+1,X
-        LDA SPRITES_Y00,Y
-        LDY SPRITE_IDX_TBL,X
-        CMP SPRITES_Y00,Y
-        BCC SORTSWAP
-SORTRELOAD:
-        LDX #$00
-SORTSKIP:
-        INX
-        CPX #16-1
-        BCC SORTLOOP
         DEC $D020
         RTS
+
+.ENDIF
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Copies "current" map to screen RAM
@@ -7102,6 +7109,16 @@ IRQ_B   NOP
 ; raster = $1e
 ; Renders 8 sprites
 IRQ_C
+        LDA #$FF
+        STA $D001
+        STA $D003
+        STA $D005
+        STA $D007
+        STA $D009
+        STA $D00B
+        STA $D00D
+        STA $D00F
+
         LDA V_SCROLL_BIT_IDX
         EOR #$07        ;#%00000111    Reverse Y-bits
         STA a00A7
@@ -7193,6 +7210,12 @@ IRQ_C
 ; raster = $??
 IRQ_D   ;$4284
 
+        LDA #$FF
+        STA $D009
+        STA $D00B
+        STA $D00D
+        STA $D00F
+
         ; Turn off MSB and sprite-bkg pri for upper 4 sprites.
         ; Each sprite will set it individually in case it is needed
         LDA $D010       ;Sprites 0-7 MSB of X coordinate
@@ -7255,6 +7278,12 @@ IRQ_D   ;$4284
 ; sprite multiplexor: sprites 0-3
 ; raster = $??
 IRQ_E
+        LDA #$FF
+        STA $D001
+        STA $D003
+        STA $D005
+        STA $D007
+
         ; Turn off MSB and sprite-bkg pri for lower 4 sprites.
         ; Each sprite will set it individually in case it is needed
         LDA $D010    ;Sprites 0-7 MSB of X coordinate
