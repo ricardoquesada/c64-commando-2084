@@ -1647,6 +1647,8 @@ SCREEN_REFRESH_LIVES
         STA aE362
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Unused (?)
         LDX #(TOTAL_MAX_SPRITES-1)
 _L00    LDA SPRITES_Y00,X
         STA SPRITES_PREV_Y00,X
@@ -1664,6 +1666,10 @@ ORIG_SPRITE_Y01
 ORIG_SPRITE_Y05
         .BYTE $28,$28,$28,$1E,$1E,$1E,$1E,$1E
         .BYTE $1E,$1E,$1E
+
+        ; Extra values, just in case we decide to add new sprites
+        .BYTE $1E,$1E,$1E,$1E,$1E,$1E,$1E,$1E
+        .BYTE $1E,$1E,$1E,$1E,$1E,$1E,$1E,$1E
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; $D018 points to right charset for level
@@ -6572,7 +6578,7 @@ _L03    INX
 ; CLEANUP_SPRITES
 ; All 16 sprites are init and make them invisible
 CLEANUP_SPRITES     ;$3DD3
-        LDX #$00
+        LDX #(TOTAL_MAX_SPRITES-1)
 _L00    LDA #$64
         STA SPRITES_X_LO00,X
         LDA ORIG_SPRITE_Y00,X
@@ -6586,9 +6592,8 @@ _L00    LDA #$64
         LDA #$00
         STA SPRITES_BKG_PRI00,X
         STA SPRITES_TYPE00,X
-        INX
-        CPX #TOTAL_MAX_SPRITES
-        BNE _L00
+        DEX
+        BPL _L00
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
