@@ -21,6 +21,7 @@
 ; charset.
 
 ENABLE_AUTOFIRE = 1             ;
+TOTAL_FIRE_COOLDOWN  = $0A       ; FRames to wait before autofiring again
 ENABLE_DOUBLE_JOYSTICKS = 1     ;
 ENABLE_NEW_SORT_ALGO = 1
 ; Using double joysticks make the game easier. Increase difficulty
@@ -6007,7 +6008,7 @@ _L00
 .ELSE
         INC FIRE_COOLDOWN
         LDA FIRE_COOLDOWN
-        CMP #$08
+        CMP #TOTAL_FIRE_COOLDOWN
         BNE _L01
 
         LDA #$00
