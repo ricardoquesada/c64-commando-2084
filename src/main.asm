@@ -72,6 +72,7 @@ fE3F8 = $E3F8
 ;
 ; **** ABSOLUTE ADDRESSES ****
 ;
+IS_PLAY_MUSIC_IN_IRQ = $0012    ;Play music inside IRQ? 1=Yes
 a0014 = $0014
 a0019 = $0019                   ;Stores current hero animation, but seems unused
 a001A = $001A
@@ -255,6 +256,8 @@ _L01    TXA
         STA a0501
 
 START                   ;$0883
+        LDA #$01
+        STA IS_PLAY_MUSIC_IN_IRQ
         LDA #$A5        ;Set initial starting row
         STA V_SCROLL_ROW_IDX
         JSR SETUP_LEVEL
@@ -286,6 +289,10 @@ START_LEVEL          ;$08B8
         LDA #$00     ;Song to play (main theme)
         JSR MUSIC_INIT
 
+        ; Disable music play in IRQ
+        LDA #$00
+        STA IS_PLAY_MUSIC_IN_IRQ
+
         ; Restart after life lost
 RESTART
         JSR SETUP_LEVEL
@@ -295,7 +302,7 @@ RESTART
         ; Main loop
 GAME_LOOP            ;$08CB
         JSR WAIT_RASTER_AT_BOTTOM
-;        JSR MUSIC_PLAY
+        JSR MUSIC_PLAY
         LDA V_SCROLL_DELTA
         BEQ _L00
         CLC
@@ -356,6 +363,8 @@ _L01    LDA SPRITES_Y00
 
 _L02    LDA #$02     ;Song to play (Level complete)
         JSR MUSIC_INIT
+        LDA #$01
+        STA IS_PLAY_MUSIC_IN_IRQ
         JSR PRINT_LVL_COMPLETE
         INC LEVEL_NR
 
@@ -415,6 +424,9 @@ _L03    DEC LIVES
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 GAME_OVER
+        LDA #$01
+        STA IS_PLAY_MUSIC_IN_IRQ
+
         LDX #$06     ;#%00000110
 _L00    TXA
         ASL A
@@ -502,7 +514,6 @@ _L08    LDA $DC00    ;CIA1: Data Port Register A  (fire in Game Over scene)
         CMP #$6F     ;#%01101111
         BEQ _L09
         JSR WAIT_RASTER_AT_BOTTOM
-;        JSR MUSIC_PLAY
         DEC COUNTER1
         BNE _L08
 _L09    JMP START
@@ -806,7 +817,6 @@ _L03    JMP _L00
 _L04    JSR HISCORE_SETUP_SPRITES
 
 _L05    JSR WAIT_RASTER_AT_BOTTOM
-;        JSR MUSIC_PLAY
         JSR HISCORE_READ_JOY_MOV
         JSR HISCORE_READ_JOY_FIRE
         JSR HISCORE_ANIM_CHAR
@@ -1147,7 +1157,6 @@ _WAIT_FIRE
         CMP #$6F     ;#%01101111
         BEQ _END
         JSR WAIT_RASTER_AT_BOTTOM
-;        JSR MUSIC_PLAY
         DEC COUNTER1
         BNE _WAIT_FIRE
 
@@ -7088,7 +7097,11 @@ IRQ_B   NOP
         LDA #$02     ;red
         STA $D023    ;Background Color 2, Multi-Color Register 1
 
+        ; Don't play music in IRQ while in game.
+        LDA IS_PLAY_MUSIC_IN_IRQ
+        BEQ _L00
         JSR MUSIC_PLAY
+_L00
 
         LDA #$1E
         STA $D012
