@@ -1147,7 +1147,7 @@ _WAIT_FIRE
         LDA $DC00    ;CIA1: Data Port Register A (main screen - fire)
         CMP #$6F     ;#%01101111
         BEQ _END
-;        JSR WAIT_RASTER_AT_BOTTOM
+        JSR WAIT_RASTER_AT_BOTTOM
 ;        JSR MUSIC_PLAY
         DEC COUNTER1
         BNE _WAIT_FIRE
@@ -7046,11 +7046,13 @@ IRQ_A   NOP
         INC RASTER_TICK
 
         LDA #$DE
-        STA $D012    ;Raster Position
+        CMP $D012
+        BCC IRQ_B       ;Jump, too late for IRQ
+        STA $D012       ;Raster Position
 
-        LDA $D011    ;VIC Control Register 1
-        AND #$7F     ;#%01111111    Raster MSB=0
-        STA $D011    ;VIC Control Register 1
+        LDA $D011       ;VIC Control Register 1
+        AND #$7F        ;#%01111111    Raster MSB=0
+        STA $D011       ;VIC Control Register 1
 
         LDA #<IRQ_B
         STA $0314
@@ -7085,11 +7087,12 @@ IRQ_B   NOP
         JSR MUSIC_PLAY
 
         LDA #$1E
-        STA $D012    ;Raster Position
+        STA $D012
 
         LDA $D011    ;VIC Control Register 1
         AND #$7F     ;#%01111111    Raster MSB off
         STA $D011    ;VIC Control Register 1
+
 
         LDA #<IRQ_C
         STA $0314
