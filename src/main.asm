@@ -21,15 +21,15 @@
 ; charset.
 
 ENABLE_AUTOFIRE = 1             ;
-TOTAL_FIRE_COOLDOWN  = $0A       ; FRames to wait before autofiring again
+TOTAL_FIRE_COOLDOWN = $0A       ;Frames to wait before autofiring again
 ENABLE_DOUBLE_JOYSTICKS = 1     ;
-ENABLE_NEW_SORT_ALGO = 1
+ENABLE_NEW_SORT_ALGO = 1        ;4x faster
+INITIAL_LEVEL = 0               ;Default $00. For testing only
 ; Using double joysticks make the game easier. Increase difficulty
 ; by reducing lives, and incrementing the total enemies in fort
 TOTAL_LIVES = $03               ;BCD. Default 5
 TOTAL_GRENADES = $05            ;BCD. Default 5
 TOTAL_ENEMIES_IN_FORT = $28     ;Default $14
-INITIAL_LEVEL = 0               ;Default $00
 
 ;
 ; **** ZP ABSOLUTE ADDRESSES ****
@@ -195,6 +195,7 @@ SPRITES_TMP_B05 = $0765         ;Used as index to delta_tbl, and index to anim f
 SPRITES_TICK05 = $0785
 SPRITES_PREV_Y00 = $07A0        ;Value before applying delta to SPRITES_Y00. Used in raster interrupt.
                                 ; But for Hero PREV_Y is always equal to Y
+                                ; Not sure why it is being used
 
 aE34E = $E34E
 aE34F = $E34F
@@ -6709,7 +6710,6 @@ f3EEE   .ADDR f3EDA         ;LVL0
 ; Taken from:
 ; http://selmiak.bplaced.net/games/c64/index.php?lang=eng&game=Tutorials&page=Sprite-Multiplexing
 SORT_SPRITES_BY_Y
-        INC $D020
         LDX #$00
 SORTLOOP:
         LDY SPRITE_IDX_TBL+1,X
@@ -6736,7 +6736,6 @@ SORTSKIP:
         INX
         CPX #16-1
         BCC SORTLOOP
-        DEC $D020
         RTS
 .ELSE
 
@@ -6744,7 +6743,6 @@ SORTSKIP:
 ; Sort sprites in SPRITE_IDX_TBL by Y position
 ; This is the original sorting algorithm. Kind of slow
 SORT_SPRITES_BY_Y       ;$3F24
-        INC $D020
         LDA #$0F        ;Number of sprites to sort
         STA a0014
         STA a00D7
@@ -6789,7 +6787,6 @@ _L03    INC a003D
         JMP _L01
 
 _L04
-        DEC $D020
         RTS
 
 .ENDIF
