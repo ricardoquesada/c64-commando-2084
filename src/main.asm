@@ -30,30 +30,15 @@ TOTAL_ENEMIES_IN_FORT = $28     ;Default $14
 INITIAL_LEVEL = 0               ;Default $00
 
 ;
-; **** ZP FIELDS ****
-;
-f3C = $3C
-f4C = $4C
-f95 = $95
-f96 = $96
-f97 = $97
-fFF = $FF
-;
 ; **** ZP ABSOLUTE ADDRESSES ****
 ;
 a01 = $01
-a05 = $05
-a13 = $13
-a3C = $3C
 a5D = $5D
 a5E = $5E
 a5F = $5F
 a60 = $60
 aA5 = $A5
 aAE = $AE
-aC5 = $C5
-aDA = $DA
-aE6 = $E6
 ;
 ; **** ZP POINTERS ****
 ;
@@ -64,10 +49,6 @@ p28 = $28                       ;what sprite type to create at row
 p2A = $2A                       ;charset attributes: background priority, collision, etc.
 p5D = $5D
 p5F = $5F
-p83 = $83
-pA9 = $A9
-pD0 = $D0
-pD2 = $D2
 pF7 = $F7
 pFB = $FB                       ;$FB/$FC: different meanings depending to the game state
 pFC = $FC                       ; On Hiscore, it points to Screen RAM
@@ -79,17 +60,12 @@ pFD = $FD                       ;But $FC/$FD is also used during the game to poi
 ; **** FIELDS ****
 ;
 f0000 = $0000
-f00A2 = $00A2
-fD040 = $D040
 fDB48 = $DB48
 fDB98 = $DB98
-fDBDA = $DBDA
 fE087 = $E087
 fE348 = $E348
 fE398 = $E398
 fE3F8 = $E3F8
-fE6DC = $E6DC
-fEFBA = $EFBA
 ;
 ; **** ABSOLUTE ADDRESSES ****
 ;
@@ -227,14 +203,8 @@ aE36A = $E36A
 aE36B = $E36B
 aE36C = $E36C
 aE36D = $E36D
-aE3F9 = $E3F9
-aE3FA = $E3FA
 aE3FB = $E3FB
-aE3FC = $E3FC
-aE3FD = $E3FD
-aE3FE = $E3FE
 aE3FF = $E3FF
-aECEC = $ECEC
 aFFC0 = $FFC0
 ;
 ; **** POINTERS ****
@@ -245,14 +215,6 @@ pD882 = $D882
 pE000 = $E000
 pE029 = $E029
 pE082 = $E082
-;
-; **** EXTERNAL JUMPS ****
-;
-e03F0 = $03F0
-eF00A = $F00A
-;
-; **** PREDEFINED LABELS ****
-;
 
         *= $0801
         .word (+), 2019                 ;pointer, line number
@@ -6738,7 +6700,7 @@ f3EEE   .ADDR f3EDA         ;LVL0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Sort sprites in SPRITE_IDX_TBL by Y position (?)
-SORT_SPRITES_BY_Y       ;$3F24
+OLD_SORT_SPRITES_BY_Y       ;$3F24
         LDA #$0F        ;Number of sprites to sort
         STA a0014
         STA a00D7
@@ -6783,6 +6745,42 @@ _L03    INC a003D
         JMP _L01
 
 _L04
+        RTS
+
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; New sort routine, about 4x faster.
+; Taken from:
+; http://selmiak.bplaced.net/games/c64/index.php?lang=eng&game=Tutorials&page=Sprite-Multiplexing
+SORT_SPRITES_BY_Y
+        INC $D020
+        LDX #$00
+SORTLOOP:
+        LDY SPRITE_IDX_TBL+1,X
+        LDA SPRITES_Y00,Y
+        LDY SPRITE_IDX_TBL,X
+        CMP SPRITES_Y00,Y
+        BCS SORTSKIP
+        STX SORTRELOAD+1
+SORTSWAP:
+        LDA SPRITE_IDX_TBL+1,X
+        STA SPRITE_IDX_TBL,X
+        STY SPRITE_IDX_TBL+1,X
+        CPX #$00
+        BEQ SORTRELOAD
+        DEX
+        LDY SPRITE_IDX_TBL+1,X
+        LDA SPRITES_Y00,Y
+        LDY SPRITE_IDX_TBL,X
+        CMP SPRITES_Y00,Y
+        BCC SORTSWAP
+SORTRELOAD:
+        LDX #$00
+SORTSKIP:
+        INX
+        CPX #16-1
+        BCC SORTLOOP
+        DEC $D020
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
