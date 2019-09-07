@@ -25,6 +25,7 @@ TOTAL_FIRE_COOLDOWN = $0A       ;Frames to wait before autofiring again
 ENABLE_DOUBLE_JOYSTICKS = 1     ;
 ENABLE_NEW_SORT_ALGO = 1        ;4x faster
 INITIAL_LEVEL = 0               ;Default $00. For testing only
+TOTAL_MAX_SPRITES = 16          ;Default 16
 ; Using double joysticks make the game easier. Increase difficulty
 ; by reducing lives, and incrementing the total enemies in fort
 TOTAL_LIVES = $03               ;BCD. Default 5
@@ -1240,8 +1241,9 @@ _L00    LDA SPRITES_TYPE05,Y
         STA SPRITES_DELTA_X00
         STA SPRITES_DELTA_Y00
         STA V_SCROLL_DELTA
+
 _L01    INY
-        CPY #$0B     ;#%00001011
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE _L00
         RTS
 
@@ -1283,7 +1285,7 @@ _L00    LDA (p24),Y  ;End of trigger-rows?
 _L01    LDA SPRITES_TYPE05,X
         BEQ _L02
         INX
-        CPX #$0B
+        CPX #(TOTAL_MAX_SPRITES-5)
         BNE _L01
         JMP _L03
 
@@ -2451,7 +2453,7 @@ ACTION_NEW_TRUCK       ;$1EED
 _L00    LDA SPRITES_TYPE05,Y
         BEQ _L01
         INY
-        CPY #$0B
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE _L00
         RTS
 
@@ -2520,7 +2522,7 @@ ACTION_NEW_BIKE_LVL1       ;$1F8F
 _L00    LDA SPRITES_TYPE05,Y
         BEQ _L01
         INY
-        CPY #$0B
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE _L00
         RTS
 
@@ -2827,7 +2829,7 @@ ACTION_NEW_BIKE_LVL0         ;$21C1
 _L00    LDA SPRITES_TYPE05,Y
         BEQ _L01
         INY
-        CPY #$0B     ;#%00001011
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE _L00
         RTS
 
@@ -2860,7 +2862,7 @@ _L01    TYA
 b2231   LDA SPRITES_TYPE05,Y
         BEQ ACTION_NEW_MORTAR_ENEMY
         INY
-        CPY #$0B     ;#%00001011
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE b2231
         RTS
 
@@ -3216,7 +3218,7 @@ _L02    LDA SPRITES_TYPE05,X
         INC a04E7
         JSR JMP_FB
         INX
-        CPX #$0B
+        CPX #(TOTAL_MAX_SPRITES-5)
         BNE _L00
 
         RTS
@@ -3386,7 +3388,7 @@ _L03    LDA #$01
 _L04    LDA SPRITES_TYPE05,Y
         BEQ _L05
         INY
-        CPY #$0B
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE _L04
         RTS
 
@@ -3462,7 +3464,7 @@ TYPE_ANIM_SOLDIER_JUMPING_FROM_TRUCK    ;$2697
 _L00    LDA SPRITES_TYPE05,Y
         BEQ _L01
         INY
-        CPY #$0B
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE _L00
         RTS
 
@@ -3565,7 +3567,7 @@ b2754   LDA SPRITES_Y00
 b275E   LDA SPRITES_TYPE05,Y
         BEQ b2769
         INY
-        CPY #$0B     ;#%00001011
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE b275E
         RTS
 
@@ -3643,7 +3645,7 @@ _L01    LDA SPRITES_Y00
 _L02    LDA SPRITES_TYPE05,Y
         BEQ _L04
         INY
-        CPY #$0B
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE _L02
 
 _L03    RTS
@@ -4245,7 +4247,7 @@ b2C39   LDY #$00     ;#%00000000
 b2C3B   LDA SPRITES_TYPE05,Y
         BEQ b2C46
         INY
-        CPY #$0B     ;#%00001011
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE b2C3B
         RTS
 
@@ -5118,7 +5120,7 @@ THROW_GRENADE   ;$32ED
 _L00    LDA SPRITES_TYPE05,Y
         BEQ _L02
         INY
-        CPY #$0B
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE _L00
 
 _L01    LDY #$FF
@@ -5220,7 +5222,7 @@ j33D0   LDA SPRITES_TICK05,X
 _L00    LDA SPRITES_TYPE05,Y
         BEQ _L02
         INY
-        CPY #$0B
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE _L00
 _L01    RTS
 
@@ -5697,7 +5699,7 @@ b3741   LDA SPRITES_TYPE05,Y
 
 b3790   JSR DIE_ANIM_AND_SCORE
 b3793   INY
-        CPY #$0B     ;#%00001011
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE b3741
 
         LDA SPRITES_COUNTER00,X
@@ -5938,7 +5940,7 @@ _L01    LDA SPRITES_TYPE05,Y
         JSR DIE_ANIM_AND_SCORE
         JSR CLEANUP_HERO_SPRITE
 _L02    INY
-        CPY #$0B     ;#%00001011
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE _L01
 
         LDA SPRITES_X_LO01,X
@@ -6473,6 +6475,7 @@ _L02    LDA #$EE     ;Fire frame
 _L03    INX
         CPX #$0B     ;#%00001011
         BNE _L02
+
         JSR WAIT_RASTER_AT_BOTTOM
         DEC COUNTER1
         BNE _L01
@@ -6788,7 +6791,6 @@ _L03    INC a003D
 
 _L04
         RTS
-
 .ENDIF
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
