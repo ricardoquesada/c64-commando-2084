@@ -296,6 +296,7 @@ RESTART
         ; Main loop
 GAME_LOOP            ;$08CB
         JSR WAIT_RASTER_AT_BOTTOM
+;        JSR MUSIC_PLAY
         LDA V_SCROLL_DELTA
         BEQ _L00
         CLC
@@ -502,6 +503,7 @@ _L08    LDA $DC00    ;CIA1: Data Port Register A  (fire in Game Over scene)
         CMP #$6F     ;#%01101111
         BEQ _L09
         JSR WAIT_RASTER_AT_BOTTOM
+;        JSR MUSIC_PLAY
         DEC COUNTER1
         BNE _L08
 _L09    JMP START
@@ -805,6 +807,7 @@ _L03    JMP _L00
 _L04    JSR HISCORE_SETUP_SPRITES
 
 _L05    JSR WAIT_RASTER_AT_BOTTOM
+;        JSR MUSIC_PLAY
         JSR HISCORE_READ_JOY_MOV
         JSR HISCORE_READ_JOY_FIRE
         JSR HISCORE_ANIM_CHAR
@@ -962,8 +965,8 @@ _L01    INX
         BNE _L00
 
         ; Wait for fire button
-
-_L02    LDA $DC00
+_L02
+        LDA $DC00
         CMP #$6F     ;#%01101111
         BNE _L02
         RTS
@@ -1100,7 +1103,7 @@ SCREEN_MAIN_TITLE
 
         ; Hack: Needed so that we make sure that "Commando" is rendered in
         ; IRQ_C, while "2084" is rendered in IRQ_D.
-        LDX #$0F
+        LDX #(TOTAL_MAX_SPRITES-1)
         LDA #$A0
 _L000   STA SPRITES_Y00,X
         DEX
@@ -1144,7 +1147,8 @@ _WAIT_FIRE
         LDA $DC00    ;CIA1: Data Port Register A (main screen - fire)
         CMP #$6F     ;#%01101111
         BEQ _END
-        JSR WAIT_RASTER_AT_BOTTOM
+;        JSR WAIT_RASTER_AT_BOTTOM
+;        JSR MUSIC_PLAY
         DEC COUNTER1
         BNE _WAIT_FIRE
 
