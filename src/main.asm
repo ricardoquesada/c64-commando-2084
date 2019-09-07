@@ -24,6 +24,7 @@ ENABLE_AUTOFIRE = 1             ;
 TOTAL_FIRE_COOLDOWN = $0F       ;Frames to wait before autofiring again
 ENABLE_DOUBLE_JOYSTICKS = 1     ;
 ENABLE_NEW_SORT_ALGO = 1        ;4x faster
+ENABLE_NEW_IRQ = 1              ;Logic a bit simpler
 INITIAL_LEVEL = 0               ;Default $00. For testing only
 TOTAL_MAX_SPRITES = 16          ;Default 16
 ; Using double joysticks make the game easier. Increase difficulty
@@ -72,6 +73,8 @@ fE3F8 = $E3F8
 ;
 ; **** ABSOLUTE ADDRESSES ****
 ;
+Z_TEMP1 = $10
+Z_TEMP2 = $11
 IS_PLAY_MUSIC_IN_IRQ = $0012    ;Play music inside IRQ? 1=Yes
 a0014 = $0014
 a0019 = $0019                   ;Stores current hero animation, but seems unused
@@ -6730,33 +6733,38 @@ f3EEE   .ADDR f3EDA         ;LVL0
 ; http://selmiak.bplaced.net/games/c64/index.php?lang=eng&game=Tutorials&page=Sprite-Multiplexing
 SORT_SPRITES_BY_Y
         LDX #$00
+        TXA
 SORTLOOP
-        LDY SPRITE_IDX_TBL+1,X
-        LDA SPRITES_Y00,Y
         LDY SPRITE_IDX_TBL,X
         CMP SPRITES_Y00,Y
-        BCS SORTSKIP
-        STX SORTRELOAD+1
-SORTSWAP
-        LDA SPRITE_IDX_TBL+1,X
-        STA SPRITE_IDX_TBL,X
-        STY SPRITE_IDX_TBL+1,X
-        CPX #$00
-        BEQ SORTRELOAD
+        BEQ NOSWAP2
+        BCC NOSWAP1
+        STX Z_TEMP1
+        STY Z_TEMP2
+        LDA SPRITES_Y00,Y
+        LDY SPRITE_IDX_TBL-1,X
+        STY SPRITE_IDX_TBL,X
         DEX
-        LDY SPRITE_IDX_TBL+1,X
-        LDA SPRITES_Y00,Y
-        LDY SPRITE_IDX_TBL,X
+        BEQ SWAPDONE
+SWAPLOOP
+        LDY SPRITE_IDX_TBL-1,X
+        STY SPRITE_IDX_TBL,X
         CMP SPRITES_Y00,Y
-        BCC SORTSWAP
-SORTRELOAD
-        LDX #$00
-SORTSKIP
-        INX
-        CPX #(TOTAL_MAX_SPRITES-1)
-        BCC SORTLOOP
+        BCS SWAPDONE
+        DEX
+        BNE SWAPLOOP
+SWAPDONE
+        LDY Z_TEMP2
+        STY SPRITE_IDX_TBL,X
+        LDX Z_TEMP1
+        LDY SPRITE_IDX_TBL,X
+NOSWAP1 LDA SPRITES_Y00,Y
+NOSWAP2 INX
+        CPX #TOTAL_MAX_SPRITES
+        BNE SORTLOOP
         RTS
-.ELSE
+
+.ELSE   ; ENABLE_NEW_SORT_ALGO
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Sort sprites in SPRITE_IDX_TBL by Y position
@@ -6807,7 +6815,7 @@ _L03    INC a003D
 
 _L04
         RTS
-.ENDIF
+.ENDIF  ; ENABLE_NEW_SORT_ALGO
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Copies "current" map to screen RAM
@@ -7062,8 +7070,6 @@ IRQ_A   NOP
         INC RASTER_TICK
 
         LDA #$DE
-        CMP $D012
-        BCC IRQ_B       ;Jump, too late for IRQ
         STA $D012       ;Raster Position
 
         LDA $D011       ;VIC Control Register 1
@@ -7108,16 +7114,14 @@ _L00
 
         LDA #$1E
         STA $D012
-
         LDA $D011    ;VIC Control Register 1
         AND #$7F     ;#%01111111    Raster MSB off
         STA $D011    ;VIC Control Register 1
 
-
-        LDA #<IRQ_C
-        STA $0314
-        LDA #>IRQ_C
-        STA $0315
+        LDX #<IRQ_C
+        LDY #>IRQ_C
+        STX $0314
+        STY $0315
 
         ASL $D019    ;VIC Interrupt Request Register (IRR)
 
@@ -7145,6 +7149,7 @@ IRQ_C
         ;STA $D00D
         ;STA $D00F
 
+        DEC $D020
         ; Set the correct charset for the level
         LDA LEVEL_NR
         AND #$03        ;#%00000011
@@ -7198,6 +7203,8 @@ IRQ_C
         STA $D01B               ;Sprite to Background Display Priority
         .NEXT
 
+        INC $D020
+
         LDX SPRITE_IDX_TBL + 8
         LDA SPRITES_PREV_Y00,X
         SEC
@@ -7210,12 +7217,14 @@ IRQ_C
         AND #$7F        ;#%01111111    Raster MSB off
         STA $D011       ;VIC Control Register 1
 
-        LDA #<IRQ_D
-        STA $0314
-        LDA #>IRQ_D
-        STA $0315
+        LDX #<IRQ_D
+        LDY #>IRQ_D
+        STX $0314
+        STY $0315
 
         ASL $D019       ;VIC Interrupt Request Register (IRR)
+
+;        INC $D020
 
         PLA
         TAY
@@ -7227,14 +7236,78 @@ IRQ_C
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; sprite multiplexor: sprites 4-7
 ; raster = $??
+.IF ENABLE_NEW_IRQ == 1
+
 IRQ_D   ;$4284
 
-        ;LDA #$FF
-        ;STA $D009
-        ;STA $D00B
-        ;STA $D00D
-        ;STA $D00F
+        INC $D020
+;        LDA #$FF
+;        STA $D001
+;        STA $D003
+;        STA $D005
+;        STA $D007
+;        STA $D009
+;        STA $D00B
+;        STA $D00D
+;        STA $D00F
 
+        ; Turn off MSB and sprite-bkg pri for upper 4 sprites.
+        ; Each sprite will set it individually in case it is needed
+        LDA #$00
+        STA $D010       ;Sprites 0-7 MSB of X coordinate
+        STA $D01B       ;Sprite to Background Display Priority
+
+        ; Process from SPRITE_IDX_TBL 8 to 15
+        ; Uses HW Sprites 7 to 0
+        .FOR I := 0, I < 8, I += 1
+        LDX SPRITE_IDX_TBL + I + 8
+        LDA SPRITES_PREV_Y00,X
+        STA $D001 + (7-I) * 2   ;Sprite 0 Y Pos
+        LDA SPRITES_X_LO00,X
+        STA $D000 + (7-I) * 2   ;Sprite 0 X Pos
+        LDA SPRITES_PTR00,X
+        STA fE3F8 + (7-I)
+        LDA SPRITES_COLOR00,X
+        STA $D027 + (7-I)       ;Sprite 0 Color
+        LDA SPRITES_X_HI00,X
+        AND #(1<<(7-I))
+        ORA $D010               ;Sprites 0-7 MSB of X coordinate
+        STA $D010               ;Sprites 0-7 MSB of X coordinate
+        LDA SPRITES_BKG_PRI00,X
+        AND #(1<<(7-I))
+        ORA $D01B               ;Sprite to Background Display Priority
+        STA $D01B               ;Sprite to Background Display Priority
+        .NEXT
+
+        LDA #$D5
+        STA $D012       ;Raster Position
+        LDA $D011       ;VIC Control Register 1
+        AND #$7F        ;#%01111111    Raster MSB off
+        STA $D011       ;VIC Control Register 1
+
+        LDX #<IRQ_A
+        LDY #>IRQ_A
+        STX $0314
+        STY $0315
+
+        ASL $D019       ;VIC Interrupt Request Register (IRR)
+
+        DEC $D020
+
+        PLA
+        TAY
+        PLA
+        TAX
+        PLA
+        RTI
+
+.ELSE   ;ENABLE_NEW_IRQ
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+
+IRQ_D   ;$4284
+
+        INC $D020
         ; Turn off MSB and sprite-bkg pri for upper 4 sprites.
         ; Each sprite will set it individually in case it is needed
         LDA $D010       ;Sprites 0-7 MSB of X coordinate
@@ -7266,6 +7339,8 @@ IRQ_D   ;$4284
         STA $D01B    ;Sprite to Background Display Priority
         .NEXT
 
+        DEC $D020
+
         ; Y pos for next raster interrupt based on sprite-12 Y pos
         LDX SPRITE_IDX_TBL + 8 + 4
         LDA SPRITES_PREV_Y00,X
@@ -7279,10 +7354,10 @@ IRQ_D   ;$4284
         AND #$7F        ;#%01111111    Raster MSB off
         STA $D011       ;VIC Control Register 1
 
-        LDA #<IRQ_E
-        STA $0314
-        LDA #>IRQ_E
-        STA $0315
+        LDX #<IRQ_E
+        LDY #>IRQ_E
+        STX $0314
+        STY $0315
 
         ASL $D019       ;VIC Interrupt Request Register (IRR)
 
@@ -7292,6 +7367,7 @@ IRQ_D   ;$4284
         TAX
         PLA
         RTI
+.ENDIF  ;ENABLE_NEW_IRQ
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; sprite multiplexor: sprites 0-3
@@ -7302,6 +7378,8 @@ IRQ_E
         ;STA $D003
         ;STA $D005
         ;STA $D007
+
+        DEC $D020
 
         ; Turn off MSB and sprite-bkg pri for lower 4 sprites.
         ; Each sprite will set it individually in case it is needed
@@ -7340,12 +7418,14 @@ IRQ_E
         AND #$7F     ;#%01111111    Raster MSB off
         STA $D011    ;VIC Control Register 1
 
-        LDA #<IRQ_A
-        STA $0314
-        LDA #>IRQ_A
-        STA $0315
+        LDX #<IRQ_A
+        LDY #>IRQ_A
+        STX $0314
+        STY $0315
 
         ASL $D019    ;VIC Interrupt Request Register (IRR)
+
+        INC $D020
 
         PLA
         TAY
