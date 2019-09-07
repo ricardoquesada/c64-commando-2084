@@ -1198,7 +1198,7 @@ _MS_SPRITES_X_HI
         .BYTE $00,$00,$00
 _MS_SPRITES_Y
         .BYTE $48,$48,$48,$48,$48,$48,$48
-        .BYTE $74,$74,$74
+        .BYTE $76,$76,$76
 _MS_SPRITES_PTR
         .BYTE $F6,$F7,$F8,$F9,$FA,$FB,$AC   ;"Commando"
         .BYTE $FF,$FF,$FF                   ;empty
@@ -1286,11 +1286,10 @@ _L00    LDA (p24),Y  ;End of trigger-rows?
         ASL A
         TAY
 
-        ; $FB/$FC -> action table
         LDA ACTION_TBL_LO,Y   ;Prepare jump table for actions
-        STA a00FB
+        STA _JUMP_LO
         LDA ACTION_TBL_HI,Y
-        STA a00FC
+        STA _JUMP_HI
 
         ; Find empty seat
         LDX #$00
@@ -1303,7 +1302,9 @@ _L01    LDA SPRITES_TYPE05,X
 
 _L02    TXA
         PHA
-        JSR JMP_FB
+_JUMP_LO =*+1
+_JUMP_HI =*+2
+        JSR $0000
         PLA
         TAX
 
@@ -3225,20 +3226,19 @@ _L02    LDA SPRITES_TYPE05,X
         ASL A
         TAY
         LDA TYPE_ANIM_TBL_LO,Y
-        STA a00FB
+        STA _JUMP_LO
         LDA TYPE_ANIM_TBL_HI,Y
-        STA a00FC
+        STA _JUMP_HI
         INC a04E7
-        JSR JMP_FB
+_JUMP_LO = *+1
+_JUMP_HI = *+2
+        JSR $0000
 
         INX
         CPX #(TOTAL_MAX_SPRITES-5)
         BNE _L00
 
         RTS
-
-JMP_FB              ;$24EF
-        JMP (a00FB)
 
         ; Anim table
 TYPE_ANIM_TBL_HI =*+1
@@ -5555,17 +5555,17 @@ _L02    LDA SPRITES_TYPE01,X
         ASL A
         TAY
         LDA HERO_TYPE_ANIM_TBL_LO,Y
-        STA a00FB
+        STA _JUMP_LO
         LDA HERO_TYPE_ANIM_TBL_HI,Y
-        STA a00FC
-        JSR _L03
+        STA _JUMP_HI
+_JUMP_LO =*+1
+_JUMP_HI =*+2
+        JSR $0000
         INX
         CPX #$04     ;For sprites 1-5
         BNE _L00
 
         RTS
-
-_L03    JMP (a00FB)
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_02
@@ -7034,12 +7034,13 @@ IRQ_A   NOP
         ORA #$60     ;#%01100000    Extended Color = 1, Bitmap = 1
         STA $D011    ;VIC Control Register 1
 
+        ; FIXME: Really needed. Remove?
         ; Sprites 0,1,2,3 points to spr $ff (empty sprite)
-        LDA #$FF
-        STA fE3F8 + 0
-        STA fE3F8 + 1
-        STA fE3F8 + 2
-        STA fE3F8 + 3
+;        LDA #$FF
+;        STA fE3F8 + 0
+;        STA fE3F8 + 1
+;        STA fE3F8 + 2
+;        STA fE3F8 + 3
 
         LDA $D011    ;VIC Control Register 1
         AND #$F8     ;#%11111000
@@ -7205,7 +7206,7 @@ IRQ_C
         LDX SPRITE_IDX_TBL + 8
         LDA SPRITES_PREV_Y00,X
         SEC
-        SBC #$02
+        SBC #$04
         CMP $D012
         BCC IRQ_D       ;Jump, too late for IRQ
         STA $D012
@@ -7274,7 +7275,7 @@ IRQ_D   ;$4284
         LDX SPRITE_IDX_TBL + 8 + 4
         LDA SPRITES_PREV_Y00,X
         SEC
-        SBC #$02
+        SBC #$04
         CMP $D012
         BCC IRQ_E       ;Too late for IRQ. Jump directly.
         STA $D012       ;Raster Position
