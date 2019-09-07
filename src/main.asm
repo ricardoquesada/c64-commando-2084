@@ -109,50 +109,6 @@ IRQ_ADDR_LO = $0406
 IRQ_ADDR_HI = $0407
 GAME_TICK = $040A               ;Incremented from main loop
 RASTER_TICK = $040B             ;Incremented from raster routine
-SPRITES_X_HI00 = $040D          ;MSB for X pos
-SPRITES_X_HI01 = $040E
-SPRITES_X_HI04 = $0411
-SPRITES_X_HI05 = $0412
-SPRITES_X_LO00 = $041D          ;LSB for X pos
-SPRITES_X_LO01 = $041E
-SPRITES_X_LO04 = $0421
-SPRITES_X_LO05 = $0422
-SPRITES_Y00 = $042D
-SPRITES_Y01 = $042E
-SPRITES_Y04 = $0431
-SPRITES_Y05 = $0432
-SPRITES_BKG_PRI00 = $043D
-SPRITES_BKG_PRI01 = $043E
-SPRITES_BKG_PRI04 = $0441
-SPRITES_BKG_PRI05 = $0442
-SPRITES_COLOR00 = $044D         ;primary color of sprite
-SPRITES_COLOR01 = $044E
-SPRITES_COLOR04 = $0451
-SPRITES_COLOR05 = $0452
-SPRITES_PTR00 = $045D           ;frame to be used by sprite
-SPRITES_PTR01 = $045E
-SPRITES_PTR04 = $0461
-SPRITES_PTR05 = $0462
-SPRITES_DELTA_X00 = $046D       ;pixels to move horizontally for hero (neg or pos)
-SPRITES_DELTA_X01 = $046E
-SPRITES_DELTA_X04 = $0471
-SPRITES_DELTA_X05 = $0472
-SPRITES_DELTA_Y00 = $047D       ;pixels to move vertically for hero (neg or pos)
-SPRITES_DELTA_Y01 = $047E
-SPRITES_DELTA_Y04 = $0481
-SPRITES_DELTA_Y05 = $0482
-SPRITES_TYPE00 = $048D
-SPRITES_TYPE01 = $048E
-SPRITES_TYPE04 = $0491
-SPRITES_TYPE05 = $0492
-SPRITES_COUNTER00 = $049D       ;TICK and COUNTER are the same, but using different
-                                ; names since they are not contiguous in memory
-SPRITES_COUNTER03 = $04A0       ;referenced in throw grenade
-a04A1 = $04A1                   ;Used to link sprites together (?)
-a04AC = $04AC                   ;Used as index to delta_tbl, and index to anim frames (?)
-SPRITES_TICK05 = $04B7
-SPRITES_PREV_Y00 = $04C2        ;Value before applying delta to SPRITES_Y00. Used in raster interrupt.
-                                ; But for Hero PREV_Y is always equal to Y
 FIRE_COOLDOWN = $04DF           ;reset with $ff
 HERO_ANIM_MOV_IDX = $04E0       ;Movement anim for hero: left,right,up,down,diagonally,etc.
                                 ; See: SOLDIER_ANIM_FRAMES_HI/LO
@@ -192,6 +148,53 @@ HISCORE_SELECTED_CHAR = $0510   ;Selected char in hiscore
 HISCORE_IS_CHAR_ANIM = $0511    ;1: if the selected char in hiscore is being animated
 HISCORE_ANIM_CHAR_COUNTER = $0512       ;Counter to the selected char animation in hiscore
 REQUIRES_SETUP_HERO_ANIM = $513       ;If 1, SETUP_HERO_ANIMATION must be called
+
+; Sprites related. Allocating space for 24 sprites, in case we need them
+SPRITES_X_HI00 = $0600         ;MSB for X pos
+SPRITES_X_HI01 = $0601
+SPRITES_X_HI04 = $0604
+SPRITES_X_HI05 = $0605
+SPRITES_X_LO00 = $0620          ;LSB for X pos
+SPRITES_X_LO01 = $0621
+SPRITES_X_LO04 = $0624
+SPRITES_X_LO05 = $0625
+SPRITES_Y00 = $0640
+SPRITES_Y01 = $0641
+SPRITES_Y04 = $0644
+SPRITES_Y05 = $0645
+SPRITES_BKG_PRI00 = $0660
+SPRITES_BKG_PRI01 = $0661
+SPRITES_BKG_PRI04 = $0664
+SPRITES_BKG_PRI05 = $0665
+SPRITES_COLOR00 = $0680         ;primary color of sprite
+SPRITES_COLOR01 = $0681
+SPRITES_COLOR04 = $0684
+SPRITES_COLOR05 = $0685
+SPRITES_PTR00 = $06A0           ;frame to be used by sprite
+SPRITES_PTR01 = $06A1
+SPRITES_PTR04 = $06A4
+SPRITES_PTR05 = $06A5
+SPRITES_DELTA_X00 = $06C0       ;pixels to move horizontally for hero (neg or pos)
+SPRITES_DELTA_X01 = $06C1
+SPRITES_DELTA_X04 = $06C4
+SPRITES_DELTA_X05 = $06C5
+SPRITES_DELTA_Y00 = $06E0       ;pixels to move vertically for hero (neg or pos)
+SPRITES_DELTA_Y01 = $06E1
+SPRITES_DELTA_Y04 = $06E4
+SPRITES_DELTA_Y05 = $06E5
+SPRITES_TYPE00 = $0700
+SPRITES_TYPE01 = $0701
+SPRITES_TYPE04 = $0704
+SPRITES_TYPE05 = $0705
+SPRITES_COUNTER00 = $0720       ;TICK and COUNTER are the same, but using different
+                                ; names since they are not contiguous in memory
+SPRITES_COUNTER03 = $0723       ;referenced in throw grenade
+SPRITES_TMP_A05 = $0745         ;Used to link sprites together (?)
+SPRITES_TMP_B05 = $0765         ;Used as index to delta_tbl, and index to anim frames (?)
+SPRITES_TICK05 = $0785
+SPRITES_PREV_Y00 = $07A0        ;Value before applying delta to SPRITES_Y00. Used in raster interrupt.
+                                ; But for Hero PREV_Y is always equal to Y
+
 aE34E = $E34E
 aE34F = $E34F
 aE350 = $E350
@@ -1298,7 +1301,7 @@ _L02    TXA
         CLC
         ADC #$2B     ;#%00101011
         STA SPRITES_Y05,X
-        LDY a04A1,X
+        LDY SPRITES_TMP_A05,X
         STA SPRITES_Y05,Y
         LDY a00FD
 _L03    INY
@@ -2349,7 +2352,7 @@ ACTION_OPEN_DOOR    ;$1E61
 ; FIXME: remove me
 ACTION_18       ;$1E66
         LDA #$06     ;#%00000110
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         LDA #$F5     ;Frame: Door right open?
         STA SPRITES_PTR05,X
         JMP j1E7D
@@ -2360,7 +2363,7 @@ ACTION_18       ;$1E66
 ; FIXME: remove me
 ACTION_17       ;$1E73
         LDA #$0A     ;#%00001010
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         LDA #$F4     ;Frame: Door left open?
         STA SPRITES_PTR05,X
 
@@ -2410,7 +2413,7 @@ ACTION_NEW_CART_UP_LVL1     ;$1EAF
         STA SPRITES_DELTA_X05,X
         STA SPRITES_TICK05,X
         LDA #$08
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         LDA #$25            ;anim_type_25: cart in lvl2 going up
         STA SPRITES_TYPE05,X
         LDA #$05
@@ -2451,7 +2454,7 @@ _L00    LDA SPRITES_TYPE05,Y
         RTS
 
 _L01    TYA
-        STA a04A1,X                     ;links Y with X
+        STA SPRITES_TMP_A05,X                     ;links Y with X
         LDA #$56
         STA SPRITES_X_LO05,Y
         LDA #$64
@@ -2471,7 +2474,7 @@ _L01    TYA
         LDA #$24            ;anim_type_24:solider jump (from truck)
         STA SPRITES_TYPE05,Y
         TXA
-        STA a04A1,Y                     ;links X with Y
+        STA SPRITES_TMP_A05,Y                     ;links X with Y
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -2520,7 +2523,7 @@ _L00    LDA SPRITES_TYPE05,Y
         RTS
 
 _L01    TYA
-        STA a04A1,X             ;links Y with X
+        STA SPRITES_TMP_A05,X             ;links Y with X
         LDA #$3E
         STA SPRITES_X_LO05,X
         LDA #$82
@@ -2541,7 +2544,7 @@ _L01    TYA
         STA SPRITES_TYPE05,X
 
         TXA
-        STA a04A1,Y             ;links X with Y
+        STA SPRITES_TMP_A05,Y             ;links X with Y
         LDA #$56
         STA SPRITES_X_LO05,Y
         LDA #$82
@@ -2574,7 +2577,7 @@ ACTION_NEW_BAZOOKA_ENEMY_R  ;$2001
         LDA #$FF
         STA SPRITES_DELTA_X05,X
         LDA #$0C     ;#%00001100
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         JMP INIT_NEW_BAZOOKA_ENEMY
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -2587,7 +2590,7 @@ ACTION_NEW_BAZOOKA_ENEMY_L  ;$201D
         LDA #$1E
         STA SPRITES_Y05,X
         LDA #$04
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         LDA #$01
         STA SPRITES_DELTA_X05,X
 
@@ -2626,7 +2629,7 @@ ACTION_NEW_TURRET_CANNON_L      ;$2053
         STA SPRITES_X_HI05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$06
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         LDA #$1E        ;anim_type_1E: turret fire
         STA SPRITES_TYPE05,X
         RTS
@@ -2650,7 +2653,7 @@ ACTION_NEW_TURRET_CANNON_R     ;$2082
         LDA #$FF
         STA SPRITES_X_HI05,X
         LDA #$0A
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         LDA #$1E    ;anim_type_1E: turret fire
         STA SPRITES_TYPE05,X
         RTS
@@ -2666,8 +2669,8 @@ ACTION_NEW_BOSS_LVL0  ;$20B1
         LDA #$01
         STA SPRITES_DELTA_Y05,X
         LDA #$08
-        STA a04A1,X
-        STA a04AC,X
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
         LDA #$B9    ;boss l1 frame
         STA SPRITES_PTR05,X
         LDA #$05     ;green
@@ -2715,8 +2718,8 @@ ACTION_NEW_SOLDIER_FROM_SIDE_R_B ;$20F6
         LDA #$18        ;anim_type_18: soldier from side B
         STA SPRITES_TYPE05,X
         LDA #$0C     ;#%00001100
-        STA a04A1,X
-        STA a04AC,X
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -2827,7 +2830,7 @@ _L00    LDA SPRITES_TYPE05,Y
         RTS
 
 _L01    TYA
-        STA a04A1,X     ;links front with back
+        STA SPRITES_TMP_A05,X     ;links front with back
         LDA #$38     ;#%00111000
         STA SPRITES_X_LO05,Y
         LDA #$21     ;#%00100001
@@ -2906,8 +2909,8 @@ ACTION_NEW_SOLDIER_BEHIND_TRENCH       ;$2271
         STA SPRITES_TICK05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$08
-        STA a04A1,X
-        STA a04AC,X
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
         LDA #$07            ;anim_type_07: soldier behind trench
         STA SPRITES_TYPE05,X
         RTS
@@ -2933,8 +2936,8 @@ ACTION_NEW_SOLDIER_IN_TRENCH    ;$22A9
         JSR GET_RANDOM
         STA SPRITES_TICK05,X
         LDA #$08
-        STA a04A1,X
-        STA a04AC,X
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
         LDA #$1C            ;anim_type_1C: soldier in trench
         STA SPRITES_TYPE05,X
         RTS
@@ -2971,8 +2974,8 @@ ACTION_NEW_JUMPING_SOLDIER_R       ;$22E4
         LDA #$0A            ;anim_type_0A: jumping soldier
         STA SPRITES_TYPE05,X
         LDA #$0C
-        STA a04A1,X
-        STA a04AC,X
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -3007,8 +3010,8 @@ ACTION_NEW_JUMPING_SOLDIER_L       ;$2329
         LDA #$0A            ;anim_type_0A: jumping soldier
         STA SPRITES_TYPE05,X
         LDA #$04
-        STA a04A1,X
-        STA a04AC,X
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -3022,7 +3025,7 @@ ACTION_NEW_SOLDIER_FROM_SIDE_L  ;$236E
         LDA #$02
         STA SPRITES_DELTA_X05,X
         LDA #$04
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         JMP NEW_SOLDIER_FROM_SIDE
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -3036,7 +3039,7 @@ ACTION_NEW_SOLDIER_FROM_SIDE_R  ;$2385
         LDA #$FE
         STA SPRITES_DELTA_X05,X
         LDA #$0C
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
 
         ; fall-through
 
@@ -3063,7 +3066,7 @@ NEW_SOLDIER_FROM_SIDE
         ADC #$1E
         STA SPRITES_Y05,X
         LDA (p22),Y
-        STA a04A1,X
+        STA SPRITES_TMP_A05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -3090,8 +3093,8 @@ ACTION_0C       ;$23CC
         LDA #$19            ;anim_type_19
         STA SPRITES_TYPE05,X
         LDA #$0C     ;#%00001100
-        STA a04A1,X
-        STA a04AC,X
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -3164,7 +3167,7 @@ _L03    LDA SPRITES_TYPE05,Y
         BNE _L05
 _L04    TXA
         PHA
-        LDX a04A1,Y
+        LDX SPRITES_TMP_A05,Y
         JSR CONVERT_TO_TYPE_ANIM_EXPLOSION
         TYA
         TAX
@@ -3402,9 +3405,9 @@ _L05    LDA SPRITES_X_LO05,X
         STA SPRITES_BKG_PRI05,Y
         TXA
         PHA
-        LDA a04AC,X
-        STA a04AC,Y
-        STA a04A1,Y
+        LDA SPRITES_TMP_B05,X
+        STA SPRITES_TMP_B05,Y
+        STA SPRITES_TMP_A05,Y
         TAX
         LDA DELTA_X_TBL,X
         STA SPRITES_DELTA_X05,Y
@@ -3487,7 +3490,7 @@ _L01    LDA SPRITES_X_LO05,X
 ; ref: anim_type_22
 TYPE_ANIM_22        ;$26DD
         INC SPRITES_TICK05,X
-        LDY a04A1,X
+        LDY SPRITES_TMP_A05,X
         LDA SPRITES_TICK05,X
         AND #$0F            ;#%00001111
         BNE _L00            ;FIXME: probably it should say _L01 instead
@@ -3541,7 +3544,7 @@ TYPE_ANIM_BAZOOKA_ENEMY     ;$2724
         TAY
         LDA FRAME_BAZOOKA_GUY,Y
         STA SPRITES_PTR05,X
-        LDY a04AC,X
+        LDY SPRITES_TMP_B05,X
         LDA DELTA_X_TBL,Y
         STA SPRITES_DELTA_X05,X
         LDA DELTA_Y_TBL,Y
@@ -3664,7 +3667,7 @@ _L04    LDA SPRITES_X_LO05,X
         CLC
         ADC #$06
         STA SPRITES_Y05,Y
-        LDA a04AC,X
+        LDA SPRITES_TMP_B05,X
         CMP #$06
         BEQ _L05
         LDA #$FE
@@ -3777,12 +3780,12 @@ _L00    JSR GET_RANDOM
         SEC
         SBC #$04     ;#%00000100
         CLC
-        ADC a04A1,X
+        ADC SPRITES_TMP_A05,X
         CLC
         ADC #$08     ;#%00001000
         AND #$0F     ;#%00001111
-        STA a04A1,X
-        STA a04AC,X
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
         TAY
         LDA DELTA_X_TBL,Y
         STA SPRITES_DELTA_X05,X
@@ -3874,11 +3877,11 @@ _L02    LDA #$E4    ; soldier throw grenade #2-frame
         JMP THROW_GRENADE
 
 _L03    LDA #$04
-        STA a04A1,X
-        STA a04AC,X
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
         LDA #$01
         STA SPRITES_DELTA_X05,X
-_L04    LDA a04AC,X
+_L04    LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
@@ -3924,10 +3927,10 @@ _L01    CMP #$14
         SEC
         SBC #$01
         CLC
-        ADC a04A1,X
+        ADC SPRITES_TMP_A05,X
         AND #$0F
-        STA a04A1,X
-        STA a04AC,X
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
         TAY
         LDA DELTA_X_TBL,Y
         STA SPRITES_DELTA_X05,X
@@ -3937,7 +3940,7 @@ _L01    CMP #$14
 
 _L02    CMP #$14
         BCC _L03
-        LDA a04AC,X
+        LDA SPRITES_TMP_B05,X
         AND #$FE
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
@@ -3964,7 +3967,7 @@ _L03    JSR UPDATE_ENEMY_PATH
 ; Appears in lvl0, more or less after crossing the bridge
 TYPE_ANIM_SOLDIER_FROM_SIDE_A     ;$2A34
         INC SPRITES_TICK05,X
-        LDA a04AC,X
+        LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
@@ -3981,12 +3984,12 @@ TYPE_ANIM_SOLDIER_FROM_SIDE_A     ;$2A34
         JSR UPDATE_ENEMY_PATH
         JSR UPDATE_ENEMY_BKG_PRI
         LDA SPRITES_TICK05,X
-        CMP a04A1,X
+        CMP SPRITES_TMP_A05,X
         BEQ _L00
         RTS
 
 _L00    LDA #$08     ;#%00001000
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         TAY
         LDA DELTA_X_TBL,Y
         STA SPRITES_DELTA_X05,X
@@ -4126,7 +4129,7 @@ _FRAME_POW_GUARD     ;$2B4B
 ; ref: anim_type_0F
 TYPE_ANIM_BIKE_IN_BRIDGE ;$2B4D
         INC SPRITES_TICK05,X
-        LDY a04A1,X
+        LDY SPRITES_TMP_A05,X
         LDA SPRITES_X_LO05,X
         CMP #$A5
         BNE _L03
@@ -4221,8 +4224,8 @@ b2C0C   LDA SPRITES_Y05,X
         STA SPRITES_PTR05,X
         LDA #$00
         STA SPRITES_DELTA_X05,X
-        STA a04A1,X
-        STA a04AC,X
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
         STA SPRITES_TICK05,X
         LDA #$FF
         STA SPRITES_DELTA_Y05,X
@@ -4367,8 +4370,8 @@ _L03    JSR GET_RANDOM
         LDA #$00
         STA SPRITES_DELTA_Y05,X
         LDA f2CCD,Y
-        STA a04A1,X
-        STA a04AC,X
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
         LDA f2CD1,Y
         STA SPRITES_PTR05,X
         LDA #$1B            ;anim_type_1B: soldier in fort lvl0,1,3
@@ -4420,8 +4423,8 @@ _L06    LDA #$01
         LDA #$00
         STA SPRITES_DELTA_X05,X
         LDA #$08
-        STA a04A1,X
-        STA a04AC,X
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
         LDA #$9B            ;soldier head south
         STA SPRITES_PTR05,X
         LDA #$00
@@ -4485,8 +4488,8 @@ _L11    LDA TMP_SPRITE_X_LO
         AND #$03     ;#%00000011
         CLC
         ADC #$02     ;#%00000010
-        STA a04A1,X
-        STA a04AC,X
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
         RTS
 
 _L12    JSR GET_RANDOM
@@ -4526,8 +4529,8 @@ _L12    JSR GET_RANDOM
         AND #$03     ;#%00000011
         CLC
         ADC #$0B     ;#%00001011
-        STA a04A1,X
-        STA a04AC,X
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
         RTS
 
 _L13    RTS
@@ -4697,8 +4700,8 @@ TYPE_ANIM_SOLDIER_BEHIND_SMTH   ;$2FC2
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
         LDA #$00
-        STA a04A1,X
-        STA a04AC,X
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
         STA SPRITES_TICK05,X
         LDA #$FF
         STA SPRITES_DELTA_Y05,X
@@ -4741,7 +4744,7 @@ _L00    LDA SPRITES_X_LO00
         BCS _L02
 
 _L01    LDA #$0A     ;#%00001010
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         LDA #$CA     ;Soldier in trench: left
         STA SPRITES_PTR05,X
         JMP _L05
@@ -4754,13 +4757,13 @@ _L02    LDA SPRITES_X_LO00
         BCC _L04
 
 _L03    LDA #$06     ;#%00000110
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         LDA #$C9     ;Soldier in trench: right
         STA SPRITES_PTR05,X
         JMP _L05
 
 _L04    LDA #$08     ;#%00001000
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         LDA #$C8     ;Soldier in trench: down
         STA SPRITES_PTR05,X
 _L05    RTS
@@ -4787,7 +4790,7 @@ _L00    LDA #$D3     ;#%11010011
         LDA #$01     ;#%00000001
         STA SPRITES_DELTA_X05,X
 _L01    BCS _L02
-        LDA a04AC,X
+        LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
@@ -4819,8 +4822,8 @@ _L05    LDA #$98     ;#%10011000
         STA SPRITES_PTR05,X
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_X05,X
-        STA a04A1,X
-        STA a04AC,X
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
         STA SPRITES_TICK05,X
         LDA #$FF     ;#%11111111
         STA SPRITES_DELTA_Y05,X
@@ -4835,7 +4838,7 @@ _L05    LDA #$98     ;#%10011000
 ; This sprite_type moves the sprite up and kind of chase the hero.
 TYPE_ANIM_SOLIDER_GO_UP     ;$30DD
         INC SPRITES_TICK05,X
-        LDA a04AC,X
+        LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
@@ -4908,15 +4911,15 @@ _L01    LDA SPRITES_Y05,X
         CMP SPRITES_Y00
         BCS _L03
         LDA #$04     ;#%00000100
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         RTS
 
 _L02    LDA #$06     ;#%00000110
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         RTS
 
 _L03    LDA #$02     ;#%00000010
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         RTS
 
 _L04    LDA SPRITES_Y05,X
@@ -4929,15 +4932,15 @@ _L04    LDA SPRITES_Y05,X
         CMP SPRITES_Y00
         BCS _L06
         LDA #$0C     ;#%00001100
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         RTS
 
 _L05    LDA #$0A     ;#%00001010
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         RTS
 
 _L06    LDA #$0E     ;#%00001110
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         RTS
 
 _L07    LDA SPRITES_X_LO05,X
@@ -4950,15 +4953,15 @@ _L07    LDA SPRITES_X_LO05,X
         CMP SPRITES_X_LO00
         BCS _L09
         LDA #$00     ;#%00000000
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         RTS
 
 _L08    LDA #$02     ;#%00000010
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         RTS
 
 _L09    LDA #$0E     ;#%00001110
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         RTS
 
 _L10    LDA SPRITES_X_LO05,X
@@ -4971,15 +4974,15 @@ _L10    LDA SPRITES_X_LO05,X
         CMP SPRITES_X_LO00
         BCS _L12
         LDA #$08     ;#%00001000
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         RTS
 
 _L11    LDA #$06     ;#%00000110
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         RTS
 
 _L12    LDA #$0A     ;#%00001010
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -5005,7 +5008,7 @@ TYPE_ANIM_SOLDIER        ;$3205
         LDA SPRITES_DELTA_X05,X
         ORA SPRITES_DELTA_Y05,X
         BEQ _L00
-        LDA a04AC,X
+        LDA SPRITES_TMP_B05,X
         AND #$FE
         TAY
         LDA SOLDIER_ANIM_FRAMES_LO,Y
@@ -5082,9 +5085,9 @@ b32A8   JSR GET_RANDOM
         BNE b32B6
         LDA #$00     ;#%00000000
 b32B6   CLC
-        ADC a04A1,X
+        ADC SPRITES_TMP_A05,X
 j32BA   AND #$0F     ;#%00001111
-        STA a04A1,X
+        STA SPRITES_TMP_A05,X
         TAY
         LDA DELTA_X_TBL,Y
         STA SPRITES_DELTA_X05,X
@@ -5256,19 +5259,19 @@ _L05    LDA SPRITES_Y05,X
         SBC #$28     ;#%00101000
         CMP SPRITES_Y00
         BCS _L07
-        LDA a04AC,X
+        LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         CMP #$04     ;#%00000100
         BEQ _L08
         RTS
 
-_L06    LDA a04AC,X
+_L06    LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         CMP #$06     ;#%00000110
         BEQ _L08
         RTS
 
-_L07    LDA a04AC,X
+_L07    LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         CMP #$02     ;#%00000010
         BEQ _L08
@@ -5285,19 +5288,19 @@ _L09    LDA SPRITES_Y05,X
         SBC #$28     ;#%00101000
         CMP SPRITES_Y00
         BCS _L11
-        LDA a04AC,X
+        LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         CMP #$0C     ;#%00001100
         BEQ _L08
         RTS
 
-_L10    LDA a04AC,X
+_L10    LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         CMP #$0A     ;#%00001010
         BEQ _L08
         RTS
 
-_L11    LDA a04AC,X
+_L11    LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         CMP #$0E     ;#%00001110
         BEQ _L08
@@ -5312,18 +5315,18 @@ _L12    LDA SPRITES_X_LO05,X
         SBC #$3C     ;#%00111100
         CMP SPRITES_X_LO00
         BCS _L14
-        LDA a04AC,X
+        LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         BEQ _L18
         RTS
 
-_L13    LDA a04AC,X
+_L13    LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         CMP #$02     ;#%00000010
         BEQ _L18
         RTS
 
-_L14    LDA a04AC,X
+_L14    LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         CMP #$0E     ;#%00001110
         BEQ _L18
@@ -5338,26 +5341,26 @@ _L15    LDA SPRITES_X_LO05,X
         SBC #$3C     ;#%00111100
         CMP SPRITES_X_LO00
         BCS _L17
-        LDA a04AC,X
+        LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         CMP #$08     ;#%00001000
         BEQ _L18
         RTS
 
-_L16    LDA a04AC,X
+_L16    LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         CMP #$06     ;#%00000110
         BEQ _L18
         RTS
 
-_L17    LDA a04AC,X
+_L17    LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         CMP #$0A     ;#%00001010
         BEQ _L18
         RTS
 
 _L18    STX a00FB
-        STA a04AC,X
+        STA SPRITES_TMP_B05,X
         TAX
         LDA _DELTA_X_TBL,X
         STA SPRITES_DELTA_X05,Y
@@ -5730,7 +5733,7 @@ j37CF   TXA
         JSR SCORE_ADD
         LDA #$02     ;#%00000010
         JSR SFX_PLAY
-        LDA a04AC,Y
+        LDA SPRITES_TMP_B05,Y
         CMP #$0A     ;#%00001010
         BEQ b3848
         LDA SPRITES_X_LO05,Y
