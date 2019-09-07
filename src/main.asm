@@ -6987,35 +6987,31 @@ STATUS_BAR_TXT          ;$40DE
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 SETUP_IRQ               ;$4106
-        LDA #$DF     ;FIXME: Not a big deal, but should be $D5 instead
+        LDA #$D5
         STA $D012    ;Raster Position
         LDA $D011    ;VIC Control Register 1
         AND #$7F     ;#%01111111
         STA $D011    ;VIC Control Register 1
-        LDA #<IRQ_A
-        STA IRQ_ADDR_LO
-        LDA #>IRQ_A
-        STA IRQ_ADDR_HI
 
         LDA #$00     ;Stop timer
         STA $DC0E    ;CIA1: CIA Control Register A
 
         SEI
-        LDA #<IRQ_HANDLER
+        LDA #<IRQ_A
         STA $0314    ;IRQ
-        LDA #>IRQ_HANDLER
+        LDA #>IRQ_A
         STA $0315    ;IRQ
         LDA #$F1     ;#%11110001
         STA $D01A    ;VIC Interrupt Mask Register (IMR)
         CLI
         RTS
 
-IRQ_HANDLER
-        JMP (IRQ_ADDR_LO)
-
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; raster = $d5
 IRQ_A   NOP
+        NOP
+        NOP
+        NOP
         NOP
         LDA $D011    ;VIC Control Register 1
         ORA #$60     ;#%01100000    Extended Color = 1, Bitmap = 1
@@ -7053,9 +7049,9 @@ IRQ_A   NOP
         STA $D011    ;VIC Control Register 1
 
         LDA #<IRQ_B
-        STA IRQ_ADDR_LO
+        STA $0314
         LDA #>IRQ_B
-        STA IRQ_ADDR_HI
+        STA $0315
 
         ASL $D019    ;VIC Interrupt Request Register (IRR)
 
@@ -7069,6 +7065,9 @@ IRQ_A   NOP
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; raster = $de
 IRQ_B   NOP
+        NOP
+        NOP
+        NOP
         NOP
         LDA $D011    ;VIC Control Register 1
         AND #$9F     ;#%10011111    Turn Off bitmap, turn off Extended color
@@ -7089,9 +7088,9 @@ IRQ_B   NOP
         STA $D011    ;VIC Control Register 1
 
         LDA #<IRQ_C
-        STA IRQ_ADDR_LO
+        STA $0314
         LDA #>IRQ_C
-        STA IRQ_ADDR_HI
+        STA $0315
 
         ASL $D019    ;VIC Interrupt Request Register (IRR)
 
@@ -7182,7 +7181,7 @@ IRQ_C
         LDX SPRITE_IDX_TBL + 8
         LDA SPRITES_PREV_Y00,X
         SEC
-        SBC #$03
+        SBC #$02
         CMP $D012
         BCC IRQ_D       ;Jump, too late for IRQ
         STA $D012
@@ -7192,9 +7191,9 @@ IRQ_C
         STA $D011       ;VIC Control Register 1
 
         LDA #<IRQ_D
-        STA IRQ_ADDR_LO
+        STA $0314
         LDA #>IRQ_D
-        STA IRQ_ADDR_HI
+        STA $0315
 
         ASL $D019       ;VIC Interrupt Request Register (IRR)
 
@@ -7251,7 +7250,7 @@ IRQ_D   ;$4284
         LDX SPRITE_IDX_TBL + 8 + 4
         LDA SPRITES_PREV_Y00,X
         SEC
-        SBC #$03
+        SBC #$02
         CMP $D012
         BCC IRQ_E       ;Too late for IRQ. Jump directly.
         STA $D012       ;Raster Position
@@ -7261,9 +7260,9 @@ IRQ_D   ;$4284
         STA $D011       ;VIC Control Register 1
 
         LDA #<IRQ_E
-        STA IRQ_ADDR_LO
+        STA $0314
         LDA #>IRQ_E
-        STA IRQ_ADDR_HI
+        STA $0315
 
         ASL $D019       ;VIC Interrupt Request Register (IRR)
 
@@ -7322,9 +7321,9 @@ IRQ_E
         STA $D011    ;VIC Control Register 1
 
         LDA #<IRQ_A
-        STA IRQ_ADDR_LO
+        STA $0314
         LDA #>IRQ_A
-        STA IRQ_ADDR_HI
+        STA $0315
 
         ASL $D019    ;VIC Interrupt Request Register (IRR)
 
