@@ -2134,40 +2134,32 @@ RUN_ACTIONS   ;$1BA9
 _L00    INC TRIGGER_ROW_IDX
 
         ; Find empty seat
-        LDX #$0A
+        LDX #(TOTAL_MAX_SPRITES-1-5)
 _L01    LDA SPRITES_TYPE05,X
         BEQ _L04
         DEX
         BPL _L01
-
-        ; FIXME: Loop tried twice, probably a bug. Remove
-
-        LDX #$0A
-_L02    LDA SPRITES_TYPE05,X
-        BEQ _L04
-        DEX
-        BPL _L02
 
         ; If an empty seat (type == 0) cannot be found, try reusing one with
         ; lower priority
 
         ; Lower priority ones:
         ; $08, $09, $13, $0C, $06, $0B, $05
-        LDX #$0A
+        LDX #(TOTAL_MAX_SPRITES-1-5)
 _L03    LDA SPRITES_TYPE05,X
-        CMP #$08
+        CMP #$08        ;anim_type_08: soldier bullet
         BEQ _L04
-        CMP #$09
+        CMP #$09        ;anim_type_09: solider bullet end
         BEQ _L04
-        CMP #$13
+        CMP #$13        ;anim_type_13: delayed cleanup
         BEQ _L04
-        CMP #$0C
+        CMP #$0C        ;anim_type_0C: anim explosion
         BEQ _L04
-        CMP #$06
+        CMP #$06        ;anim_type_06: soldier die
         BEQ _L04
-        CMP #$0B
+        CMP #$0B        ;anim_type_0B: soldier grenade
         BEQ _L04
-        CMP #$05
+        CMP #$05        ;anim_type_05: soldier
         BEQ _L04
         DEX
         BPL _L03
@@ -3208,6 +3200,9 @@ _L00    LDA SPRITES_Y05,X
         BEQ _L02
 _L01    JSR CLEANUP_SPRITE
 
+        ; Fall-through Ok. After cleaning-up sprite, anim_type_00 will be
+        ; called and could spawn a new sprite.
+
 _L02    LDA SPRITES_TYPE05,X
         ASL A
         TAY
@@ -3217,6 +3212,7 @@ _L02    LDA SPRITES_TYPE05,X
         STA a00FC
         INC a04E7
         JSR JMP_FB
+
         INX
         CPX #(TOTAL_MAX_SPRITES-5)
         BNE _L00
@@ -5043,54 +5039,55 @@ _L01    JSR UPDATE_ENEMY_PATH
         JSR s3128
 _L02    RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 j3255   JSR GET_RANDOM
         AND #$01     ;#%00000001
-        BNE b32A8
+        BNE _L04
         LDA SPRITES_X_HI05,X
         CMP SPRITES_X_HI00
-        BEQ b3276
-        BCC b326E
+        BEQ _L01
+        BCC _L00
         LDA #$0C     ;#%00001100
         STA a00FB
-        JMP j3289
+        JMP _L02
 
-b326E   LDA #$04     ;#%00000100
+_L00    LDA #$04     ;#%00000100
         STA a00FB
-        JMP j3289
+        JMP _L02
 
-b3276   LDA #$04     ;#%00000100
+_L01    LDA #$04     ;#%00000100
         STA a00FB
         LDA SPRITES_X_LO00
         SEC
         SBC SPRITES_X_LO05,X
-        BPL j3289
+        BPL _L02
         LDA #$0C     ;#%00001100
         STA a00FB
-j3289   LDA SPRITES_Y00
+_L02    LDA SPRITES_Y00
         SEC
         SBC SPRITES_Y05,X
-        BPL b329B
+        BPL _L03
         LSR a00FB
         LDA a00FB
-        JMP j32BA
+        JMP _L06
 
-b329B   LDA a00FB
+_L03    LDA a00FB
         CLC
         ADC #$08     ;#%00001000
         LSR A
         STA a00FB
-        JMP j32BA
+        JMP _L06
 
-b32A8   JSR GET_RANDOM
+_L04    JSR GET_RANDOM
         AND #$03     ;#%00000011
         SEC
         SBC #$02     ;#%00000010
         CMP #$FE     ;#%11111110
-        BNE b32B6
+        BNE _L05
         LDA #$00     ;#%00000000
-b32B6   CLC
+_L05    CLC
         ADC SPRITES_TMP_A05,X
-j32BA   AND #$0F     ;#%00001111
+_L06    AND #$0F     ;#%00001111
         STA SPRITES_TMP_A05,X
         TAY
         LDA DELTA_X_TBL,Y
@@ -6714,14 +6711,14 @@ f3EEE   .ADDR f3EDA         ;LVL0
 ; http://selmiak.bplaced.net/games/c64/index.php?lang=eng&game=Tutorials&page=Sprite-Multiplexing
 SORT_SPRITES_BY_Y
         LDX #$00
-SORTLOOP:
+SORTLOOP
         LDY SPRITE_IDX_TBL+1,X
         LDA SPRITES_Y00,Y
         LDY SPRITE_IDX_TBL,X
         CMP SPRITES_Y00,Y
         BCS SORTSKIP
         STX SORTRELOAD+1
-SORTSWAP:
+SORTSWAP
         LDA SPRITE_IDX_TBL+1,X
         STA SPRITE_IDX_TBL,X
         STY SPRITE_IDX_TBL+1,X
@@ -6733,9 +6730,9 @@ SORTSWAP:
         LDY SPRITE_IDX_TBL,X
         CMP SPRITES_Y00,Y
         BCC SORTSWAP
-SORTRELOAD:
+SORTRELOAD
         LDX #$00
-SORTSKIP:
+SORTSKIP
         INX
         CPX #(TOTAL_MAX_SPRITES-1)
         BCC SORTLOOP
