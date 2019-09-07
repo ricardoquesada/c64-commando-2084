@@ -346,7 +346,7 @@ GAME_LOOP            ;$08CB
 
 _L00    INC GAME_TICK
         JSR APPLY_DELTA_MOV
-        JSR SPRITES_SORT_BY_Y
+        JSR SORT_SPRITES_BY_Y
         JSR TRY_THROW_GRENADE
         JSR ANIM_ENEMIES
         JSR RUN_ACTIONS
@@ -716,7 +716,7 @@ _L00    STA HISCORE_NAME,X
         LDA #$20
         STA HISCORE_SELECTED_CHAR
         JSR APPLY_DELTA_MOV
-        JSR SPRITES_SORT_BY_Y
+        JSR SORT_SPRITES_BY_Y
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -840,7 +840,7 @@ _L05    JSR WAIT_RASTER_AT_BOTTOM
         JSR HISCORE_READ_JOY_FIRE
         JSR HISCORE_ANIM_CHAR
         JSR APPLY_DELTA_MOV
-        JSR SPRITES_SORT_BY_Y
+        JSR SORT_SPRITES_BY_Y
         JSR s0C6F
         LDA HISCORE_SELECTED_CHAR
         CMP #$78     ;#%01111000
@@ -1160,7 +1160,7 @@ _L00    LDA _MS_SPRITES_Y,X
         BNE _L00
 
         JSR APPLY_DELTA_MOV
-        JSR SPRITES_SORT_BY_Y
+        JSR SORT_SPRITES_BY_Y
         LDA #$00     ;#%00000000
         STA $D025    ;Sprite Multi-Color Register 0
         LDA #$07     ;#%00000111
@@ -6491,7 +6491,7 @@ _L00    LDA f3D27,X
         BNE _L00
 
         JSR APPLY_DELTA_MOV
-        JSR SPRITES_SORT_BY_Y
+        JSR SORT_SPRITES_BY_Y
         LDA #$FF     ;#%11111111
         STA COUNTER1
 _L01    LDX #$00     ;#%00000000
@@ -6712,7 +6712,7 @@ _L02    LDA #$00
         CPX #$40     ;length of the sprite
         BNE _L02
 
-        JSR SPRITES_SORT_BY_Y
+        JSR SORT_SPRITES_BY_Y
         JSR RERUN_ACTIONS
 
         ; Make sure player has at least 5 grenades
@@ -6738,7 +6738,7 @@ f3EEE   .ADDR f3EDA         ;LVL0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Sort sprites in SPRITE_IDX_TBL by Y position (?)
-SPRITES_SORT_BY_Y       ;$3F24
+SORT_SPRITES_BY_Y       ;$3F24
         LDA #$0F        ;Number of sprites to sort
         STA a0014
         STA a00D7
