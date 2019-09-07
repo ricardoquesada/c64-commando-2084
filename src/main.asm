@@ -349,7 +349,11 @@ _L01    LDA SPRITES_Y00
         CMP #$5A
         BNE GAME_LOOP
 
-        LDA #$14     ;Points won after beating lvl
+        ; Music in IRQ now
+        LDA #$01
+        STA IS_PLAY_MUSIC_IN_IRQ
+
+        LDA #$14     ;Points won after completing a level
         JSR SCORE_ADD
         LDA LEVEL_NR
         AND #$03     ;#%00000011
@@ -363,8 +367,6 @@ _L01    LDA SPRITES_Y00
 
 _L02    LDA #$02     ;Song to play (Level complete)
         JSR MUSIC_INIT
-        LDA #$01
-        STA IS_PLAY_MUSIC_IN_IRQ
         JSR PRINT_LVL_COMPLETE
         INC LEVEL_NR
 
@@ -7133,15 +7135,26 @@ _L00
 ; raster = $1e
 ; Renders 8 sprites
 IRQ_C
-        LDA #$FF
-        STA $D001
-        STA $D003
-        STA $D005
-        STA $D007
-        STA $D009
-        STA $D00B
-        STA $D00D
-        STA $D00F
+        ;LDA #$FF
+        ;STA $D001
+        ;STA $D003
+        ;STA $D005
+        ;STA $D007
+        ;STA $D009
+        ;STA $D00B
+        ;STA $D00D
+        ;STA $D00F
+
+        ; Set the correct charset for the level
+        LDA LEVEL_NR
+        AND #$03        ;#%00000011
+        ASL A           ;Shift to left, since bit 0 is unused in $D018
+        STA a00A7
+
+        LDA $D018       ;VIC Memory Control Register
+        AND #$F0        ;#%11110000
+        ORA a00A7       ;Charset Idx. lvl0=$c000, lvl1=$c800, main=$d000, lvl3=$d800
+        STA $D018       ;VIC Memory Control Register
 
         LDA V_SCROLL_BIT_IDX
         EOR #$07        ;#%00000111    Reverse Y-bits
@@ -7185,24 +7198,6 @@ IRQ_C
         STA $D01B               ;Sprite to Background Display Priority
         .NEXT
 
-        ; Set the correct charset for the level
-        LDA LEVEL_NR
-        AND #$03        ;#%00000011
-        ASL A           ;Shift to left, since bit 0 is unused in $D018
-        STA a00A7
-
-        LDA $D018       ;VIC Memory Control Register
-        AND #$F0        ;#%11110000
-        ORA a00A7       ;Charset Idx. lvl0=$c000, lvl1=$c800, main=$d000, lvl3=$d800
-        STA $D018       ;VIC Memory Control Register
-
-        ; Y pos for next raster interrupt based on sprite-3 Y pos
-        ; FIXME: Bug? Should it be SPRITE_IDX_TBL + 8 ?
-;        LDX SPRITE_IDX_TBL + 3
-;        LDA SPRITES_PREV_Y00,X
-;        CLC
-;        ADC #$14        ;20 (sprites are 21-pixels high)
-;        STA $D012       ;Raster Position
         LDX SPRITE_IDX_TBL + 8
         LDA SPRITES_PREV_Y00,X
         SEC
@@ -7234,11 +7229,11 @@ IRQ_C
 ; raster = $??
 IRQ_D   ;$4284
 
-        LDA #$FF
-        STA $D009
-        STA $D00B
-        STA $D00D
-        STA $D00F
+        ;LDA #$FF
+        ;STA $D009
+        ;STA $D00B
+        ;STA $D00D
+        ;STA $D00F
 
         ; Turn off MSB and sprite-bkg pri for upper 4 sprites.
         ; Each sprite will set it individually in case it is needed
@@ -7302,11 +7297,11 @@ IRQ_D   ;$4284
 ; sprite multiplexor: sprites 0-3
 ; raster = $??
 IRQ_E
-        LDA #$FF
-        STA $D001
-        STA $D003
-        STA $D005
-        STA $D007
+        ;LDA #$FF
+        ;STA $D001
+        ;STA $D003
+        ;STA $D005
+        ;STA $D007
 
         ; Turn off MSB and sprite-bkg pri for lower 4 sprites.
         ; Each sprite will set it individually in case it is needed
