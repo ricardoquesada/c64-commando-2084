@@ -1647,7 +1647,7 @@ SCREEN_REFRESH_LIVES
         STA aE362
         RTS
 
-        LDX #$0F     ;#%00001111
+        LDX #(TOTAL_MAX_SPRITES-1)
 _L00    LDA SPRITES_Y00,X
         STA SPRITES_PREV_Y00,X
         DEX
@@ -6747,7 +6747,7 @@ SORTSKIP
 ; Sort sprites in SPRITE_IDX_TBL by Y position
 ; This is the original sorting algorithm. Kind of slow
 SORT_SPRITES_BY_Y       ;$3F24
-        LDA #$0F        ;Number of sprites to sort
+        LDA #$0F        ;Number of sprites to sort (?)
         STA a0014
         STA a00D7
 _L00    LSR a0014
