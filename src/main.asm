@@ -29,7 +29,7 @@ INITIAL_LEVEL = 0               ;Default $00. For testing only
 TOTAL_MAX_SPRITES = 16          ;Default 16
 ; Using double joysticks make the game easier. Increase difficulty
 ; by reducing lives, and incrementing the total enemies in fort
-TOTAL_LIVES = $03               ;BCD. Default 5
+TOTAL_LIVES = $05               ;BCD. Default 5
 TOTAL_GRENADES = $05            ;BCD. Default 5
 TOTAL_ENEMIES_IN_FORT = $20     ;Default $14
 
@@ -3861,6 +3861,8 @@ TYPE_ANIM_BOSS_LVL0     ;$2924
         JSR UPDATE_ENEMY_BKG_PRI
         LDA SPRITES_DELTA_X05,X
         BPL _L00
+
+        ; Anim going to left
         LDA GAME_TICK
         AND #$08     ;#%00001000
         LSR A
@@ -3871,6 +3873,7 @@ TYPE_ANIM_BOSS_LVL0     ;$2924
         STA SPRITES_PTR05,X
         RTS
 
+        ; Anim going to right
 _L00    LDA GAME_TICK
         AND #$08     ;#%00001000
         LSR A
