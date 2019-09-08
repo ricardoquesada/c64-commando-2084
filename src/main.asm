@@ -1199,7 +1199,7 @@ _MS_SPRITES_X_HI
         .BYTE $00,$00,$00
 _MS_SPRITES_Y
         .BYTE $48,$48,$48,$48,$48,$48,$48
-        .BYTE $76,$76,$76
+        .BYTE $74,$74,$74
 _MS_SPRITES_PTR
         .BYTE $F6,$F7,$F8,$F9,$FA,$FB,$AC   ;"Commando"
         .BYTE $FF,$FF,$FF                   ;empty
@@ -7193,7 +7193,7 @@ IRQ_C
         LDX SPRITES_SORT_ORDER_TBL + 8
         LDA SPRITES_PREV_Y00,X
         SEC
-        SBC #$04
+        SBC #$02
         CMP $D012
         BCC IRQ_D       ;Jump, too late for IRQ
         STA $D012
@@ -7330,7 +7330,7 @@ IRQ_D   ;$4284
         LDX SPRITES_SORT_ORDER_TBL + 8 + 4
         LDA SPRITES_PREV_Y00,X
         SEC
-        SBC #$04
+        SBC #$02
         CMP $D012
         BCC IRQ_E       ;Too late for IRQ. Jump directly.
         STA $D012       ;Raster Position
