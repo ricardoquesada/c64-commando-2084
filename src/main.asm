@@ -775,7 +775,7 @@ SCREEN_ENTER_HI_SCORE   ;$0C88
         STA V_SCROLL_DELTA
         STA V_SCROLL_BIT_IDX
         STA BKG_COLOR0
-        LDA #$02     ;#%00000010
+        LDA #$02
         STA LEVEL_NR
 
         ; $FB/$FC -> Screen RAM
@@ -1119,7 +1119,7 @@ _L000   STA SPRITES_Y00,X
         DEX
         BPL _L000
 
-        LDX #$00     ;#%00000000
+        LDX #$00
 _L00    LDA _MS_SPRITES_Y,X
         STA SPRITES_Y05,X
         LDA _MS_SPRITES_X_LO,X
@@ -1143,12 +1143,12 @@ _L00    LDA _MS_SPRITES_Y,X
 
         JSR APPLY_DELTA_MOV
         JSR SORT_SPRITES_BY_Y
-        LDA #$00     ;#%00000000
-        STA $D025    ;Sprite Multi-Color Register 0
-        LDA #$07     ;#%00000111
-        STA $D026    ;Sprite Multi-Color Register 1
+        LDA #$00        ;black
+        STA $D025       ;Sprite Multi-Color Register 0
+        LDA #$07        ;yellow
+        STA $D026       ;Sprite Multi-Color Register 1
         JSR PRINT_CREDITS
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_TMP_A01
 
 _L01    LDA #$FF     ;#%11111111
@@ -1168,8 +1168,21 @@ _L02    LDA _2084_PTR,X
         DEX
         BPL _L02
 
+        ; Show our own credits
+        JSR PRINT_CREDITS_2084
+
+_L03    LDA #$FF     ;#%11111111
+        STA COUNTER1
+_WAIT_FIRE2
+        LDA $DC00    ;CIA1: Data Port Register A (main screen - fire)
+        CMP #$6F     ;#%01101111
+        BEQ _END
+        JSR WAIT_RASTER_AT_BOTTOM
+        DEC COUNTER1
+        BNE _WAIT_FIRE2
+
         ; Change background image
-        LDA #$09     ;#%00001001
+        LDA #$09        ;brown
         STA BKG_COLOR0
         LDX SPRITES_TMP_A01
         LDA _SCROLL_IDX,X
@@ -1183,7 +1196,7 @@ _L02    LDA _2084_PTR,X
         LDA SPRITES_TMP_A01
 
         CMP #$08        ;Total number of screens to display
-        BNE _L01        ;FIXME: actually the loop does it one extra time
+        BNE _L03        ;FIXME: actually the loop does it one extra time
                         ; a fixes it in SCREEN_MAIN_TITLE
 
         JMP SCREEN_MAIN_TITLE
@@ -1392,6 +1405,26 @@ CREDITS_TXT         ;$1143
         .BYTE $5B,$6C,$6E,$FF,$FE
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+PRINT_CREDITS_2084
+        LDX #$00
+_L00    LDA CREDITS_2084_TXT,X
+        STA $E028,X
+        LDA CREDITS_2084_TXT+$0100,X
+        STA $E028+$0100,X
+        LDA CREDITS_2084_TXT+$0200,X
+        STA $E028+$0200,X
+        LDA #$01        ;white
+        STA $D828,X
+        STA $D828+$0100,X
+        STA $D828+$0200,X
+        INX
+        BNE _L00
+_L04    RTS
+
+CREDITS_2084_TXT
+        .binary "main-map.bin"
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Prints the "broke area... now rush... " msg
 PRINT_LVL_COMPLETE      ;$1240
         LDA LEVEL_NR
@@ -1438,7 +1471,7 @@ _L01    LDA #$02     ;#%00000010
         STA LEVEL_NR
         JSR CLEANUP_SPRITES
         JSR CLEAR_SCREEN
-        LDA #$00     ;#%00000000
+        LDA #$00        ;black
         STA BKG_COLOR0
 
         ; Print "Broke the NNN area" msg
@@ -6937,29 +6970,29 @@ _L01    STA fDB48,Y
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Setup VIC, plus status bar, scores, sprites, etc.
 SETUP_SCREEN            ;$4067
-        LDA $D011    ;VIC Control Register 1
-        AND #$F7     ;#%11110111        Rows to display = 24
-        STA $D011    ;VIC Control Register 1
-        LDA #$00     ;#%00000000
-        STA $D020    ;Border Color
-        LDA $D016    ;VIC Control Register 2
-        ORA #$10     ;#%00010000        Enable multi color mode
-        STA $D016    ;VIC Control Register 2
-        LDA #$09     ;#%00001001
+        LDA $D011       ;VIC Control Register 1
+        AND #$F7        ;#%11110111        Rows to display = 24
+        STA $D011       ;VIC Control Register 1
+        LDA #$00        ;black
+        STA $D020       ;Border Color
+        LDA $D016       ;VIC Control Register 2
+        ORA #$10        ;#%00010000        Enable multi color mode
+        STA $D016       ;VIC Control Register 2
+        LDA #$09        ;brown
         STA BKG_COLOR0
-        STA $D021    ;Background Color 0
-        STA $D024    ;Background Color 3
-        LDA #$00     ;#%00000000
+        STA $D021       ;Background Color 0
+        STA $D024       ;Background Color 3
+        LDA #$00        ;black
         STA BKG_COLOR1
-        STA $D022    ;Background Color 1, Multi-Color Register 0
-        LDA #$0C     ;#%00001100
+        STA $D022       ;Background Color 1, Multi-Color Register 0
+        LDA #$0C        ;grey
         STA BKG_COLOR2
-        STA $D023    ;Background Color 2, Multi-Color Register 1
+        STA $D023       ;Background Color 2, Multi-Color Register 1
         JSR SET_LEVEL_COLOR_RAM
         JSR LEVEL_DRAW_VIEWPORT
 
         ; set rows 21 and 23 with text and color
-        LDX #$00     ;#%00000000
+        LDX #$00
 _L00    LDA STATUS_BAR_TXT,X
         STA fE348,X  ;row 21
         LDA #$01     ;#%00000001
