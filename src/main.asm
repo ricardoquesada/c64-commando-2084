@@ -25,7 +25,7 @@ TOTAL_FIRE_COOLDOWN = $0F       ;Frames to wait before autofiring again
 ENABLE_DOUBLE_JOYSTICKS = 1     ;
 ENABLE_NEW_SORT_ALGO = 1        ;4x faster
 ENABLE_NEW_IRQ = 0              ;Logic a bit simpler
-ENABLE_NEW_RENDER_VIEWPORT = 1  ;"Faster" viewport render version
+ENABLE_NEW_RENDER_VIEWPORT = 1  ;Slighty faster viewport render version
 INITIAL_LEVEL = 0               ;Default $00. For testing only
 TOTAL_MAX_SPRITES = 16          ;Default 16
 ; Using double joysticks make the game easier. Increase difficulty
@@ -6844,13 +6844,13 @@ _L04
 .ENDIF  ; ENABLE_NEW_SORT_ALGO
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Slight "faster" render-viewport function.
-; In theory it should be much faster, but it is not (?).
+; Slighty faster render-viewport function.
+; It is ~5 raster-line faster than the original one.
 .IF ENABLE_NEW_RENDER_VIEWPORT == 1
 LEVEL_DRAW_VIEWPORT
 ;        DEC $D020
 
-        ; Calculate offset for the 1st three "256 copies".
+        ; Calculate offset
         LDX V_SCROLL_ROW_IDX
         LDA MAP_OFFSET_LO,X
         STA _L00+1
@@ -6912,13 +6912,13 @@ MAP_OFFSET_HI
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Copies "current" map to screen RAM
-; Original version. "Slower" version.
+; Original version. Slighty slower version.
 LEVEL_DRAW_VIEWPORT             ;$3F93
 ;        DEC $D020
         LDA #<pE000  ;Screen RAM low
         STA _L04
         LDA #>pE000  ;Screen RAM hi
-        STA _L05
+        STA _L04+1
         LDA #$00
         STA a00FB
         STA a00FD
@@ -6944,14 +6944,12 @@ LEVEL_DRAW_VIEWPORT             ;$3F93
         ADC a00FD
         CLC
         ADC LVL_MAP_MSB
-        STA _L02
+        STA _L01+1
 
 _L00    LDY #$27     ;Copy entire row (40 chars)
 _L01    =*+$01
-_L02    =*+$02
 _L03    LDA f0000,Y
 _L04    =*+$01
-_L05    =*+$02
         STA f0000,Y
         DEY
         BPL _L03
@@ -6962,7 +6960,7 @@ _L05    =*+$02
         ADC #$28     ;#%00101000
         STA _L01
         BCC _L06
-        INC _L02
+        INC _L01+1
 
         ;Next row destination
 _L06    CLC
@@ -6970,7 +6968,7 @@ _L06    CLC
         ADC #$28     ;#%00101000
         STA _L04
         BCC _L07
-        INC _L05
+        INC _L04+1
 
 _L07    CMP #$48     ;#%01001000
         BNE _L00
