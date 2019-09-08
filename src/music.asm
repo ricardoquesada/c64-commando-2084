@@ -3,6 +3,10 @@
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Not analized. Might be very similar to the one analized here:
 ; http://www.1xn.org/text/C64/rob_hubbards_music.txt
+;
+; FIXME: Music is expected to start at $5000
+;        Will fail otherwise since the tables used here were not converted
+;        to labels.
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Init a song
@@ -96,9 +100,9 @@ b5099   LDA #$00     ;#%00000000
         JMP j538F
 
 b50AA   TAY
-        LDA f5711,Y
+        LDA MUSIC_ADDR_LO,Y
         STA a5F
-        LDA f573E,Y
+        LDA MUSIC_ADDR_HI,Y
         STA a60
         LDA #$00     ;#%00000000
         STA f5520,X
@@ -644,18 +648,24 @@ f56FC   .BYTE $00,$00,$00
 f56FF   .BYTE $6B,$AC,$EC,$57,$57,$57,$68,$72
         .BYTE $74,$58,$58,$58,$7E,$81,$84,$58
         .BYTE $58,$58
-f5711   .BYTE $87,$CD,$E3,$F9,$0F,$25,$3B,$89
+
+        ; FIXME: these are hardcoded addresses. Convert to labels.
+MUSIC_ADDR_LO
+        .BYTE $87,$CD,$E3,$F9,$0F,$25,$3B,$89
         .BYTE $FA,$88,$41,$51,$D2,$67,$7D,$26
         .BYTE $5D,$73,$91,$CD,$F1,$15,$39,$5D
         .BYTE $7D,$9D,$BA,$4A,$78,$91,$AA,$C3
         .BYTE $93,$B4,$D5,$F6,$17,$29,$34,$3D
         .BYTE $5C,$7F,$91,$BA,$E3
-f573E   .BYTE $58,$5C,$5C,$5C,$5D,$5D,$5D,$58
+MUSIC_ADDR_HI
+        .BYTE $58,$5C,$5C,$5C,$5D,$5D,$5D,$58
         .BYTE $58,$59,$59,$5D,$59,$5D,$5D,$5A
         .BYTE $5A,$5A,$5A,$5A,$5A,$5B,$5B,$5B
         .BYTE $5B,$5B,$5B,$5C,$5C,$5C,$5C,$5C
         .BYTE $5D,$5D,$5D,$5D,$5E,$5E,$5E,$5E
-        .BYTE $5E,$5E,$5E,$5E,$5E,$13,$13,$13
+        .BYTE $5E,$5E,$5E,$5E,$5E
+
+        .BYTE $13,$13,$13
         .BYTE $13,$07,$07,$09,$0C,$0C,$10,$10
         .BYTE $10,$10,$0F,$0F,$11,$11,$12,$17
         .BYTE $17,$17,$17,$17,$17,$17,$17,$10
