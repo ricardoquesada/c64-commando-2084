@@ -31,7 +31,7 @@ TOTAL_MAX_SPRITES = 16          ;Default 16
 ; by reducing lives, and incrementing the total enemies in fort
 TOTAL_LIVES = $03               ;BCD. Default 5
 TOTAL_GRENADES = $05            ;BCD. Default 5
-TOTAL_ENEMIES_IN_FORT = $28     ;Default $14
+TOTAL_ENEMIES_IN_FORT = $20     ;Default $14
 
 ;
 ; **** ZP ABSOLUTE ADDRESSES ****
@@ -1217,13 +1217,10 @@ _SCROLL_IDX     ;$1008
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 CHECK_COLLISION       ;$100F
-        LDY #$00     ;#%00000000
+        LDY #$00
 _L00    LDA SPRITES_TYPE05,Y
-        STY a00FB
-        TAY
-        LDA f1074,Y
-        LDY a00FB
-        AND #$01     ;#%00000001
+        TAX
+        LDA f1074,X
         BEQ _L01
 
         LDA SPRITES_X_HI00
@@ -1249,15 +1246,17 @@ _L00    LDA SPRITES_TYPE05,Y
         SBC #$08     ;#%00001000
         CMP SPRITES_Y05,Y
         BCS _L01
+
         LDA #$01     ;Hero was shot
         STA IS_HERO_DEAD
         STA COUNTER1
-        LDA #$04     ;#%00000100
+        LDA #$04        ;Hero dead SFX
         JSR SFX_PLAY
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_X00
         STA SPRITES_DELTA_Y00
         STA V_SCROLL_DELTA
+        RTS
 
 _L01    INY
         CPY #(TOTAL_MAX_SPRITES-5)
@@ -3227,7 +3226,7 @@ _L02    LDA SPRITES_TYPE05,X
         INC a04E7
 _JUMP_LO = *+1
 _JUMP_HI = *+2
-        JSR $0000
+        JSR $FFFF
 
         INX
         CPX #(TOTAL_MAX_SPRITES-5)
@@ -5555,7 +5554,7 @@ _L02    LDA SPRITES_TYPE01,X
         STA _JUMP_HI
 _JUMP_LO =*+1
 _JUMP_HI =*+2
-        JSR $0000
+        JSR $FFFF
         INX
         CPX #$04     ;For sprites 1-5
         BNE _L00

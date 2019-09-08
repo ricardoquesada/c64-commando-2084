@@ -22,6 +22,7 @@ s5006   JMP j5F48
 ; Plays a sound effect
 ; A=sfx to play
 ;  $00 = pick up grenade
+;  $04 = hero dead
 SFX_PLAY
         JMP j5F56
 
