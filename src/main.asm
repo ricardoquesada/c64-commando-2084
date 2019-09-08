@@ -125,7 +125,6 @@ BKG_COLOR2 = $04E4
 COUNTER1 = $04E6
 a04E7 = $04E7
 TRIGGER_ROW_IDX = $04E8         ;If equal to row index, create object
-a04E9 = $04E9                   ;unused
 a04EA = $04EA
 a04EC = $04EC
 a04ED = $04ED
@@ -287,13 +286,12 @@ START                   ;$0883
         STA LEVEL_NR
 
 START_LEVEL          ;$08B8
-        LDA #$A5     ;#%10100101
+        LDA #$A5
         STA V_SCROLL_ROW_IDX
-        LDA #$00     ;Song to play (main theme)
+        LDA #$00            ;Song to play (main theme)
         JSR MUSIC_INIT
 
-        ; Disable music play in IRQ
-        LDA #$00
+        LDA #$00            ;Don't play music on IRQ
         STA IS_PLAY_MUSIC_IN_IRQ
 
         ; Restart after life lost
@@ -315,12 +313,8 @@ GAME_LOOP            ;$08CB
         CMP #$07     ;#%00000111
         BNE _L00
         DEC V_SCROLL_ROW_IDX
-        LDA #$00     ;#%00000000
-        STA a04E9
         JSR APPLY_DELTA_MOV
-        INC a04E9
         JSR LEVEL_DRAW_VIEWPORT
-        INC a04E9
         JMP GAME_LOOP
 
 _L00    INC GAME_TICK
@@ -352,19 +346,21 @@ _L01    LDA SPRITES_Y00
         CMP #$5A
         BNE GAME_LOOP
 
-        ; Music in IRQ now
-        LDA #$01
+        ;
+        ; Level complete
+        ;
+        LDA #$01                    ;Music in IRQ now
         STA IS_PLAY_MUSIC_IN_IRQ
 
         LDA #$14     ;Points won after completing a level
         JSR SCORE_ADD
         LDA LEVEL_NR
-        AND #$03     ;#%00000011
-        CMP #$03     ;#%00000011
+        AND #$03
+        CMP #$03
         BNE _L02
 
         ;Play animation at end of Level 3
-        LDA #$09     ;#%00001001
+        LDA #$09                    ;Fire SFX
         JSR SFX_PLAY
         JSR SET_FORT_ON_FIRE
 
@@ -376,8 +372,8 @@ _L02    LDA #$02     ;Song to play (Level complete)
         ; Since LVL2 was removed from the game, when LVL2 is reached,
         ; the level is changed to LVL3.
         LDA LEVEL_NR
-        AND #$03     ;#%00000011
-        CMP #$02     ;#%00000010
+        AND #$03
+        CMP #$02
         BNE _L03
         INC LEVEL_NR
 
