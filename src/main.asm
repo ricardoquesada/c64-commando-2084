@@ -25,6 +25,7 @@ TOTAL_FIRE_COOLDOWN = $0F       ;Frames to wait before autofiring again
 ENABLE_DOUBLE_JOYSTICKS = 1     ;
 ENABLE_NEW_SORT_ALGO = 1        ;4x faster
 ENABLE_NEW_IRQ = 0              ;Logic a bit simpler
+ENABLE_NEW_RENDER_VIEWPORT = 0  ;Faster viewport rendering
 INITIAL_LEVEL = 0               ;Default $00. For testing only
 TOTAL_MAX_SPRITES = 16          ;Default 16
 ; Using double joysticks make the game easier. Increase difficulty
@@ -110,7 +111,7 @@ a0401 = $0401
 V_SCROLL_BIT_IDX = $0402        ;pixels scrolled vertically: 0-7
 V_SCROLL_ROW_IDX = $0403        ;index to the row in the level: 0 means end of scroll (top of map)
 V_SCROLL_DELTA = $0404          ;How many pixels needs to get scrolled. $0: no scroll needed, $ff: -1 one pixel
-a0405 = $0405
+LVL_MAP_MSB = $0405             ;MSB address for the level map: lvl0=$60, lvl1=$80, lvl3=$a0
 IRQ_ADDR_LO = $0406
 IRQ_ADDR_HI = $0407
 GAME_TICK = $040A               ;Incremented from main loop
@@ -1710,8 +1711,8 @@ INIT_LEVEL_DATA                 ;$1445
         LDA LEVEL_NR
         AND #$03     ;#%00000011
         TAY
-        LDA f3ECE,Y
-        STA a0405
+        LDA f3ECE,Y     ;$6000,$8000,$a000: MSB for each level
+        STA LVL_MAP_MSB
         LDA LEVEL_NR
         AND #$03     ;#%00000011
         ASL A
@@ -1879,7 +1880,7 @@ LEVEL_PATCH_DOOR         ;$15DA
 
         LDA #$0D     ;#%00001101
         STA a00FB
-        LDA a0405
+        LDA LVL_MAP_MSB
         STA a00FC
         LDX #$00     ;#%00000000
 _L00    LDY #$00     ;#%00000000
@@ -2002,7 +2003,7 @@ _L00    STA a00FB
         STA a00FD
         LDA a00FD
         CLC
-        ADC a0405
+        ADC LVL_MAP_MSB
         STA a00FD
         RTS
 
@@ -6734,6 +6735,8 @@ _L02    LDA #$00
         STA GRENADES
 _L03    RTS
 
+        ; MSB of each level:
+        ; lvl0=$6000,lvl1=$8000,...
 f3ECE   .BYTE $60,$80,$80,$A0
 f3ED2   .BYTE $3F,$1F,$0F,$0F,$0F,$0F,$0F,$0F
 f3EDA   .BYTE $13,$3D,$61,$83,$AF
@@ -6840,6 +6843,64 @@ _L04
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Copies "current" map to screen RAM
+.IF ENABLE_NEW_RENDER_VIEWPORT == 1
+LEVEL_DRAW_VIEWPORT             ;$3F93
+        LDX V_SCROLL_ROW_IDX
+
+        ; Calculate offset for the 1st three "256 copies".
+        LDA MAP_OFFSET_LO,X
+        STA _L00+1
+        STA _L01+1
+        STA _L02+1
+        LDA MAP_OFFSET_HI,X
+        ORA LVL_MAP_MSB                 ;no need to "ADC". "ORA" does the trick Ok.
+        STA _L00+2
+        CLC
+        ADC #$01
+        STA _L01+2
+        ADC #$01
+        STA _L02+2
+
+        ; Calculate offset for the remaining 72 chars
+        CLC
+        LDA MAP_OFFSET_LO,X
+        ADC #$48
+        STA _L03+1
+        LDA MAP_OFFSET_HI,X
+        ORA LVL_MAP_MSB                 ;no need to "ADC". "ORA" does the trick Ok.
+        ADC #$02
+        STA _L03+2
+
+        ; Copy 21 rows of map
+        LDY #$00
+_L00    LDA f0000,Y
+        STA $E000,Y
+_L01    LDA f0000,Y
+        STA $E100,Y
+_L02    LDA f0000,Y
+        STA $E200,Y
+_L03    LDA f0000,Y
+        STA $E248,Y
+        INY
+        BNE _L00
+
+        RTS
+
+        ; Addresses to the map.
+MAP_OFFSET_LO
+.FOR I:=0, I<200, I+=1
+        .BYTE <(40*I)
+.NEXT
+
+MAP_OFFSET_HI
+.FOR I:=0, I<200, I+=1
+        .BYTE >(40*I)
+.NEXT
+
+.ELSE   ; ENABLE_NEW_RENDER_VIEWPORT
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Copies "current" map to screen RAM
 LEVEL_DRAW_VIEWPORT             ;$3F93
         LDA #<pE000  ;Screen RAM low
         STA _L04
@@ -6869,7 +6930,7 @@ LEVEL_DRAW_VIEWPORT             ;$3F93
         LDA a00FC
         ADC a00FD
         CLC
-        ADC a0405
+        ADC LVL_MAP_MSB
         STA _L02
 
 _L00    LDY #$27     ;Copy entire row (40 chars)
@@ -6902,10 +6963,11 @@ _L07    CMP #$48     ;#%01001000
         BNE _L00
 
         RTS
+.ENDIF ; ENABLE_NEW_RENDER_VIEWPORT
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Not really a random number generator, but used as one.
-; This function kind of duplicates the value in $0400/$0401
+; Not really a random number generator, but can be thought of one.
+; This function kind of doubles the value in $0400/$0401
 ; This function is used mostly to place certain enemies in a pseudo-random
 ; position.
 GET_RANDOM      ;$4006
