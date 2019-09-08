@@ -785,14 +785,14 @@ SCREEN_ENTER_HI_SCORE   ;$0C88
         ; $FB/$FC -> Screen RAM
         ; $FD/$FE -> Color RAM
         ; Row 3, Column 10
-        LDA #<pE082
-        STA a00FB
-        LDA #>pE082
-        STA a00FC
-        LDA #<pD882
-        STA a00FD
-        LDA #>pD882
-        STA a00FE
+        LDX #<pE082
+        LDY #>pE082
+        STX a00FB
+        STY a00FC
+        LDX #<pD882
+        LDY #>pD882
+        STX a00FD
+        STY a00FE
 
         LDX #$00
 _L00    LDY #$00
@@ -1142,7 +1142,7 @@ _L00    LDA _MS_SPRITES_Y,X
         LDA #$00
         STA SPRITES_BKG_PRI05,X
         INX
-        CPX #7+3        ;total number of sprite "Commando"
+        CPX #7+3        ;total number of sprites: "Commando" + "2084"
         BNE _L00
 
         JSR APPLY_DELTA_MOV
@@ -1314,7 +1314,7 @@ _JUMP_HI =*+2
         TAX
 
         LDY a00FD
-        LDA (p24),Y     ; trigger row
+        LDA (p24),Y     ;trigger row
         SEC
         SBC V_SCROLL_ROW_IDX
         ASL A
@@ -1335,16 +1335,16 @@ _L04    STY TRIGGER_ROW_IDX
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 PRINT_CREDITS       ;$10FC
         ; $FB/$FC -> Screen RAM
-        LDA #<pE029  ;Screen RAM lo
-        STA a00FB
-        LDA #>pE029  ;Screen RAM hi
-        STA a00FC
+        LDX #<pE029  ;Screen RAM lo
+        LDY #>pE029  ;Screen RAM hi
+        STX a00FB
+        STY a00FC
 
         ; $FD/$FE -> Color RAM
-        LDA #<pD829  ;Color RAM lo
-        STA a00FD
-        LDA #>pD829  ;Color RAM hi
-        STA a00FE
+        LDX #<pD829  ;Color RAM lo
+        LDY #>pD829  ;Color RAM hi
+        STX a00FD
+        STY a00FE
 
         LDX #$00     ;#%00000000
 _L00    LDY #$00     ;#%00000000
@@ -2193,15 +2193,16 @@ _L03    LDA SPRITES_TYPE05,X
 
         ; Create the action
 
-_L04    STY a00FD
+_L04    STY a00FD       ;Store current row idx
         LDA (p28),Y
         ASL A
         TAY
+        LDA ACTION_TBL_HI,Y     ;Convert to a "RTI-based" jump table
+        PHA
         LDA ACTION_TBL_LO,Y
-        STA a00FB
-        LDA ACTION_TBL_HI,Y
-        STA a00FC
-        JMP (a00FB)
+        PHA
+        PHP
+        RTI
 
 ACTION_TBL_HI = *+1         ;$1C07
 ACTION_TBL_LO               ;$1C06
@@ -7443,8 +7444,6 @@ MASK_0001_0000   .BYTE $10           ;0001_0000
 MASK_0010_0000   .BYTE $20           ;0010_0000
 MASK_0100_0000   .BYTE $40           ;0100_0000
 MASK_1000_0000   .BYTE $80           ;1000_0000
-
-.include "exodecrunch.asm"
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
         *= $5000
