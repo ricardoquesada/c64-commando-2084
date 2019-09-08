@@ -1287,14 +1287,6 @@ _L00    LDA (p24),Y  ;End of trigger-rows?
         CMP V_SCROLL_ROW_IDX
         BCS _L03
         STY a00FD
-        LDA (p28),Y     ;Object to init
-        ASL A
-        TAY
-
-        LDA ACTION_TBL_LO,Y   ;Prepare jump table for actions
-        STA _JUMP_LO
-        LDA ACTION_TBL_HI,Y
-        STA _JUMP_HI
 
         ; Find empty seat
         LDX #$00
@@ -1307,9 +1299,7 @@ _L01    LDA SPRITES_TYPE05,X
 
 _L02    TXA
         PHA
-_JUMP_LO =*+1
-_JUMP_HI =*+2
-        JSR $0000
+        JSR RUN_ACTION
         PLA
         TAX
 
@@ -2194,46 +2184,45 @@ _L03    LDA SPRITES_TYPE05,X
         ; Create the action
 
 _L04    STY a00FD       ;Store current row idx
+RUN_ACTION
         LDA (p28),Y
         ASL A
         TAY
-        LDA ACTION_TBL_HI,Y     ;Convert to a "RTI-based" jump table
+        LDA ACTION_TBL+1,Y     ;Used as a "RTS-based" jump table
         PHA
-        LDA ACTION_TBL_LO,Y
+        LDA ACTION_TBL,Y
         PHA
-        PHP
-        RTI
+        RTS
 
-ACTION_TBL_HI = *+1         ;$1C07
-ACTION_TBL_LO               ;$1C06
-        .ADDR ACTION_NEW_SOLDIER_BEHIND_TRENCH  ;$00
-        .ADDR ACTION_NEW_JUMPING_SOLDIER_R  ;$01
-        .ADDR ACTION_NEW_JUMPING_SOLDIER_L  ;$02
-        .ADDR ACTION_NEW_MORTAR_ENEMY   ;$03
-        .ADDR ACTION_NEW_BIKE_LVL0      ;$04
-        .ADDR ACTION_NEW_POW_GUARD      ;$05
-        .ADDR ACTION_NEW_POW            ;$06
-        .ADDR ACTION_NEW_GRENADE_BOX    ;$07
-        .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_L    ;$08
-        .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_R    ;$09
-        .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_R_B  ;$0A
-        .ADDR ACTION_OPEN_DOOR          ;$0B
-        .ADDR ACTION_0C                 ;$0C
-        .ADDR ACTION_NEW_BOSS_LVL0      ;$0D
-        .ADDR ACTION_NEW_SOLDIER_IN_TRENCH  ;$0E
-        .ADDR ACTION_NEW_TURRET_CANNON_L    ;$0F
-        .ADDR ACTION_NEW_TURRET_CANNON_R    ;$10
-        .ADDR ACTION_NEW_BAZOOKA_ENEMY_R    ;$11
-        .ADDR ACTION_NEW_BAZOOKA_ENEMY_L    ;$12
-        .ADDR ACTION_NEW_BIKE_LVL1      ;$13
-        .ADDR ACTION_NEW_TRUCK          ;$14
-        .ADDR ACTION_NEW_CART_UP_LVL1   ;$15
-        .ADDR ACTION_NEW_PINK_CAR       ;$16
-        .ADDR ACTION_17                 ;$17
-        .ADDR ACTION_18                 ;$18
-        .ADDR ACTION_NEW_SOLDIER_IN_TOWER   ;$19
-        .ADDR ACTION_1A                 ;$1A
-        .ADDR ACTION_VOID               ;$1B
+ACTION_TBL              ;$1C06
+        .ADDR ACTION_NEW_SOLDIER_BEHIND_TRENCH-1;$00
+        .ADDR ACTION_NEW_JUMPING_SOLDIER_R-1    ;$01
+        .ADDR ACTION_NEW_JUMPING_SOLDIER_L-1    ;$02
+        .ADDR ACTION_NEW_MORTAR_ENEMY-1         ;$03
+        .ADDR ACTION_NEW_BIKE_LVL0-1            ;$04
+        .ADDR ACTION_NEW_POW_GUARD-1            ;$05
+        .ADDR ACTION_NEW_POW-1                  ;$06
+        .ADDR ACTION_NEW_GRENADE_BOX-1          ;$07
+        .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_L-1  ;$08
+        .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_R-1  ;$09
+        .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_R_B-1;$0A
+        .ADDR ACTION_OPEN_DOOR-1                ;$0B
+        .ADDR ACTION_0C-1                       ;$0C
+        .ADDR ACTION_NEW_BOSS_LVL0-1            ;$0D
+        .ADDR ACTION_NEW_SOLDIER_IN_TRENCH-1    ;$0E
+        .ADDR ACTION_NEW_TURRET_CANNON_L-1      ;$0F
+        .ADDR ACTION_NEW_TURRET_CANNON_R-1      ;$10
+        .ADDR ACTION_NEW_BAZOOKA_ENEMY_R-1      ;$11
+        .ADDR ACTION_NEW_BAZOOKA_ENEMY_L-1      ;$12
+        .ADDR ACTION_NEW_BIKE_LVL1-1            ;$13
+        .ADDR ACTION_NEW_TRUCK-1                ;$14
+        .ADDR ACTION_NEW_CART_UP_LVL1-1         ;$15
+        .ADDR ACTION_NEW_PINK_CAR-1             ;$16
+        .ADDR ACTION_17-1                       ;$17
+        .ADDR ACTION_18-1                       ;$18
+        .ADDR ACTION_NEW_SOLDIER_IN_TOWER-1     ;$19
+        .ADDR ACTION_1A-1                       ;$1A
+        .ADDR ACTION_VOID-1                     ;$1B
 
         ; LVL0 data
 LVL0_TRIGGER_ROW_TBL    ;$1C3E
