@@ -1212,7 +1212,7 @@ _MS_SPRITES_X_HI
         .BYTE $00,$00,$00
 _MS_SPRITES_Y
         .BYTE $48,$48,$48,$48,$48,$48,$48
-        .BYTE $76,$76,$76
+        .BYTE $74,$74,$74
 _MS_SPRITES_PTR
         .BYTE $F6,$F7,$F8,$F9,$FA,$FB,$AC   ;"Commando"
         .BYTE $FF,$FF,$FF                   ;empty
