@@ -25,7 +25,7 @@ TOTAL_FIRE_COOLDOWN = $0F       ;Frames to wait before autofiring again
 ENABLE_DOUBLE_JOYSTICKS = 1     ;
 ENABLE_NEW_SORT_ALGO = 1        ;4x faster
 ENABLE_NEW_IRQ = 0              ;Logic a bit simpler
-ENABLE_NEW_RENDER_VIEWPORT = 0  ;Faster viewport rendering
+ENABLE_NEW_RENDER_VIEWPORT = 1  ;"Faster" viewport render version
 INITIAL_LEVEL = 0               ;Default $00. For testing only
 TOTAL_MAX_SPRITES = 16          ;Default 16
 ; Using double joysticks make the game easier. Increase difficulty
@@ -304,7 +304,6 @@ RESTART
         ; Main loop
 GAME_LOOP            ;$08CB
         JSR WAIT_RASTER_AT_BOTTOM
-        JSR MUSIC_PLAY
         LDA V_SCROLL_DELTA
         BEQ _L00
         CLC
@@ -316,9 +315,12 @@ GAME_LOOP            ;$08CB
         DEC V_SCROLL_ROW_IDX
         JSR APPLY_DELTA_MOV
         JSR LEVEL_DRAW_VIEWPORT
+        JSR MUSIC_PLAY
         JMP GAME_LOOP
 
-_L00    INC GAME_TICK
+_L00
+        INC GAME_TICK
+        JSR MUSIC_PLAY
         JSR APPLY_DELTA_MOV
         JSR SORT_SPRITES_BY_Y
         JSR TRY_THROW_GRENADE
@@ -6842,16 +6844,19 @@ _L04
 .ENDIF  ; ENABLE_NEW_SORT_ALGO
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Copies "current" map to screen RAM
+; Slight "faster" render-viewport function.
+; In theory it should be much faster, but it is not (?).
 .IF ENABLE_NEW_RENDER_VIEWPORT == 1
-LEVEL_DRAW_VIEWPORT             ;$3F93
-        LDX V_SCROLL_ROW_IDX
+LEVEL_DRAW_VIEWPORT
+;        DEC $D020
 
         ; Calculate offset for the 1st three "256 copies".
+        LDX V_SCROLL_ROW_IDX
         LDA MAP_OFFSET_LO,X
         STA _L00+1
         STA _L01+1
         STA _L02+1
+        STA _L03+1
         LDA MAP_OFFSET_HI,X
         ORA LVL_MAP_MSB                 ;no need to "ADC". "ORA" does the trick Ok.
         STA _L00+2
@@ -6860,29 +6865,35 @@ LEVEL_DRAW_VIEWPORT             ;$3F93
         STA _L01+2
         ADC #$01
         STA _L02+2
-
-        ; Calculate offset for the remaining 72 chars
-        CLC
-        LDA MAP_OFFSET_LO,X
-        ADC #$48
-        STA _L03+1
-        LDA MAP_OFFSET_HI,X
-        ORA LVL_MAP_MSB                 ;no need to "ADC". "ORA" does the trick Ok.
-        ADC #$02
+        ADC #$01
         STA _L03+2
 
         ; Copy 21 rows of map
+        ; Can't put them in the same "for-loop" since the copy needs to be
+        ; done incrementally to avoid having flickers caused by the raster.
         LDY #$00
 _L00    LDA f0000,Y
         STA $E000,Y
-_L01    LDA f0000,Y
-        STA $E100,Y
-_L02    LDA f0000,Y
-        STA $E200,Y
-_L03    LDA f0000,Y
-        STA $E248,Y
         INY
         BNE _L00
+
+_L01    LDA f0000,Y
+        STA $E100,Y
+        INY
+        BNE _L01
+
+_L02    LDA f0000,Y
+        STA $E200,Y
+        INY
+        BNE _L02
+
+_L03    LDA f0000,Y
+        STA $E300,Y
+        INY
+        CPY #$48
+        BNE _L03
+
+;        INC $D020
 
         RTS
 
@@ -6897,11 +6908,13 @@ MAP_OFFSET_HI
         .BYTE >(40*I)
 .NEXT
 
-.ELSE   ; ENABLE_NEW_RENDER_VIEWPORT
+.ELSE   ; ENABLE_NEW_RENDER_VIEWPORT == 0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Copies "current" map to screen RAM
+; Original version. "Slower" version.
 LEVEL_DRAW_VIEWPORT             ;$3F93
+;        DEC $D020
         LDA #<pE000  ;Screen RAM low
         STA _L04
         LDA #>pE000  ;Screen RAM hi
@@ -6962,8 +6975,9 @@ _L06    CLC
 _L07    CMP #$48     ;#%01001000
         BNE _L00
 
+;        INC $D020
         RTS
-.ENDIF ; ENABLE_NEW_RENDER_VIEWPORT
+.ENDIF      ; ENABLE_NEW_RENDER_VIEWPORT == 0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Not really a random number generator, but can be thought of one.
