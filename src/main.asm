@@ -1212,7 +1212,7 @@ _MS_SPRITES_X_HI
         .BYTE $00,$00,$00
 _MS_SPRITES_Y
         .BYTE $48,$48,$48,$48,$48,$48,$48
-        .BYTE $74,$74,$74
+        .BYTE $76,$76,$76
 _MS_SPRITES_PTR
         .BYTE $F6,$F7,$F8,$F9,$FA,$FB,$AC   ;"Commando"
         .BYTE $FF,$FF,$FF                   ;empty
@@ -7167,7 +7167,7 @@ IRQ_C
         ;STA $D00D
         ;STA $D00F
 
-        DEC $D020
+;        DEC $D020
         ; Set the correct charset for the level
         LDA LEVEL_NR
         AND #$03        ;#%00000011
@@ -7221,7 +7221,7 @@ IRQ_C
         STA $D01B               ;Sprite to Background Display Priority
         .NEXT
 
-        INC $D020
+;        INC $D020
 
         LDX SPRITES_SORT_ORDER_TBL + 8
         LDA SPRITES_PREV_Y00,X
@@ -7258,7 +7258,7 @@ IRQ_C
 
 IRQ_D   ;$4284
 
-        INC $D020
+;        INC $D020
 ;        LDA #$FF
 ;        STA $D001
 ;        STA $D003
@@ -7310,7 +7310,7 @@ IRQ_D   ;$4284
 
         ASL $D019       ;VIC Interrupt Request Register (IRR)
 
-        DEC $D020
+;        DEC $D020
 
         PLA
         TAY
@@ -7325,7 +7325,7 @@ IRQ_D   ;$4284
 
 IRQ_D   ;$4284
 
-        INC $D020
+;        INC $D020
         ; Turn off MSB and sprite-bkg pri for upper 4 sprites.
         ; Each sprite will set it individually in case it is needed
         LDA $D010       ;Sprites 0-7 MSB of X coordinate
@@ -7357,7 +7357,7 @@ IRQ_D   ;$4284
         STA $D01B    ;Sprite to Background Display Priority
         .NEXT
 
-        DEC $D020
+;        DEC $D020
 
         ; Y pos for next raster interrupt based on sprite-12 Y pos
         LDX SPRITES_SORT_ORDER_TBL + 8 + 4
@@ -7397,7 +7397,7 @@ IRQ_E
         ;STA $D005
         ;STA $D007
 
-        DEC $D020
+;        DEC $D020
 
         ; Turn off MSB and sprite-bkg pri for lower 4 sprites.
         ; Each sprite will set it individually in case it is needed
@@ -7443,7 +7443,7 @@ IRQ_E
 
         ASL $D019    ;VIC Interrupt Request Register (IRR)
 
-        INC $D020
+;        INC $D020
 
         PLA
         TAY
