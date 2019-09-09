@@ -1,8 +1,8 @@
-# Commando for the Commodore 64 - decompiled
+# Commando for the Commodore 64 - disassembled
 
 ![commando64](https://lh3.googleusercontent.com/d8wonEvj2mcU2kp2gstEmZNFVUgZ8mGVxNiBTiHPXLiEC2tcs-aavTmsyoUnwm8oFBaqr7gQrHSuhvFl21gXBMDV7MUQmV7Fh7lefMMZVdd1FsDqGL5WxZ4pGp3PvKMk-ptyT123Glo=-no)
 
-This is the decompiled source code for the Commodore 64. It includes:
+This is the disassembled source code for the Commodore 64. It includes:
 
 * Well commented source code. "Easy" to follow (requires some C64 internals
   knowledge).
