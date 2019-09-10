@@ -27,21 +27,31 @@ f4C = $4C
 ; **** ZP ABSOLUTE ADDRESSES ****
 ;
 a01 = $01
+a14 = $14
+a41 = $41
 a5D = $5D
 a5E = $5E
 a5F = $5F
 a60 = $60
 aA5 = $A5
 aAE = $AE
+aD7 = $D7
 aDA = $DA
 ;
 ; **** ZP POINTERS ****
 ;
+p19 = $19                       ;Stores current hero animation, but seems unused
+p1A = $1A
 p22 = $22                       ;sprite to create: X lo
+p23 = $23
 p24 = $24                       ;rows that trigger sprite type init
+p25 = $25
 p26 = $26                       ;sprite to create: X hi
+p27 = $27
 p28 = $28                       ;what sprite type to create at row
+p29 = $29
 p2A = $2A                       ;charset attributes: background priority, collision, etc.
+p2B = $2B
 p5D = $5D
 p5F = $5F
 p83 = $83
@@ -66,27 +76,12 @@ fE3F8 = $E3F8
 ;
 ; **** ABSOLUTE ADDRESSES ****
 ;
-a0014 = $0014
-a0019 = $0019                   ;Stores current hero animation, but seems unused
-a001A = $001A
-a0022 = $0022
-a0023 = $0023
-a0024 = $0024
-a0025 = $0025
-a0026 = $0026
-a0027 = $0027
-a0028 = $0028
-a0029 = $0029
-a002A = $002A
-a002B = $002B
 a003D = $003D
 a003F = $003F
-a0041 = $0041
 SPRITE_IDX_TBL = $004B                   ;$4B-$5A sprite index, used in raster multiplexer
 a00A7 = $00A7
 VIC_SPRITE_IDX = $00A8          ;Index used for sprite pos (e.g: $D000,idx) in raster intr.
 a00C9 = $00C9
-a00D7 = $00D7
 a00F7 = $00F7
 a00F8 = $00F8
 a00FB = $00FB
@@ -1724,29 +1719,29 @@ INIT_LEVEL_DATA                 ;$1445
         ASL A
         TAY
         LDA f14AB,Y
-        STA a0024,b     ;Rows that trigger the creation of sprites
+        STA p24,b     ;Rows that trigger the creation of sprites
         LDA f14AC,Y
-        STA a0025,b
+        STA p25,b
 
         LDA f14A3,Y
-        STA a0022,b     ;X LSB of newly created sprite
+        STA p22,b     ;X LSB of newly created sprite
         LDA f14A4,Y
-        STA a0023,b
+        STA p23,b
 
         LDA f14B3,Y
-        STA a0026,b     ; X MSB of newly created sprite
+        STA p26,b     ; X MSB of newly created sprite
         LDA f14B4,Y
-        STA a0027,b
+        STA p27,b
 
         LDA f14BB,Y
-        STA a0028,b     ;Sprite type to create
+        STA p28,b     ;Sprite type to create
         LDA f14BC,Y
-        STA a0029,b
+        STA p29,b
 
         LDA f14C3,Y
-        STA a002A,b
+        STA p2A,b
         LDA f14C4,Y
-        STA a002B,b
+        STA p2B,b
 
         ; Charsets:
         ; lvl0 = $c000
@@ -4452,9 +4447,9 @@ _L05    JSR GET_RANDOM
         BNE _L09
         JSR GET_RANDOM
         STA TMP_SPRITE_X_LO
-        LDA #<a0028  ;#%00101000
+        LDA #$28
         STA TMP_SPRITE_Y
-        LDA #>a0028  ;#%00000000
+        LDA #$00
         STA TMP_SPRITE_X_HI
         JSR j172F
 
@@ -6222,9 +6217,9 @@ _L08    LDA $DC00    ;CIA1: Data Port Register A (multiple directions)
         LDX #$02     ;Anim index for SOLDIER_ANIM_FRAMES (up-right)
         STX HERO_ANIM_MOV_IDX
         LDA #<HERO_FRAMES_UP_RIGHT  ;#%10111000
-        STA a0019,b
+        STA p19,b
         LDA #>HERO_FRAMES_UP_RIGHT  ;#%00111100
-        STA a001A,b
+        STA p1A,b
         ;FIXME: unintended fallthrough.
         ;       a jump must be placed here
 
@@ -6233,9 +6228,9 @@ _L09    CMP #$75     ;#%01110101        down-right
         LDX #$06     ;Anim index for SOLDIER_ANIM_FRAMES (down-right)
         STX HERO_ANIM_MOV_IDX
         LDA #<HERO_FRAMES_DOWN_RIGHT  ;#%10110000
-        STA a0019,b
+        STA p19,b
         LDA #>HERO_FRAMES_DOWN_RIGHT  ;#%00111100
-        STA a001A,b
+        STA p1A,b
         ;FIXME: unintended fallthrough.
         ;       a jump must be placed here
 
@@ -6244,9 +6239,9 @@ _L10    CMP #$79     ;#%01111001        down-left
         LDX #$0A     ;Anim index for SOLDER_ANIM_FRAMES (down-left)
         STX HERO_ANIM_MOV_IDX
         LDA #<HERO_FRAMES_DOWN_LEFT  ;#%10110100
-        STA a0019,b
+        STA p19,b
         LDA #>HERO_FRAMES_DOWN_LEFT  ;#%00111100
-        STA a001A,b
+        STA p1A,b
         ;FIXME: unintended fallthrough.
         ;       a jump must be placed here
 
@@ -6255,9 +6250,9 @@ _L11    CMP #$7A     ;#%01111010        up-left
         LDX #$0E     ;Anim index for SOLDIER_ANIM_FRAMES (up-left)
         STX HERO_ANIM_MOV_IDX
         LDA #<HERO_FRAMES_UP_LEFT  ;#%10111100
-        STA a0019,b
+        STA p19,b
         LDA #>HERO_FRAMES_UP_LEFT  ;#%00111100
-        STA a001A,b
+        STA p1A,b
 
 _L12    LDA $DC00    ;CIA1: Data Port Register A (in-game direction changed)
         AND #$0F     ;#%00001111
@@ -6684,7 +6679,7 @@ f3EEE   .ADDR f3EDA         ;LVL0
 
         ; Unused (?)
 b3EF6   LDX #$00     ;#%00000000
-        STX a00D7,b
+        STX aD7,b
 b3EFB   LDY SPRITE_IDX_TBL + 1,b,X
         LDA SPRITES_Y00,Y
         LDY SPRITE_IDX_TBL,b,X
@@ -6695,24 +6690,24 @@ b3EFB   LDY SPRITE_IDX_TBL + 1,b,X
         STA SPRITE_IDX_TBL,b,X
         STY f4C,X
         LDA #$01     ;#%00000001
-        STA a00D7,b
+        STA aD7,b
 b3F19   INX
         CPX #$0F     ;#%00001111
         BNE b3EFB
-        LDA a00D7,b
+        LDA aD7,b
         BNE b3EF6
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 SORT_SPRITES_BY_Y       ;$3F24
         LDA #$0F        ;#%00001111
-        STA a0014,b
-        STA a00D7,b
-_L00    LSR a0014,b
+        STA a14,b
+        STA aD7,b
+_L00    LSR a14,b
         BEQ _L04
-        LDA a00D7,b
+        LDA aD7,b
         SEC
-        SBC a0014,b
+        SBC a14,b
         STA a00C9,b
         LDA #$00     ;#%00000000
         STA a003D,b
@@ -6720,9 +6715,9 @@ _L01    LDA a003D,b
         STA a003F,b
 _L02    LDA a003F,b
         CLC
-        ADC a0014,b
-        STA a0041,b
-        LDX a0041,b
+        ADC a14,b
+        STA a41,b
+        LDX a41,b
         LDY SPRITE_IDX_TBL,b,X
         LDA SPRITES_Y00,Y
         LDX a003F,b
@@ -6730,7 +6725,7 @@ _L02    LDA a003F,b
         CMP SPRITES_Y00,Y
         BCS _L03
         LDX a003F,b
-        LDY a0041,b
+        LDY a41,b
         LDA SPRITE_IDX_TBL,Y
         PHA
         LDA SPRITE_IDX_TBL,b,X
@@ -6739,7 +6734,7 @@ _L02    LDA a003F,b
         STA SPRITE_IDX_TBL,b,X
         LDA a003F,b
         SEC
-        SBC a0014,b
+        SBC a14,b
         STA a003F,b
         BPL _L02
 _L03    INC a003D,b
