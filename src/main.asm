@@ -1580,6 +1580,8 @@ SCORE_ADD
         ADC SCORE_LSB
         STA SCORE_LSB
         BCC _L00
+
+        ; Lives +=1 every 10000 points
         LDA SCORE_MSB
         CLC
         ADC #$01     ;#%00000001
