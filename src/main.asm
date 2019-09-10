@@ -48,10 +48,15 @@ aAE = $AE
 ; **** ZP POINTERS ****
 ;
 p22 = $22                       ;sprite to create: X lo
+p23 = $23
 p24 = $24                       ;rows that trigger sprite type init
+p25 = $25
 p26 = $26                       ;sprite to create: X hi
+p27 = $27
 p28 = $28                       ;what sprite type to create at row
+p29 = $29
 p2A = $2A                       ;charset attributes: background priority, collision, etc.
+p2B = $2B
 p5D = $5D                       ;used by music
 p5F = $5F                       ;used by music
 pF7 = $F7
@@ -80,16 +85,6 @@ IS_PLAY_MUSIC_IN_IRQ = $0012    ;Play music inside IRQ? 1=Yes
 a0014 = $0014
 a0019 = $0019                   ;Stores current hero animation, but seems unused
 a001A = $001A
-a0022 = $0022
-a0023 = $0023
-a0024 = $0024
-a0025 = $0025
-a0026 = $0026
-a0027 = $0027
-a0028 = $0028
-a0029 = $0029
-a002A = $002A
-a002B = $002B
 a003D = $003D
 a003F = $003F
 a0041 = $0041
@@ -1720,29 +1715,29 @@ INIT_LEVEL_DATA                 ;$1445
         ASL A
         TAY
         LDA f14AB,Y
-        STA a0024     ;Rows that trigger the creation of sprites
+        STA p24     ;Rows that trigger the creation of sprites
         LDA f14AC,Y
-        STA a0025
+        STA p25
 
         LDA f14A3,Y
-        STA a0022     ;X LSB of newly created sprite
+        STA p22     ;X LSB of newly created sprite
         LDA f14A4,Y
-        STA a0023
+        STA p23
 
         LDA f14B3,Y
-        STA a0026     ; X MSB of newly created sprite
+        STA p26     ; X MSB of newly created sprite
         LDA f14B4,Y
-        STA a0027
+        STA p27
 
         LDA f14BB,Y
-        STA a0028     ;Sprite type to create
+        STA p28     ;Sprite type to create
         LDA f14BC,Y
-        STA a0029
+        STA p29
 
         LDA f14C3,Y
-        STA a002A
+        STA p2A
         LDA f14C4,Y
-        STA a002B
+        STA p2B
 
         ; Charsets:
         ; lvl0 = $c000
@@ -4387,9 +4382,9 @@ _L05    JSR GET_RANDOM
         BNE _L09
         JSR GET_RANDOM
         STA TMP_SPRITE_X_LO
-        LDA #<a0028  ;#%00101000
+        LDA #$28
         STA TMP_SPRITE_Y
-        LDA #>a0028  ;#%00000000
+        LDA #$00
         STA TMP_SPRITE_X_HI
         JSR j172F
 
