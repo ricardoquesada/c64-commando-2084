@@ -35,5 +35,5 @@ runsc: d64
 
 clean:
 	-rm $(D64_IMAGE)
-	-rm bin/*.prg bin/*.txt
+	-rm bin/*.prg bin/*.txt bin/*.d64
 	-rm src/main-charset_sprites-2084.bin
