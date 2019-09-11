@@ -9,7 +9,7 @@ C1541 = c1541
 all: clean d64 run
 
 main-charset_sprites-2084.bin: res/sprites-2084.bin res/main-charset.bin
-	dd if=res/main-charset.bin of=res/charset-half.bin bs=1 count=1472
+	dd if=res/main-charset.bin of=res/charset-half.bin bs=1 count=1408
 	cat res/charset-half.bin res/sprites-2084.bin > src/main-charset_sprites-2084.bin
 
 commando.prg: src/main.asm src/music.asm \

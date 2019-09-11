@@ -643,17 +643,17 @@ _L00    STA a00FB
 ; Sets up the hero and sight sprite, and cleans up name and other vars
 HISCORE_SETUP_SPRITES   ;$0B94
         ; Sight sprite
-        LDA #$64     ;#%01100100
-        AND #$F0     ;#%11110000
+        LDA #$64            ;#%01100100
+        AND #$F0            ;#%11110000
         STA SPRITES_X_LO05
-        LDA #$64     ;#%01100100
-        AND #$F0     ;#%11110000
+        LDA #$64            ;#%01100100
+        AND #$F0            ;#%11110000
         STA SPRITES_Y05
         LDA #$00
         STA SPRITES_X_HI05
-        LDA #$41     ;sight sprite
+        LDA #$56            ;sight sprite
         STA SPRITES_PTR05
-        LDA #$02     ;red
+        LDA #$02            ;red
         STA SPRITES_COLOR05
         LDA #$FF
         STA SPRITES_BKG_PRI05
@@ -667,9 +667,9 @@ HISCORE_SETUP_SPRITES   ;$0B94
         STA SPRITES_Y00
         LDA #$00
         STA SPRITES_X_HI00
-        LDA #$98     ;Hero going up
+        LDA #$98            ;Hero going up
         STA SPRITES_PTR00
-        LDA #$06     ;blue
+        LDA #$06            ;blue
         STA SPRITES_COLOR00
         LDA #$00
         STA SPRITES_BKG_PRI00
@@ -1270,13 +1270,19 @@ _L01    INY
         BNE _L00
         RTS
 
-        ; Sprite types that can collide with hero. Starts at $05
-        ; Flagged types: $0A,$0D,$0F,$11,$1A,$1C-$20,$24-$2A
-f1074   .BYTE $00,$00,$00,$00,$00,$01,$00,$00
-        .BYTE $01,$00,$01,$00,$01,$00,$00,$00
-        .BYTE $00,$00,$00,$00,$00,$01,$00,$01
-        .BYTE $01,$01,$01,$01,$00,$00,$00,$01
-        .BYTE $01,$01,$01,$01,$01,$01,$00
+        ; Sprite types that can collide with hero.
+        ; Flagged types:
+        ; anim_type_05, anim_type_08, anim_type_0A, anim_type_0C,
+        ; anim_type_15, anim_type_17, anim_type_18, anim_type_19,
+        ; anim_type_1A, anim_type_1B, anim_type_1F, anim_type_20,
+        ; anim_type_21, anim_type_22, anim_type_23, anim_type_24,
+        ; anim_type_25, anim_type_27, anim_type_29, anim_type_2A,
+f1074   .BYTE $00,$00,$00,$00,$00,$01,$00,$00   ;$00-$07
+        .BYTE $01,$00,$01,$00,$01,$00,$00,$00   ;$08-$0F
+        .BYTE $00,$00,$00,$00,$00,$01,$00,$01   ;$10-$17
+        .BYTE $01,$01,$01,$01,$00,$00,$00,$01   ;$18-$1F
+        .BYTE $01,$01,$01,$01,$01,$01,$00,$01   ;$20-$27
+        .BYTE $00,$01,$01                       ;$28-$2A
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Re-execute actions based on the row index. Called when the level is restarted.
@@ -2214,7 +2220,9 @@ ACTION_TBL              ;$1C06
         .ADDR ACTION_NEW_SOLDIER_IN_TOWER-1     ;$19
         .ADDR ACTION_1A-1                       ;$1A
         .ADDR ACTION_VOID-1                     ;$1B
-        .ADDR ACTION_NEW_2084_NPC-1             ;$1C
+        ; 2084 additition
+        .ADDR ACTION_NEW_BOSS_LVL1-1            ;$1C
+        .ADDR ACTION_NEW_BOSS_LVL3-1            ;$1D
 
         ; LVL0 data
 LVL0_TRIGGER_ROW_TBL    ;$1C3E
@@ -2249,22 +2257,25 @@ LVL1_TRIGGER_ROW_TBL    ;$1CDF
         .BYTE $93,$8C,$8C,$8A,$88,$83,$7B,$7B
         .BYTE $7B,$74,$70,$68,$61,$5E,$52,$51
         .BYTE $46,$3D,$3D,$3A,$29,$1B,$01,$00
-        .BYTE $FF
+        .BYTE $00,$FF
 LVL1_SPRITE_X_LO_TBL    ;$1D00
         .BYTE $00,$32,$00,$DC,$0A,$00,$3C,$5A
         .BYTE $F0,$96,$B4,$28,$32,$32,$D2,$F0
         .BYTE $14,$32,$C8,$00,$50,$50,$00,$00
         .BYTE $C8,$6E,$00,$00,$00,$00,$00,$00
+        .BYTE $00
 LVL1_SPRITE_X_HI_TBL    ;$1D20
         .BYTE $00,$00,$00,$00,$FF,$00,$00,$00
         .BYTE $00,$00,$00,$FF,$FF,$00,$00,$00
         .BYTE $FF,$00,$00,$00,$63,$63,$00,$00
         .BYTE $00,$3F,$00,$00,$00,$00,$00,$00
+        .BYTE $00
 LVL1_ACTION_TBL         ;$1D40
         .BYTE $15,$07,$0E,$16,$0E,$13,$0E,$0E
         .BYTE $0E,$0E,$0E,$07,$0E,$0E,$0E,$0E
         .BYTE $0E,$0E,$07,$0C,$08,$09,$12,$11
-        .BYTE $0E,$09,$0F,$0C,$10,$0F,$0B,$1B
+        .BYTE $0E,$09,$0F,$0C,$10,$0F,$0B,$1C
+        .BYTE $1B
 
         ; LVL3 data
 LVL3_TRIGGER_ROW_TBL    ;$1DC5
@@ -2272,25 +2283,25 @@ LVL3_TRIGGER_ROW_TBL    ;$1DC5
         .BYTE $77,$74,$73,$61,$60,$5D,$58,$53
         .BYTE $50,$4E,$4C,$43,$3E,$3B,$3A,$26
         .BYTE $24,$1E,$1C,$18,$16,$0A,$0A,$02
-        .BYTE $02,$00,$FF
+        .BYTE $02,$00,$00,$FF
 LVL3_SPRITE_X_LO_TBL    ;$1DE8
         .BYTE $00,$00,$00,$00,$00,$28,$41,$50
         .BYTE $00,$00,$00,$00,$00,$00,$00,$00
         .BYTE $00,$00,$1E,$32,$00,$00,$00,$00
         .BYTE $00,$00,$1E,$00,$00,$47,$1E,$78
-        .BYTE $E6,$00
+        .BYTE $E6,$00,$00
 LVL3_SPRITE_X_HI_TBL    ;$1E0A
         .BYTE $00,$00,$00,$00,$00,$00,$00,$00
         .BYTE $00,$00,$00,$00,$00,$00,$00,$00
         .BYTE $00,$00,$FF,$FF,$00,$00,$00,$00
         .BYTE $00,$00,$FF,$00,$00,$00,$FF,$00
-        .BYTE $00,$00
+        .BYTE $00,$00,$00
 LVL3_ACTION_TBL         ;$1E2C
         .BYTE $12,$11,$12,$12,$11,$00,$00,$07
         .BYTE $13,$11,$12,$13,$12,$14,$14,$11
         .BYTE $12,$12,$07,$19,$11,$12,$11,$12
         .BYTE $12,$12,$07,$11,$11,$00,$00,$00
-        .BYTE $00,$1B
+        .BYTE $00,$1D,$1B
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_1B
@@ -3077,8 +3088,8 @@ ACTION_0C       ;$23CC
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: action_1C
-; Creates a "2084" NPC. If you kill it, you loose a life.
-ACTION_NEW_2084_NPC
+; Creates boss for lvl1 (2084 addition)
+ACTION_NEW_BOSS_LVL1
         LDA #$A0
         STA SPRITES_X_LO05,X
         LDA #$50
@@ -3088,18 +3099,52 @@ ACTION_NEW_2084_NPC
         LDA #$08
         STA SPRITES_TMP_A05,X
         STA SPRITES_TMP_B05,X
-        LDA #$B9    ;boss l1 frame
+        LDA #$5A        ;robot frame #0
         STA SPRITES_PTR05,X
-        LDA #$05     ;green
+        LDA #$05        ;green
         STA SPRITES_COLOR05,X
         LDA #$00
         STA SPRITES_X_HI05,X
         JSR GET_RANDOM
-        AND #$1F     ;#%00011111
+        AND #$1F        ;#%00011111
         STA SPRITES_TMP_C05,X
         LDA #$00
         STA SPRITES_BKG_PRI05,X
-        LDA #$1A    ;anim_type_1A: boss l1
+        LDA #$29        ;anim_type_29: boss lvl1
+        STA SPRITES_TYPE05,X
+        JSR GET_RANDOM
+        AND #$01
+        ASL A
+        SEC
+        SBC #$01
+        STA SPRITES_DELTA_X05,X
+        RTS
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_1D
+; Creates boss for lvl3 (2084 addition)
+ACTION_NEW_BOSS_LVL3
+        LDA #$A0
+        STA SPRITES_X_LO05,X
+        LDA #$50
+        STA SPRITES_Y05,X
+        LDA #$01
+        STA SPRITES_DELTA_Y05,X
+        LDA #$08
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
+        LDA #$5C        ;brain frame #0
+        STA SPRITES_PTR05,X
+        LDA #$04        ;purple
+        STA SPRITES_COLOR05,X
+        LDA #$00
+        STA SPRITES_X_HI05,X
+        JSR GET_RANDOM
+        AND #$1F        ;#%00011111
+        STA SPRITES_TMP_C05,X
+        LDA #$00
+        STA SPRITES_BKG_PRI05,X
+        LDA #$2A        ;anim_type_2A: boss lvl3
         STA SPRITES_TYPE05,X
         JSR GET_RANDOM
         AND #$01
@@ -3135,8 +3180,13 @@ _L00    LDA #$1D        ;anim_type_1D: soldier in trench die
 
 _L01    LDA SPRITES_TYPE05,Y
         CMP #$1A        ;anim_type_1A: boss lvl0
+        BEQ _IS_BOSS
+        CMP #$29        ;anim_type_29: boss lvl1
+        BEQ _IS_BOSS
+        CMP #$2A        ;anim_type_2A: boss lvl3
         BNE _L02
 
+_IS_BOSS
         LDA #$BC        ;"2000" sprite frame
         STA SPRITES_PTR05,Y
         LDA #$01        ;white
@@ -3287,22 +3337,27 @@ TYPE_ANIM_TBL_LO
         .ADDR TYPE_ANIM_26                      ;$26
         .ADDR TYPE_ANIM_TOWER_FIRE_LVL3         ;$27
         .ADDR TYPE_ANIM_28                      ;$28
+        ; "2084" additions
+        .ADDR TYPE_ANIM_BOSS_LVL1               ;$29
+        .ADDR TYPE_ANIM_BOSS_LVL3               ;$2A
 
-f2544   .BYTE $00,$00,$00,$00,$00,$03,$00,$02
-        .BYTE $00,$00,$03,$00,$00,$02,$00,$00
-        .BYTE $00,$01,$00,$00,$00,$03,$00,$03
-        .BYTE $03,$03,$03,$03,$02,$00,$02,$00
-        .BYTE $03,$00,$00,$02,$02,$00,$00,$02
-        .BYTE $02
+        ; Flags: bit0: bullet can kill it
+        ;        bit1: grenade can kill it
+f2544   .BYTE $00,$00,$00,$00,$00,$03,$00,$02   ;$00-$07
+        .BYTE $00,$00,$03,$00,$00,$02,$00,$00   ;$08-$0F
+        .BYTE $00,$01,$00,$00,$00,$03,$00,$03   ;$10-$17
+        .BYTE $03,$03,$03,$03,$02,$00,$02,$00   ;$18-$1F
+        .BYTE $03,$00,$00,$02,$02,$00,$00,$02   ;$20-$27
+        .BYTE $02,$03,$03                       ;$28-$2A
 
         ; Points to score for each sprite type killed
 POINTS_TBL      ;$256D
-        .BYTE $00,$00,$00,$00,$00,$03,$00,$03
-        .BYTE $00,$00,$03,$00,$00,$05,$00,$00
-        .BYTE $00,$0A,$00,$00,$00,$03,$00,$03
-        .BYTE $03,$03,$14,$03,$02,$00,$0A,$00
-        .BYTE $05,$00,$00,$0A,$0A,$00,$00,$05
-        .BYTE $05
+        .BYTE $00,$00,$00,$00,$00,$03,$00,$03   ;$00-$07
+        .BYTE $00,$00,$03,$00,$00,$05,$00,$00   ;$08-$0F
+        .BYTE $00,$0A,$00,$00,$00,$03,$00,$03   ;$10-$17
+        .BYTE $03,$03,$14,$03,$02,$00,$0A,$00   ;$18-$1F
+        .BYTE $05,$00,$00,$0A,$0A,$00,$00,$05   ;$20-$27
+        .BYTE $05,$14,$14                       ;$28-$2A
 
 f2596   ;Label used in self-modifying code
         ; By default points to incorrect place.
@@ -3834,7 +3889,7 @@ _L00    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_1A
-; Animation for Level 1 Boss
+; Animation for boss LVL0
 TYPE_ANIM_BOSS_LVL0     ;$2924
         JSR UPDATE_ENEMY_PATH
         JSR s28D8
@@ -3849,7 +3904,7 @@ TYPE_ANIM_BOSS_LVL0     ;$2924
         LSR A
         LSR A
         TAY
-        LDA FRAME_BOSS1_LEFT,Y
+        LDA FRAME_BOSS0_LEFT,Y
         STA SPRITES_PTR05,X
         RTS
 
@@ -3860,14 +3915,58 @@ _L00    LDA GAME_TICK
         LSR A
         LSR A
         TAY
-        LDA FRAME_BOSS1_RIGHT,Y
+        LDA FRAME_BOSS0_RIGHT,Y
         STA SPRITES_PTR05,X
         RTS
 
-FRAME_BOSS1_RIGHT       ;$2952
+FRAME_BOSS0_RIGHT       ;$2952
         .BYTE $B9,$BA
-FRAME_BOSS1_LEFT        ;$2954
+FRAME_BOSS0_LEFT        ;$2954
         .BYTE $EF,$F0
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: anim_type_29
+; Animation for boss LVL1 (2084 addition)
+TYPE_ANIM_BOSS_LVL1
+        JSR UPDATE_ENEMY_PATH
+        JSR s28D8
+        JSR UPDATE_ENEMY_BKG_PRI
+
+        ; Animate sprite
+_L00    LDA GAME_TICK
+        AND #$08     ;#%00001000
+        LSR A
+        LSR A
+        LSR A
+        TAY
+        LDA FRAME_BOSS1,Y
+        STA SPRITES_PTR05,X
+        RTS
+
+FRAME_BOSS1
+        .BYTE $5A,$5B
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: anim_type_2A
+; Animation for boss LVL3 (2084 addition)
+TYPE_ANIM_BOSS_LVL3
+        JSR UPDATE_ENEMY_PATH
+        JSR s28D8
+        JSR UPDATE_ENEMY_BKG_PRI
+
+        ; Animate sprite
+_L00    LDA GAME_TICK
+        AND #$18     ;#%00011000
+        LSR A
+        LSR A
+        LSR A
+        TAY
+        LDA FRAME_BOSS3,Y
+        STA SPRITES_PTR05,X
+        RTS
+
+FRAME_BOSS3
+        .BYTE $5C,$5D,$5E,$5F
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_19
@@ -5694,6 +5793,8 @@ b3741   LDA SPRITES_TYPE05,Y
         LDY a00FB
         AND #$02     ;#%00000010
         BEQ b3793
+
+        ; Collision between enemy and grenade
         LDA SPRITES_X_HI01,X
         CMP SPRITES_X_HI05,Y
         BNE b3793
@@ -5939,6 +6040,8 @@ _L01    LDA SPRITES_TYPE05,Y
         LDY a00FB
         AND #$01
         BEQ _L02
+
+        ; Is there collision between enemy and bullet?
         LDA SPRITES_X_HI01,X
         CMP SPRITES_X_HI05,Y
         BNE _L02
@@ -5964,6 +6067,7 @@ _L01    LDA SPRITES_TYPE05,Y
         BCS _L02
         JSR DIE_ANIM_AND_SCORE
         JSR CLEANUP_HERO_SPRITE
+
 _L02    INY
         CPY #(TOTAL_MAX_SPRITES-5)
         BNE _L01
