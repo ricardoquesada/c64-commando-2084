@@ -1215,7 +1215,7 @@ _MS_SPRITES_PTR
         .BYTE $F6,$F7,$F8,$F9,$FA,$FB,$AC   ;"Commando"
         .BYTE $FF,$FF,$FF                   ;empty
 _2084_PTR
-        .BYTE $54,$55,$56                   ;"2084"
+        .BYTE $57,$58,$59                   ;"2084"
 
 _LEVEL_IDX      ;$1001
         .BYTE $00,$00,$01,$01,$03,$03,$03
@@ -4224,19 +4224,19 @@ _L07    RTS
 TYPE_ANIM_MORTAR_ENEMY  ;$2BDF
         INC SPRITES_TMP_C05,X
         LDA a04EA
-        BEQ _L2
+        BEQ _L02
 
         LDA SPRITES_TMP_C05,X
         AND #$1F        ;#%00011111
         CMP #$03        ;#%00000011
-        BNE _L0
+        BNE _L00
         LDA #$CF        ;Mortar guy #2
         STA SPRITES_PTR05,X
-_L0     CMP #$0F        ;#%00001111
-        BNE _L1
+_L00    CMP #$0F        ;#%00001111
+        BNE _L01
         LDA #$CE        ;Mortar guy #1
         STA SPRITES_PTR05,X
-_L1     CMP #$14        ;#%00010100
+_L01    CMP #$14        ;#%00010100
         BNE _L02
         LDA #$CD        ;Mortar guy #0
         STA SPRITES_PTR05,X
@@ -7541,7 +7541,9 @@ MASK_1000_0000   .BYTE $80           ;1000_0000
 .binary "l1-charset.bin"
 
         *= $d000
-.binary "main-charset.bin"
+        ; 0-1471: original charset + orginal sight sprite
+        ; 1472-2047: 2084 sprites
+.binary "main-charset_sprites-2084.bin"
 
         *= $D800
 .binary "l3-charset.bin"

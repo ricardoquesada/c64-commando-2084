@@ -1,4 +1,4 @@
-.INTERMEDIATE: commando.prg commando.exo
+.INTERMEDIATE: commando.prg commando.exo main-charset_sprites-2084.bin
 .PHONY: all clean run
 
 D64_IMAGE = "bin/commando-2084.d64"
@@ -8,11 +8,15 @@ C1541 = c1541
 
 all: clean d64 run
 
+main-charset_sprites-2084.bin: res/sprites-2084.bin res/main-charset.bin
+	dd if=res/main-charset.bin of=res/charset-half.bin bs=1 count=1472
+	cat res/charset-half.bin res/sprites-2084.bin > src/main-charset_sprites-2084.bin
+
 commando.prg: src/main.asm src/music.asm \
 		src/l0-charset.bin src/l1-charset.bin src/l3-charset.bin \
 		src/l0-map.bin src/l1-map.bin src/l3-map.bin \
-		src/main-charset.bin src/main-map.bin \
-		src/sprites.bin
+		src/main-map.bin src/sprites.bin \
+		main-charset_sprites-2084.bin
 	64tass -Wall -Werror --cbm-prg -o bin/commando.prg -L bin/list.txt -l bin/labels.txt --vice-labels src/main.asm
 
 commando.exo: commando.prg
@@ -32,3 +36,4 @@ runsc: d64
 clean:
 	-rm $(D64_IMAGE)
 	-rm bin/*.prg bin/*.txt
+	-rm src/main-charset_sprites-2084.bin
