@@ -221,6 +221,22 @@ pE000 = $E000
 pE029 = $E029
 pE082 = $E082
 
+;
+; **** MACROS ****
+;
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Waits until raster reaches $d5 vertical position
+; triggered by IRQ_A
+WAIT_RASTER_AT_BOTTOM   .MACRO   
+        LDA RASTER_TICK
+_L00    CMP RASTER_TICK
+        BEQ _L00
+        .ENDM
+
+;
+; **** CODE ****
+;
+
         *= $0801
         .word (+), 2019                 ;pointer, line number
         .null $9e, format("%d", BOOT)   ;will be sys BOOT
@@ -298,7 +314,7 @@ RESTART
 
         ; Main loop
 GAME_LOOP            ;$08CB
-        JSR WAIT_RASTER_AT_BOTTOM
+        #WAIT_RASTER_AT_BOTTOM
         LDA V_SCROLL_DELTA
         BEQ _L00
         CLC
@@ -512,7 +528,7 @@ _L07    JSR CLEANUP_SPRITES
 _L08    LDA $DC00    ;CIA1: Data Port Register A  (fire in Game Over scene)
         CMP #$6F     ;#%01101111
         BEQ _L09
-        JSR WAIT_RASTER_AT_BOTTOM
+        #WAIT_RASTER_AT_BOTTOM
         DEC COUNTER1
         BNE _L08
 _L09    JMP START
@@ -815,7 +831,7 @@ _L03    JMP _L00
 
 _L04    JSR HISCORE_SETUP_SPRITES
 
-_L05    JSR WAIT_RASTER_AT_BOTTOM
+_L05    #WAIT_RASTER_AT_BOTTOM
         JSR HISCORE_READ_JOY_MOV
         JSR HISCORE_READ_JOY_FIRE
         JSR HISCORE_ANIM_CHAR
@@ -1155,7 +1171,7 @@ _WAIT_FIRE
         LDA $DC00    ;CIA1: Data Port Register A (main screen - fire)
         CMP #$6F     ;#%01101111
         BEQ _END
-        JSR WAIT_RASTER_AT_BOTTOM
+        #WAIT_RASTER_AT_BOTTOM
         DEC COUNTER1
         BNE _WAIT_FIRE
 
@@ -1175,7 +1191,7 @@ _WAIT_FIRE2
         LDA $DC00    ;CIA1: Data Port Register A (main screen - fire)
         CMP #$6F     ;#%01101111
         BEQ _END
-        JSR WAIT_RASTER_AT_BOTTOM
+        #WAIT_RASTER_AT_BOTTOM
         DEC COUNTER1
         BNE _WAIT_FIRE2
 
@@ -1562,7 +1578,7 @@ _L00    LDA #$20     ;space
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Y = number of frames to wait
 DELAY   ;$1366
-        JSR WAIT_RASTER_AT_BOTTOM
+        #WAIT_RASTER_AT_BOTTOM
         DEY
         BPL DELAY
         RTS
@@ -6624,7 +6640,7 @@ _L03    INX
         CPX #$0B     ;#%00001011
         BNE _L02
 
-        JSR WAIT_RASTER_AT_BOTTOM
+        #WAIT_RASTER_AT_BOTTOM
         DEC COUNTER1
         BNE _L01
         RTS
@@ -6952,7 +6968,7 @@ _L04
 ; It is ~5 raster-line faster than the original one.
 .IF ENABLE_NEW_RENDER_VIEWPORT == 1
 LEVEL_DRAW_VIEWPORT
-;        DEC $D020
+        DEC $D020
 
         ; Calculate offset
         LDX V_SCROLL_ROW_IDX
@@ -6997,7 +7013,7 @@ _L03    LDA f0000,Y
         CPY #$48
         BNE _L03
 
-;        INC $D020
+        INC $D020
 
         RTS
 
@@ -7106,15 +7122,6 @@ INIT_RANDOM     ;$401D
         ASL A
         STA a0401
         BEQ INIT_RANDOM
-        RTS
-
-;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Waits until raster reaches $d5 vertical position
-; triggered by IRQ_A
-WAIT_RASTER_AT_BOTTOM   ;$402A
-        LDA RASTER_TICK
-_L00    CMP RASTER_TICK
-        BEQ _L00
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -7239,21 +7246,11 @@ IRQ_A   NOP
         NOP
         NOP
         NOP
-        LDA $D011    ;VIC Control Register 1
-        ORA #$60     ;#%01100000    Extended Color = 1, Bitmap = 1
-        STA $D011    ;VIC Control Register 1
-
-        ; FIXME: Really needed. Remove?
-        ; Sprites 0,1,2,3 points to spr $ff (empty sprite)
-;        LDA #$FF
-;        STA fE3F8 + 0
-;        STA fE3F8 + 1
-;        STA fE3F8 + 2
-;        STA fE3F8 + 3
 
         LDA $D011    ;VIC Control Register 1
         AND #$F8     ;#%11111000
-        ORA #$07     ;#%00000111    Scroll Y position to 7
+        ORA #$67     ;#%00000111    Scroll Y position to 7
+                     ;#%01100000    Extended Color = 1, Bitmap = 1
         STA $D011    ;VIC Control Register 1
 
         LDA #$00     ;#%00000000
@@ -7275,10 +7272,10 @@ IRQ_A   NOP
         AND #$7F        ;#%01111111    Raster MSB=0
         STA $D011       ;VIC Control Register 1
 
-        LDA #<IRQ_B
-        STA $0314
-        LDA #>IRQ_B
-        STA $0315
+        LDX #<IRQ_B
+        LDY #>IRQ_B
+        STX $0314
+        STY $0315
 
         ASL $D019    ;VIC Interrupt Request Register (IRR)
 
@@ -7305,12 +7302,13 @@ IRQ_B   NOP
         LDA #$02     ;red
         STA $D023    ;Background Color 2, Multi-Color Register 1
 
-        ; Don't play music in IRQ while in game.
+        ; Hack: Don't play music in IRQ while in game.
+        ; In theory all the music should be played outside IRQ, but it required
+        ; more changes in the code.
         LDA IS_PLAY_MUSIC_IN_IRQ
         BEQ _L00
         JSR MUSIC_PLAY
 _L00
-
         LDA #$1E
         STA $D012
         LDA $D011    ;VIC Control Register 1
@@ -7330,9 +7328,6 @@ _L00
         TAX
         PLA
         RTI
-
-        .BYTE $1E,$2A,$3B
-        .BYTE $52
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; raster = $1e
