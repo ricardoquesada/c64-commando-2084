@@ -2214,6 +2214,7 @@ ACTION_TBL              ;$1C06
         .ADDR ACTION_NEW_SOLDIER_IN_TOWER-1     ;$19
         .ADDR ACTION_1A-1                       ;$1A
         .ADDR ACTION_VOID-1                     ;$1B
+        .ADDR ACTION_NEW_2084_NPC-1             ;$1C
 
         ; LVL0 data
 LVL0_TRIGGER_ROW_TBL    ;$1C3E
@@ -3075,6 +3076,40 @@ ACTION_0C       ;$23CC
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; ref: action_1C
+; Creates a "2084" NPC. If you kill it, you loose a life.
+ACTION_NEW_2084_NPC
+        LDA #$A0
+        STA SPRITES_X_LO05,X
+        LDA #$50
+        STA SPRITES_Y05,X
+        LDA #$01
+        STA SPRITES_DELTA_Y05,X
+        LDA #$08
+        STA SPRITES_TMP_A05,X
+        STA SPRITES_TMP_B05,X
+        LDA #$B9    ;boss l1 frame
+        STA SPRITES_PTR05,X
+        LDA #$05     ;green
+        STA SPRITES_COLOR05,X
+        LDA #$00
+        STA SPRITES_X_HI05,X
+        JSR GET_RANDOM
+        AND #$1F     ;#%00011111
+        STA SPRITES_TMP_C05,X
+        LDA #$00
+        STA SPRITES_BKG_PRI05,X
+        LDA #$1A    ;anim_type_1A: boss l1
+        STA SPRITES_TYPE05,X
+        JSR GET_RANDOM
+        AND #$01
+        ASL A
+        SEC
+        SBC #$01
+        STA SPRITES_DELTA_X05,X
+        RTS
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Add score based on killed enemy, and convert enemy sprite type into
 ; "enemy dying" type.
 DIE_ANIM_AND_SCORE  ;$2405
@@ -3087,30 +3122,33 @@ DIE_ANIM_AND_SCORE  ;$2405
         PLA
         TAY
         LDA SPRITES_TYPE05,Y
-        CMP #$07     ;#%00000111
+        CMP #$07        ;anim_type_07
         BEQ _L00
-        CMP #$1C     ;#%00011100
+        CMP #$1C        ;anim_type_1C
         BNE _L01
-_L00    LDA #$1D            ;anim_type_1D: soldier in trench die
+
+_L00    LDA #$1D        ;anim_type_1D: soldier in trench die
         STA SPRITES_TYPE05,Y
-        LDA #$CB     ;#%11001011
+        LDA #$CB
         STA SPRITES_PTR05,Y
         JMP _L06
 
 _L01    LDA SPRITES_TYPE05,Y
-        CMP #$1A     ;#%00011010
+        CMP #$1A        ;anim_type_1A
         BNE _L02
-        LDA #$BC     ;#%10111100
+
+        LDA #$BC        ;"2000" sprite
         STA SPRITES_PTR05,Y
-        LDA #$01     ;white
+        LDA #$01        ;white
         STA SPRITES_COLOR05,Y
-        LDA #$13            ;anim_type_13: delayed cleanup
+        LDA #$13        ;anim_type_13: delayed cleanup
         STA SPRITES_TYPE05,Y
         JMP _L06
 
 _L02    LDA SPRITES_TYPE05,Y
-        CMP #$11     ;#%00010001
+        CMP #$11        ;anim_type_11
         BNE _L03
+
         LDA SPRITES_TYPE01,X
         CMP #$04     ;#%00000100
         BEQ _L03
