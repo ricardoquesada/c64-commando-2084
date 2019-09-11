@@ -3904,7 +3904,7 @@ TYPE_ANIM_BOSS_LVL0     ;$2924
         LSR A
         LSR A
         TAY
-        LDA FRAME_BOSS0_LEFT,Y
+        LDA BOSS0_FRAMES_LEFT,Y
         STA SPRITES_PTR05,X
         RTS
 
@@ -3915,13 +3915,13 @@ _L00    LDA GAME_TICK
         LSR A
         LSR A
         TAY
-        LDA FRAME_BOSS0_RIGHT,Y
+        LDA BOSS0_FRAMES_RIGHT,Y
         STA SPRITES_PTR05,X
         RTS
 
-FRAME_BOSS0_RIGHT       ;$2952
+BOSS0_FRAMES_RIGHT       ;$2952
         .BYTE $B9,$BA
-FRAME_BOSS0_LEFT        ;$2954
+BOSS0_FRAMES_LEFT        ;$2954
         .BYTE $EF,$F0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -3939,12 +3939,22 @@ _L00    LDA GAME_TICK
         LSR A
         LSR A
         TAY
-        LDA FRAME_BOSS1,Y
+        LDA BOSS1_FRAMES,Y
         STA SPRITES_PTR05,X
+
+        LDA GAME_TICK
+        AND #%00000110
+        LSR A
+        TAY
+        LDA BOSS1_COLORS,Y
+        STA SPRITES_COLOR05,X
         RTS
 
-FRAME_BOSS1
+BOSS1_FRAMES
         .BYTE $5A,$5B
+BOSS1_COLORS
+        .BYTE $05,$04,$07,$03
+
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_2A
@@ -3961,12 +3971,21 @@ _L00    LDA GAME_TICK
         LSR A
         LSR A
         TAY
-        LDA FRAME_BOSS3,Y
+        LDA BOSS3_FRAMES,Y
         STA SPRITES_PTR05,X
+
+        LDA GAME_TICK
+        AND #%00000110
+        LSR A
+        TAY
+        LDA BOSS3_COLORS,Y
+        STA SPRITES_COLOR05,X
         RTS
 
-FRAME_BOSS3
+BOSS3_FRAMES
         .BYTE $5C,$5D,$5E,$5F
+BOSS3_COLORS
+        .BYTE $04,$07,$0A,$0E
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_19
