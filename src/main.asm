@@ -21,10 +21,11 @@
 ; charset.
 
 ENABLE_AUTOFIRE = 1             ;
-TOTAL_FIRE_COOLDOWN = $0F       ;Frames to wait before autofiring again
+TOTAL_FIRE_COOLDOWN = $20       ;Frames to wait before autofiring again
 ENABLE_DOUBLE_JOYSTICKS = 1     ;
 ENABLE_NEW_SORT_ALGO = 1        ;4x faster
-ENABLE_NEW_IRQ = 0              ;Logic a bit simpler
+ENABLE_NEW_IRQ_D = 0            ;If enabled, process 8 sprites in just one single IRQ
+ENABLE_NEW_IRQ_C = 0            ;If enabled, split raster at sprites[8].y
 ENABLE_NEW_RENDER_VIEWPORT = 1  ;Slighty faster viewport render version
 INITIAL_LEVEL = 0               ;Default $00. For testing only
 TOTAL_MAX_SPRITES = 16          ;Default 16
@@ -88,10 +89,10 @@ a001A = $001A
 a003D = $003D
 a003F = $003F
 a0041 = $0041
-SPRITES_SORT_ORDER_TBL = $004B  ;$4B-$5A Related to sprite Y pos, used in raster multiplexer
+SPRITES_IDX_TBL = $004B  ;$4B-$5A Related to sprite Y pos, used in raster multiplexer
                                 ; $4B-$53 processed in IRQ_C (8 sprites)
-                                ; $53-$56: processed in IRQ_D (SPRITES_SORT_ORDER_TBL+8: 4 sprites)
-                                ; $57-$5A: processed in IRQ_E (SPRITES_SORT_ORDER_TBL+12: 4 sprites)
+                                ; $53-$56: processed in IRQ_D (SPRITES_IDX_TBL+8: 4 sprites)
+                                ; $57-$5A: processed in IRQ_E (SPRITES_IDX_TBL+12: 4 sprites)
 a00A7 = $00A7
 a00C9 = $00C9
 a00D7 = $00D7
@@ -261,7 +262,7 @@ BOOT
         ; Sprite Y pos used in raster multiplexer
         LDX #$10
 _L01    TXA
-        STA SPRITES_SORT_ORDER_TBL,X
+        STA SPRITES_IDX_TBL,X
         DEX
         BPL _L01
 
@@ -6883,29 +6884,29 @@ SORT_SPRITES_BY_Y
         LDX #$00
         TXA
 SORTLOOP
-        LDY SPRITES_SORT_ORDER_TBL,X
+        LDY SPRITES_IDX_TBL,X
         CMP SPRITES_Y00,Y
         BEQ NOSWAP2
         BCC NOSWAP1
         STX Z_TEMP1
         STY Z_TEMP2
         LDA SPRITES_Y00,Y
-        LDY SPRITES_SORT_ORDER_TBL-1,X
-        STY SPRITES_SORT_ORDER_TBL,X
+        LDY SPRITES_IDX_TBL-1,X
+        STY SPRITES_IDX_TBL,X
         DEX
         BEQ SWAPDONE
 SWAPLOOP
-        LDY SPRITES_SORT_ORDER_TBL-1,X
-        STY SPRITES_SORT_ORDER_TBL,X
+        LDY SPRITES_IDX_TBL-1,X
+        STY SPRITES_IDX_TBL,X
         CMP SPRITES_Y00,Y
         BCS SWAPDONE
         DEX
         BNE SWAPLOOP
 SWAPDONE
         LDY Z_TEMP2
-        STY SPRITES_SORT_ORDER_TBL,X
+        STY SPRITES_IDX_TBL,X
         LDX Z_TEMP1
-        LDY SPRITES_SORT_ORDER_TBL,X
+        LDY SPRITES_IDX_TBL,X
 NOSWAP1 LDA SPRITES_Y00,Y
 NOSWAP2 INX
         CPX #TOTAL_MAX_SPRITES
@@ -6915,7 +6916,7 @@ NOSWAP2 INX
 .ELSE   ; ENABLE_NEW_SORT_ALGO
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Sort sprites in SPRITES_SORT_ORDER_TBL by Y position
+; Sort sprites in SPRITES_IDX_TBL by Y position
 ; This is the original sorting algorithm. Kind of slow
 SORT_SPRITES_BY_Y       ;$3F24
         LDA #$0F        ;Number of sprites to sort (?)
@@ -6936,20 +6937,20 @@ _L02    LDA a003F
         ADC a0014
         STA a0041
         LDX a0041
-        LDY SPRITES_SORT_ORDER_TBL,X
+        LDY SPRITES_IDX_TBL,X
         LDA SPRITES_Y00,Y
         LDX a003F
-        LDY SPRITES_SORT_ORDER_TBL,X
+        LDY SPRITES_IDX_TBL,X
         CMP SPRITES_Y00,Y
         BCS _L03
         LDX a003F
         LDY a0041
-        LDA SPRITES_SORT_ORDER_TBL,Y
+        LDA SPRITES_IDX_TBL,Y
         PHA
-        LDA SPRITES_SORT_ORDER_TBL,X
-        STA SPRITES_SORT_ORDER_TBL,Y
+        LDA SPRITES_IDX_TBL,X
+        STA SPRITES_IDX_TBL,Y
         PLA
-        STA SPRITES_SORT_ORDER_TBL,X
+        STA SPRITES_IDX_TBL,X
         LDA a003F
         SEC
         SBC a0014
@@ -7359,10 +7360,10 @@ IRQ_C
         STA $D010       ;Sprites 0-7 MSB of X coordinate
         STA $D01B       ;Sprite to Background Display Priority
 
-        ; Process from SPRITES_SORT_ORDER_TBL 0 to 7
+        ; Process from SPRITES_IDX_TBL 0 to 7
         ; Uses HW Sprites 7 to 0
         .FOR I := 0, I < 8, I += 1
-        LDX SPRITES_SORT_ORDER_TBL + I
+        LDX SPRITES_IDX_TBL + I
         LDA SPRITES_PREV_Y00,X
         STA $D001 + (7-I) * 2   ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
@@ -7381,13 +7382,23 @@ IRQ_C
         STA $D01B               ;Sprite to Background Display Priority
         .NEXT
 
-        LDX SPRITES_SORT_ORDER_TBL + 8
+.IF ENABLE_NEW_IRQ_C == 1
+        LDX SPRITES_IDX_TBL + 8
         LDA SPRITES_PREV_Y00,X
         SEC
         SBC #$02
+.ELSE   ;ENABLE_NEW_IRQ_C == 0
+        ; Not sure whether this logic is a bug or a feature
+        LDX SPRITES_IDX_TBL + 3
+        LDA SPRITES_PREV_Y00,X
+        CLC
+        ADC #$14     ;20 pixels below. Each sprite has 21 pixels.
+.ENDIF  ;ENABLE_NEW_IRQ_C == 0
+
         CMP $D012
-        BCC IRQ_D       ;Jump, too late for IRQ
+        BCC IRQ_D               ;Jump, too late for IRQ
         STA $D012
+
 ;        LDA $D011
 ;        AND #%01111111              ;Turn off raster MSB
 ;        STA $D011
@@ -7409,7 +7420,7 @@ IRQ_C
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; sprite multiplexor: sprites 4-7
 ; raster = $??
-.IF ENABLE_NEW_IRQ == 1
+.IF ENABLE_NEW_IRQ_D == 1
 
 IRQ_D   ;$4284
 
@@ -7429,10 +7440,10 @@ IRQ_D   ;$4284
         STA $D010       ;Sprites 0-7 MSB of X coordinate
         STA $D01B       ;Sprite to Background Display Priority
 
-        ; Process from SPRITES_SORT_ORDER_TBL 8 to 15
+        ; Process from SPRITES_IDX_TBL 8 to 15
         ; Uses HW Sprites 7 to 0
         .FOR I := 0, I < 8, I += 1
-        LDX SPRITES_SORT_ORDER_TBL + I + 8
+        LDX SPRITES_IDX_TBL + I + 8
         LDA SPRITES_PREV_Y00,X
         STA $D001 + (7-I) * 2   ;Sprite 0 Y Pos
         LDA SPRITES_X_LO00,X
@@ -7477,7 +7488,7 @@ IRQ_D   ;$4284
 JMP_IRQ_A
         JMP IRQ_A
 
-.ELSE   ;ENABLE_NEW_IRQ
+.ELSE   ;ENABLE_NEW_IRQ_D == 0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 
@@ -7492,10 +7503,10 @@ IRQ_D   ;$4284
         AND #$0F        ;#%00001111
         STA $D01B       ;Sprite to Background Display Priority
 
-        ; Process from SPRITES_SORT_ORDER_TBL 8 to 11
+        ; Process from SPRITES_IDX_TBL 8 to 11
         ; Uses HW Sprites 7 to 4
         .FOR I:=8, I<12, I+=1
-        LDX SPRITES_SORT_ORDER_TBL + I
+        LDX SPRITES_IDX_TBL + I
         LDA SPRITES_PREV_Y00,X
         STA $D00F - (I-8) * 2   ;Sprite 7 Y Pos
         LDA SPRITES_X_LO00,X
@@ -7515,13 +7526,14 @@ IRQ_D   ;$4284
         .NEXT
 
         ; Y pos for next raster interrupt based on sprite-12 Y pos
-        LDX SPRITES_SORT_ORDER_TBL + 8 + 4
+        LDX SPRITES_IDX_TBL + 8 + 4
         LDA SPRITES_PREV_Y00,X
         SEC
         SBC #$02
         CMP $D012
         BCC IRQ_E       ;Too late for IRQ. Jump directly.
         STA $D012       ;Raster Position
+
 ;        LDA $D011
 ;        AND #%01111111              ;Turn off raster MSB
 ;        STA $D011
@@ -7539,7 +7551,7 @@ IRQ_D   ;$4284
         TAX
         PLA
         RTI
-.ENDIF  ;ENABLE_NEW_IRQ
+.ENDIF  ;ENABLE_NEW_IRQ_D == 0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; sprite multiplexor: sprites 0-3
@@ -7560,10 +7572,10 @@ IRQ_E
         AND #$F0     ;#%11110000
         STA $D01B    ;Sprite to Background Display Priority
 
-        ; Process from SPRITES_SORT_ORDER_TBL 12 to 15
+        ; Process from SPRITES_IDX_TBL 12 to 15
         ; Uses HW Sprites 3 to 0
         .FOR I:=12, I<16, I+=1
-        LDX SPRITES_SORT_ORDER_TBL + I
+        LDX SPRITES_IDX_TBL + I
         LDA SPRITES_PREV_Y00,X
         STA $D007 - (I-12) * 2      ;Sprite 3 Y Pos
         LDA SPRITES_X_LO00,X
