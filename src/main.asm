@@ -20,13 +20,14 @@
 ; What in theory is missing to have a working LVL2 is the map, and if fix the
 ; charset.
 
-ENABLE_AUTOFIRE = 1             ;
-TOTAL_FIRE_COOLDOWN = $20       ;Frames to wait before autofiring again
 ENABLE_DOUBLE_JOYSTICKS = 1     ;
 ENABLE_NEW_SORT_ALGO = 1        ;4x faster
 ENABLE_NEW_IRQ_D = 0            ;If enabled, process 8 sprites in just one single IRQ
 ENABLE_NEW_IRQ_C = 0            ;If enabled, split raster at sprites[8].y
 ENABLE_NEW_RENDER_VIEWPORT = 1  ;Slighty faster viewport render version
+ENABLE_DEBUG = 0                ;If enabled, INC $D020 in raster routines
+ENABLE_AUTOFIRE = 1             ;If enabled, hero will shoot automatically
+TOTAL_FIRE_COOLDOWN = $20       ;Frames to wait before autofiring again
 INITIAL_LEVEL = 0               ;Default $00. For testing only
 TOTAL_MAX_SPRITES = 16          ;Default 16
 ; Using double joysticks make the game easier. Increase difficulty
@@ -232,7 +233,21 @@ WAIT_RASTER_AT_BOTTOM   .MACRO
         LDA RASTER_TICK
 _L00    CMP RASTER_TICK
         BEQ _L00
-        .ENDM
+.ENDM
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+INC_D020                .MACRO
+.IF ENABLE_DEBUG == 1
+        INC $D020
+.ENDIF ;ENABLE_DEBUG
+.ENDM
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+DEC_D020                .MACRO
+.IF ENABLE_DEBUG == 1
+        DEC $D020
+.ENDIF ;ENABLE_DEBUG
+.ENDM
 
 ;
 ; **** CODE ****
@@ -7246,6 +7261,8 @@ IRQ_A   NOP
 ;        NOP
 ;        NOP
 
+        #DEC_D020
+
         ; bitmap + extended color = screen disabled
         LDA #%01110111  ;raster msb=0, extended color=1,bitmap=1,screen enabled,
         STA $D011       ; 24 rows, smooth Y scroll=111
@@ -7271,6 +7288,8 @@ IRQ_A   NOP
         INC RASTER_TICK
 
         ASL $D019       ;VIC Interrupt Request Register (IRR)
+
+        #INC_D020
 
         PLA
         TAY
@@ -7336,6 +7355,8 @@ IRQ_C
         ;STA $D00D
         ;STA $D00F
 
+        #INC_D020
+
         ; Set the correct charset for the level
         LDA LEVEL_NR
         AND #$03        ;#%00000011
@@ -7381,6 +7402,8 @@ IRQ_C
         ORA $D01B               ;Sprite to Background Display Priority
         STA $D01B               ;Sprite to Background Display Priority
         .NEXT
+
+        #DEC_D020
 
 .IF ENABLE_NEW_IRQ_C == 1
         LDX SPRITES_IDX_TBL + 8
@@ -7434,6 +7457,8 @@ IRQ_D   ;$4284
 ;        STA $D00D
 ;        STA $D00F
 
+        #DEC_D020
+
         ; Turn off MSB and sprite-bkg pri for upper 4 sprites.
         ; Each sprite will set it individually in case it is needed
         LDA #$00
@@ -7461,6 +7486,8 @@ IRQ_D   ;$4284
         ORA $D01B               ;Sprite to Background Display Priority
         STA $D01B               ;Sprite to Background Display Priority
         .NEXT
+
+        #INC_D020
 
         LDA #$D5-1
         CMP $D012
@@ -7494,6 +7521,8 @@ JMP_IRQ_A
 
 IRQ_D   ;$4284
 
+        #DEC_D020
+
         ; Turn off MSB and sprite-bkg pri for upper 4 sprites.
         ; Each sprite will set it individually in case it is needed
         LDA $D010       ;Sprites 0-7 MSB of X coordinate
@@ -7524,6 +7553,8 @@ IRQ_D   ;$4284
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
         .NEXT
+
+        #INC_D020
 
         ; Y pos for next raster interrupt based on sprite-12 Y pos
         LDX SPRITES_IDX_TBL + 8 + 4
@@ -7563,6 +7594,8 @@ IRQ_E
         ;STA $D005
         ;STA $D007
 
+        #INC_D020
+
         ; Turn off MSB and sprite-bkg pri for lower 4 sprites.
         ; Each sprite will set it individually in case it is needed
         LDA $D010    ;Sprites 0-7 MSB of X coordinate
@@ -7593,6 +7626,8 @@ IRQ_E
         ORA $D01B                   ;Sprite to Background Display Priority
         STA $D01B                   ;Sprite to Background Display Priority
         .NEXT
+
+        #DEC_D020
 
         LDA #$D5-1
         CMP $D012
