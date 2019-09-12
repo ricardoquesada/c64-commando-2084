@@ -640,6 +640,7 @@ _L00    STA a00FB
         STA a00F7
         LDA a00FD
         STA a00F8
+
         SEI
         LDA a01
         AND #$FD     ;Enable I/O to read from Screen RAM
@@ -7242,39 +7243,24 @@ IRQ_A   NOP
         NOP
         NOP
 
-        LDA #%01110111
-        STA $D011
-;        LDA $D011    ;VIC Control Register 1
-;        AND #$F8     ;#%11111000
-;        ORA #$67     ;#%00000111    Scroll Y position to 7
-;                     ;#%01100000    Extended Color = 1, Bitmap = 1
-;        STA $D011    ;VIC Control Register 1
+        LDA #%01110111  ;raster msb=0, extended color=1,bitmap=1,screen enabled,
+        STA $D011       ; 24 rows, smooth Y scroll=111
 
-        LDA #$00     ;#%00000000
-        STA $D021    ;Background Color 0
+        LDA #$00
+        STA $D021       ;Background Color 0
 
-        ; Charset at $D000 is the one used that contains the letters/numbers
-        ; needed to print "SCORE", "MEN", etc.
-;        LDA $D018    ;VIC Memory Control Register
-;        AND #$F0     ;#%11110000
-;        ORA #$04     ;#%00000100    bitmap at $c000 / charset at 010 = $D000
-;        STA $D018    ;VIC Memory Control Register
         LDA #%10000100  ;Video Matrix: $E000, Charset: $D000
         STA $D018
 
         LDA #$DE
         STA $D012       ;Raster Position
 
-;        LDA $D011       ;VIC Control Register 1
-;        AND #$7F        ;#%01111111    Raster MSB=0
-;        STA $D011       ;VIC Control Register 1
-
         LDX #<IRQ_B
         LDY #>IRQ_B
         STX $0314
         STY $0315
 
-        ASL $D019    ;VIC Interrupt Request Register (IRR)
+        ASL $D019       ;VIC Interrupt Request Register (IRR)
 
         PLA
         TAY
@@ -7293,10 +7279,6 @@ IRQ_B   NOP
 
         INC RASTER_TICK
 
-;        LDA $D011    ;VIC Control Register 1
-;        AND #$9F     ;#%10011111    Turn Off bitmap, turn off Extended color
-;        STA $D011    ;VIC Control Register 1
-
         LDA #%00010111  ;raster MSB=0, Externded color=0, bitmap=0, screen enabled (1)
         STA $D011       ; 24rows (0), smooth scroll (111)
 
@@ -7314,9 +7296,6 @@ IRQ_B   NOP
 _L00
         LDA #$1E
         STA $D012
-;        LDA $D011    ;VIC Control Register 1
-;        AND #$7F     ;#%01111111    Raster MSB off
-;        STA $D011    ;VIC Control Register 1
 
         LDX #<IRQ_C
         LDY #>IRQ_C
@@ -7528,10 +7507,6 @@ IRQ_D   ;$4284
         BCC IRQ_E       ;Too late for IRQ. Jump directly.
         STA $D012       ;Raster Position
 
-        LDA $D011       ;VIC Control Register 1
-        AND #$7F        ;#%01111111    Raster MSB off
-        STA $D011       ;VIC Control Register 1
-
         LDX #<IRQ_E
         LDY #>IRQ_E
         STX $0314
@@ -7593,9 +7568,6 @@ IRQ_E
         BCC JMP_IRQ_A               ;Too late for IRQ. Jump directly.
         LDA #$D5
         STA $D012                   ;Raster Position
-        LDA $D011                   ;VIC Control Register 1
-        AND #$7F                    ;#%01111111    Raster MSB off
-        STA $D011                   ;VIC Control Register 1
 
         LDX #<IRQ_A
         LDY #>IRQ_A
