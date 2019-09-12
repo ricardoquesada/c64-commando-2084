@@ -153,8 +153,8 @@ a04E7 = $04E7
 TRIGGER_ROW_IDX = $04E8         ;If equal to row index, create object
 a04E9 = $04E9                   ;unused
 a04EA = $04EA
-a04EC = $04EC
-a04ED = $04ED
+POW_GUARDS_KILLED = $04EC       ;Number of POW guard killed. When == 2, "Free POW" anim is executed
+POW_SPRITE_IDX = $04ED          ;Holds the sprite idx used by POW sprite
 a04EE = $04EE                   ;Hero is moving up (unused)
 ENEMIES_IN_FORT = $04EF         ;How many enemies are inside the fort/warehouse
 TMP_SPRITE_X_LO = $04F0         ;Temp sprite-X LSB for current sprite
@@ -1292,13 +1292,20 @@ _L01    INY
         BNE _L00
         RTS
 
-        ; Sprite types that can collide with hero. Starts at $05
-        ; Flagged types: $0A,$0D,$0F,$11,$1A,$1C-$20,$24-$2A
-f1074   .BYTE $00,$00,$00,$00,$00,$01,$00,$00
-        .BYTE $01,$00,$01,$00,$01,$00,$00,$00
-        .BYTE $00,$00,$00,$00,$00,$01,$00,$01
-        .BYTE $01,$01,$01,$01,$00,$00,$00,$01
-        .BYTE $01,$01,$01,$01,$01,$01,$00
+        ; Sprite types that can collide with hero.
+        ; Flagged types:
+        ; anim_type_05, anim_type_08, anim_type_0A, anim_type_0C,
+        ; anim_type_15, anim_type_17, anim_type_18, anim_type_19,
+        ; anim_type_1A, anim_type_1B, anim_type_1F, anim_type_20,
+        ; anim_type_21, anim_type_22, anim_type_23, anim_type_24,
+        ; anim_type_25
+
+        ; FIXME: Missing information of anim_type_27 and anim_type_28
+f1074   .BYTE $00,$00,$00,$00,$00,$01,$00,$00   ;$00-$07
+        .BYTE $01,$00,$01,$00,$01,$00,$00,$00   ;$08-$0F
+        .BYTE $00,$00,$00,$00,$00,$01,$00,$01   ;$10-$17
+        .BYTE $01,$01,$01,$01,$00,$00,$00,$01   ;$18-$1F
+        .BYTE $01,$01,$01,$01,$01,$01,$00       ;$28-$26
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Re-execute actions based on the row index. Called when the level is restarted.
@@ -2817,7 +2824,7 @@ ACTION_NEW_POW      ;$215F
         STA SPRITES_BKG_PRI05,X
         LDA #$12        ;anim_type_12: POW
         STA SPRITES_TYPE05,X
-        STX a04ED
+        STX POW_SPRITE_IDX
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -2839,7 +2846,7 @@ ACTION_NEW_POW_GUARD    ;$2190
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_TMP_C05,X
         STA SPRITES_BKG_PRI05,X
-        STA a04EC
+        STA POW_GUARDS_KILLED
         LDA #$11     ;anim_type_11: POW guard
         STA SPRITES_TYPE05,X
         RTS
@@ -3160,49 +3167,51 @@ DIE_ANIM_AND_SCORE  ;$2405
         PLA
         TAY
         LDA SPRITES_TYPE05,Y
-        CMP #$07     ;#%00000111
+        CMP #$07            ;anim_type_07: soldier behind trench
         BEQ _L00
-        CMP #$1C     ;#%00011100
+        CMP #$1C            ;anim_type_1C: soldier in trench
         BNE _L01
 _L00    LDA #$1D            ;anim_type_1D: soldier in trench die
         STA SPRITES_TYPE05,Y
-        LDA #$CB     ;#%11001011
+        LDA #$CB            ;#%11001011
         STA SPRITES_PTR05,Y
         JMP _L06
 
 _L01    LDA SPRITES_TYPE05,Y
-        CMP #$1A     ;#%00011010
+        CMP #$1A            ;anim_type_1A: boss lvl0
         BNE _L02
-        LDA #$BC     ;#%10111100
+        LDA #$BC            ;"2000" points sprite frame
         STA SPRITES_PTR05,Y
-        LDA #$01     ;white
+        LDA #$01            ;white
         STA SPRITES_COLOR05,Y
         LDA #$13            ;anim_type_13: delayed cleanup
         STA SPRITES_TYPE05,Y
         JMP _L06
 
 _L02    LDA SPRITES_TYPE05,Y
-        CMP #$11     ;#%00010001
+        CMP #$11            ;anim_type_11: POW guard
         BNE _L03
         LDA SPRITES_TYPE01,X
-        CMP #$04     ;#%00000100
+        CMP #$04            ;anim_type_04: hero grenade
         BEQ _L03
-        LDA #$BD     ;#%10111101
+
+        LDA #$BD            ;"1000" points sprite frame
         STA SPRITES_PTR05,Y
-        LDA #$0E     ;light blue
+        LDA #$0E            ;light blue
         STA SPRITES_COLOR05,Y
         LDA #$13            ;anim_type_13: delayed cleanup
         STA SPRITES_TYPE05,Y
-        INC a04EC
-        LDA a04EC
-        CMP #$02     ;#%00000010
+        INC POW_GUARDS_KILLED
+        LDA POW_GUARDS_KILLED
+        CMP #$02            ;how many guard killed? 2?
         BNE _L06
+
         TXA
         PHA
-        LDX a04ED
+        LDX POW_SPRITE_IDX
         LDA #$14            ;anim_type_14: POW is freed
         STA SPRITES_TYPE05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_TMP_C05,X
@@ -3229,7 +3238,7 @@ _L04    TXA
 _L05    LDA #$06            ;anim_type_06: soldier die
         STA SPRITES_TYPE05,Y
 
-_L06    LDA #$00     ;#%00000000
+_L06    LDA #$00
         STA SPRITES_TMP_C05,Y
         STA SPRITES_DELTA_X05,Y
         STA SPRITES_DELTA_Y05,Y
@@ -3317,6 +3326,8 @@ TYPE_ANIM_TBL_LO
         .ADDR TYPE_ANIM_TOWER_FIRE_LVL3         ;$27
         .ADDR TYPE_ANIM_28                      ;$28
 
+        ; Flags: bit0: bullet can kill it
+        ;        bit1: grenade can kill it
 f2544   .BYTE $00,$00,$00,$00,$00,$03,$00,$02
         .BYTE $00,$00,$03,$00,$00,$02,$00,$00
         .BYTE $00,$01,$00,$00,$00,$03,$00,$03
@@ -3353,7 +3364,7 @@ TYPE_ANIM_28        ;$2597
         AND #$1F     ;#%00011111
         CMP #$03     ;#%00000011
         BNE _L00
-        LDA #$CF     ;Frame: guy falling in hole?
+        LDA #$CF     ;Mortar guy
         STA SPRITES_PTR05,X
 _L00    CMP #$0F     ;#%00001111
         BNE _L01
@@ -4142,12 +4153,12 @@ TYPE_ANIM_POW   ;$2B07
         STA SPRITES_PTR05,X
         LDA V_SCROLL_ROW_IDX
         CMP #$71     ;#%01110001
-        BCS b2B27
+        BCS _L00
         LDA #$FF     ;#%11111111
         STA SPRITES_DELTA_X05,X
         LDA #$FF     ;#%11111111
         STA SPRITES_DELTA_Y05,X
-b2B27   RTS
+_L00    RTS
 
 FRAME_POW_RUN       ;$2B28 (POW == Prisoner of War)
         .BYTE $C2,$C3
@@ -4255,15 +4266,15 @@ TYPE_ANIM_MORTAR_ENEMY  ;$2BDF
         AND #$1F     ;#%00011111
         CMP #$03     ;#%00000011
         BNE b2BF5
-        LDA #$CF     ;Frame falling in hole #2?
+        LDA #$CF     ;Mortar guy frame #2
         STA SPRITES_PTR05,X
 b2BF5   CMP #$0F     ;#%00001111
         BNE b2BFE
-        LDA #$CE     ;Frame falling in hole #1?
+        LDA #$CE     ;Mortar guy frame #1
         STA SPRITES_PTR05,X
 b2BFE   CMP #$14     ;#%00010100
         BNE b2C0C
-        LDA #$CD     ;Frame falling in hole #0?
+        LDA #$CD     ;Mortar guy frame #0
         STA SPRITES_PTR05,X
         LDA #$00     ;#%00000000
         STA a04EA
@@ -4310,9 +4321,9 @@ b2C46   LDA SPRITES_X_HI00
         SEC
         SBC SPRITES_Y05,X
         STA a00FC,b
-        LDA #$CE     ;Frame falling in hole #1?
+        LDA #$CE     ;Motar guy frame #1
         STA SPRITES_PTR05,X
-        LDA #$01     ;#%00000001
+        LDA #$01
         STA a04EA
         LDA SPRITES_X_LO05,X
         STA SPRITES_X_LO05,Y
@@ -4348,12 +4359,14 @@ b2C97   STA SPRITES_DELTA_X05,Y
         STA SPRITES_TYPE05,Y
 b2CC0   RTS
 
-f2CC1   .BYTE $29,$29,$32,$32
-f2CC5   .BYTE $78,$A5,$78,$A5
-f2CC9   .BYTE $01,$01,$FF,$FF
-f2CCD   .BYTE $04,$04,$0C,$0C
-f2CD1   .BYTE $9B,$9B,$9B,$9B
-f2CD5   .BYTE $00,$00,$FF,$FF
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Used to spawn the "regular solider".
+f2CC1   .BYTE $29,$29,$32,$32       ;Sprite X lo
+f2CC5   .BYTE $78,$A5,$78,$A5       ;Sprite Y
+f2CC9   .BYTE $01,$01,$FF,$FF       ;Sprite delta X
+f2CCD   .BYTE $04,$04,$0C,$0C       ;Sprite tmp
+f2CD1   .BYTE $9B,$9B,$9B,$9B       ;Sprite frames
+f2CD5   .BYTE $00,$00,$FF,$FF       ;Sprite X hi
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_00
