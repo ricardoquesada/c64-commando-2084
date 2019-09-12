@@ -6,7 +6,7 @@ X64 = x64
 X64SC = x64sc
 C1541 = c1541
 
-all: clean d64 run
+all: d64 run
 
 main-charset_sprites-2084.bin: res/sprites-2084.bin res/main-charset.bin
 	dd if=res/main-charset.bin of=res/charset-half.bin bs=1 count=1408
