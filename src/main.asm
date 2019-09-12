@@ -324,10 +324,10 @@ GAME_LOOP            ;$08CB
         CMP #$07     ;#%00000111
         BNE _L00
 
+        JSR MUSIC_PLAY
         DEC V_SCROLL_ROW_IDX
         JSR APPLY_DELTA_MOV
         JSR LEVEL_DRAW_VIEWPORT
-        JSR MUSIC_PLAY
         JMP GAME_LOOP
 
 _L00
@@ -1272,7 +1272,7 @@ _L00    LDA SPRITES_TYPE05,Y
         CMP SPRITES_Y05,Y
         BCS _L01
 
-        LDA #$01     ;Hero was shot
+        LDA #$01        ;Hero was shot
         STA IS_HERO_DEAD
         STA COUNTER1
         LDA #$04        ;Hero dead SFX
@@ -1768,11 +1768,11 @@ INIT_LEVEL_DATA                 ;$1445
         ; lvl1 = $c800
         ; main screen / lvl2: $d000
         ; lvl3 = $d800
-        STY a00FB
-        LDA $D018    ;VIC Memory Control Register
-        AND #$F0     ;#%11110000
-        ORA a00FB  ;Set charset address
-        STA $D018    ;VIC Memory Control Register
+;        STY a00FB
+;        LDA $D018       ;VIC Memory Control Register
+;        AND #$F0        ;#%11110000
+;        ORA a00FB       ;Set charset address
+;        STA $D018       ;VIC Memory Control Register
         RTS
 
         ; Data for lvl0-3, although lvl2 was not included in the game
@@ -7242,15 +7242,22 @@ IRQ_A   NOP
         NOP
         NOP
         NOP
+;        NOP
+;        NOP
 
+        ; bitmap + extended color = screen disabled
         LDA #%01110111  ;raster msb=0, extended color=1,bitmap=1,screen enabled,
         STA $D011       ; 24 rows, smooth Y scroll=111
 
         LDA #$00
         STA $D021       ;Background Color 0
 
-        LDA #%10000100  ;Video Matrix: $E000, Charset: $D000
-        STA $D018
+        ; Prevents fire and hero to be shown in disabled area
+        LDA #$FF
+        STA fE3F8
+        STA fE3F8+1
+        STA fE3F8+2
+        STA fE3F8+3
 
         LDA #$DE
         STA $D012       ;Raster Position
@@ -7259,6 +7266,8 @@ IRQ_A   NOP
         LDY #>IRQ_B
         STX $0314
         STY $0315
+
+        INC RASTER_TICK
 
         ASL $D019       ;VIC Interrupt Request Register (IRR)
 
@@ -7277,7 +7286,8 @@ IRQ_B   NOP
         NOP
         NOP
 
-        INC RASTER_TICK
+        LDA #%10000100  ;Video Matrix: $E000, Charset: $D000
+        STA $D018
 
         LDA #%00010111  ;raster MSB=0, Externded color=0, bitmap=0, screen enabled (1)
         STA $D011       ; 24rows (0), smooth scroll (111)
@@ -7378,6 +7388,9 @@ IRQ_C
         CMP $D012
         BCC IRQ_D       ;Jump, too late for IRQ
         STA $D012
+;        LDA $D011
+;        AND #%01111111              ;Turn off raster MSB
+;        STA $D011
 
         LDX #<IRQ_D
         LDY #>IRQ_D
@@ -7443,6 +7456,9 @@ IRQ_D   ;$4284
         BCC JMP_IRQ_A           ;Too late for IRQ. Jump directly.
         LDA #$D5
         STA $D012               ;Raster Position
+;        LDA $D011
+;        AND #%01111111          ;Turn off raster MSB
+;        STA $D011
 
         LDX #<IRQ_A
         LDY #>IRQ_A
@@ -7506,6 +7522,9 @@ IRQ_D   ;$4284
         CMP $D012
         BCC IRQ_E       ;Too late for IRQ. Jump directly.
         STA $D012       ;Raster Position
+;        LDA $D011
+;        AND #%01111111              ;Turn off raster MSB
+;        STA $D011
 
         LDX #<IRQ_E
         LDY #>IRQ_E
@@ -7568,6 +7587,9 @@ IRQ_E
         BCC JMP_IRQ_A               ;Too late for IRQ. Jump directly.
         LDA #$D5
         STA $D012                   ;Raster Position
+;        LDA $D011
+;        AND #%01111111              ;Turn off raster MSB
+;        STA $D011
 
         LDX #<IRQ_A
         LDY #>IRQ_A
