@@ -227,7 +227,7 @@ pE082 = $E082
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Waits until raster reaches $d5 vertical position
 ; triggered by IRQ_A
-WAIT_RASTER_AT_BOTTOM   .MACRO   
+WAIT_RASTER_AT_BOTTOM   .MACRO
         LDA RASTER_TICK
 _L00    CMP RASTER_TICK
         BEQ _L00
@@ -6968,7 +6968,7 @@ _L04
 ; It is ~5 raster-line faster than the original one.
 .IF ENABLE_NEW_RENDER_VIEWPORT == 1
 LEVEL_DRAW_VIEWPORT
-        DEC $D020
+;        DEC $D020
 
         ; Calculate offset
         LDX V_SCROLL_ROW_IDX
@@ -7013,7 +7013,7 @@ _L03    LDA f0000,Y
         CPY #$48
         BNE _L03
 
-        INC $D020
+;        INC $D020
 
         RTS
 
@@ -7230,10 +7230,10 @@ SETUP_IRQ               ;$4106
         STA $DC0E    ;CIA1: CIA Control Register A
 
         SEI
-        LDA #<IRQ_A
-        STA $0314    ;IRQ
-        LDA #>IRQ_A
-        STA $0315    ;IRQ
+        LDX #<IRQ_A
+        LDY #>IRQ_A
+        STX $0314    ;IRQ
+        STY $0315    ;IRQ
         LDA #$F1     ;#%11110001
         STA $D01A    ;VIC Interrupt Mask Register (IMR)
         CLI
@@ -7247,35 +7247,43 @@ IRQ_A   NOP
         NOP
         NOP
 
-        LDA $D011    ;VIC Control Register 1
-        AND #$F8     ;#%11111000
-        ORA #$67     ;#%00000111    Scroll Y position to 7
-                     ;#%01100000    Extended Color = 1, Bitmap = 1
-        STA $D011    ;VIC Control Register 1
+        INC $D020
+
+        LDA #%01110111
+        STA $D011
+;        LDA $D011    ;VIC Control Register 1
+;        AND #$F8     ;#%11111000
+;        ORA #$67     ;#%00000111    Scroll Y position to 7
+;                     ;#%01100000    Extended Color = 1, Bitmap = 1
+;        STA $D011    ;VIC Control Register 1
 
         LDA #$00     ;#%00000000
         STA $D021    ;Background Color 0
 
         ; Charset at $D000 is the one used that contains the letters/numbers
         ; needed to print "SCORE", "MEN", etc.
-        LDA $D018    ;VIC Memory Control Register
-        AND #$F0     ;#%11110000
-        ORA #$04     ;#%00000100    bitmap at $c000 / charset at 010 = $D000
-        STA $D018    ;VIC Memory Control Register
+;        LDA $D018    ;VIC Memory Control Register
+;        AND #$F0     ;#%11110000
+;        ORA #$04     ;#%00000100    bitmap at $c000 / charset at 010 = $D000
+;        STA $D018    ;VIC Memory Control Register
+        LDA #%10000100  ;Video Matrix: $E000, Charset: $D000
+        STA $D018
 
         INC RASTER_TICK
 
         LDA #$DE
         STA $D012       ;Raster Position
 
-        LDA $D011       ;VIC Control Register 1
-        AND #$7F        ;#%01111111    Raster MSB=0
-        STA $D011       ;VIC Control Register 1
+;        LDA $D011       ;VIC Control Register 1
+;        AND #$7F        ;#%01111111    Raster MSB=0
+;        STA $D011       ;VIC Control Register 1
 
         LDX #<IRQ_B
         LDY #>IRQ_B
         STX $0314
         STY $0315
+
+        DEC $D020
 
         ASL $D019    ;VIC Interrupt Request Register (IRR)
 
@@ -7293,9 +7301,15 @@ IRQ_B   NOP
         NOP
         NOP
         NOP
-        LDA $D011    ;VIC Control Register 1
-        AND #$9F     ;#%10011111    Turn Off bitmap, turn off Extended color
-        STA $D011    ;VIC Control Register 1
+
+        DEC $D020
+
+;        LDA $D011    ;VIC Control Register 1
+;        AND #$9F     ;#%10011111    Turn Off bitmap, turn off Extended color
+;        STA $D011    ;VIC Control Register 1
+
+        LDA #%00010111  ;raster MSB=0, Externded color=0, bitmap=0, screen enabled (1)
+        STA $D011       ; 24rows (0), smooth scroll (111)
 
         LDA #$01     ;white
         STA $D022    ;Background Color 1, Multi-Color Register 0
@@ -7311,14 +7325,16 @@ IRQ_B   NOP
 _L00
         LDA #$1E
         STA $D012
-        LDA $D011    ;VIC Control Register 1
-        AND #$7F     ;#%01111111    Raster MSB off
-        STA $D011    ;VIC Control Register 1
+;        LDA $D011    ;VIC Control Register 1
+;        AND #$7F     ;#%01111111    Raster MSB off
+;        STA $D011    ;VIC Control Register 1
 
         LDX #<IRQ_C
         LDY #>IRQ_C
         STX $0314
         STY $0315
+
+        INC $D020
 
         ASL $D019    ;VIC Interrupt Request Register (IRR)
 
@@ -7348,20 +7364,13 @@ IRQ_C
         LDA LEVEL_NR
         AND #$03        ;#%00000011
         ASL A           ;Shift to left, since bit 0 is unused in $D018
-        STA a00A7
-
-        LDA $D018       ;VIC Memory Control Register
-        AND #$F0        ;#%11110000
-        ORA a00A7       ;Charset Idx. lvl0=$c000, lvl1=$c800, main=$d000, lvl3=$d800
+                        ;Charset Idx. lvl0=$c000, lvl1=$c800, main=$d000, lvl3=$d800
+        ORA #%10000000  ;Video Matrix: $E000
         STA $D018       ;VIC Memory Control Register
 
         LDA V_SCROLL_BIT_IDX
         EOR #$07        ;#%00000111    Reverse Y-bits
-        STA a00A7
-
-        LDA $D011       ;VIC Control Register 1
-        AND #$F8        ;#%11111000
-        ORA a00A7       ;Vertical scroll position
+        ORA #%00010000  ;raster MSB=0, Externded color=0, bitmap=0, screen enabled (1)
         STA $D011       ;VIC Control Register 1
 
         LDA BKG_COLOR0
@@ -7406,10 +7415,6 @@ IRQ_C
         CMP $D012
         BCC IRQ_D       ;Jump, too late for IRQ
         STA $D012
-
-        LDA $D011       ;VIC Control Register 1
-        AND #$7F        ;#%01111111    Raster MSB off
-        STA $D011       ;VIC Control Register 1
 
         LDX #<IRQ_D
         LDY #>IRQ_D
@@ -7473,11 +7478,11 @@ IRQ_D   ;$4284
         STA $D01B               ;Sprite to Background Display Priority
         .NEXT
 
+        LDA #$D5-1
+        CMP $D012
+        BCC JMP_IRQ_A           ;Too late for IRQ. Jump directly.
         LDA #$D5
-        STA $D012       ;Raster Position
-        LDA $D011       ;VIC Control Register 1
-        AND #$7F        ;#%01111111    Raster MSB off
-        STA $D011       ;VIC Control Register 1
+        STA $D012               ;Raster Position
 
         LDX #<IRQ_A
         LDY #>IRQ_A
@@ -7494,6 +7499,9 @@ IRQ_D   ;$4284
         TAX
         PLA
         RTI
+
+JMP_IRQ_A
+        JMP IRQ_A
 
 .ELSE   ;ENABLE_NEW_IRQ
 
@@ -7606,11 +7614,14 @@ IRQ_E
         STA $D01B                   ;Sprite to Background Display Priority
         .NEXT
 
+        LDA #$D5-1
+        CMP $D012
+        BCC JMP_IRQ_A               ;Too late for IRQ. Jump directly.
         LDA #$D5
-        STA $D012    ;Raster Position
-        LDA $D011    ;VIC Control Register 1
-        AND #$7F     ;#%01111111    Raster MSB off
-        STA $D011    ;VIC Control Register 1
+        STA $D012                   ;Raster Position
+        LDA $D011                   ;VIC Control Register 1
+        AND #$7F                    ;#%01111111    Raster MSB off
+        STA $D011                   ;VIC Control Register 1
 
         LDX #<IRQ_A
         LDY #>IRQ_A
@@ -7627,6 +7638,9 @@ IRQ_E
         TAX
         PLA
         RTI
+
+JMP_IRQ_A
+        JMP IRQ_A
 
         ; Masks
 MASK_0000_0001   .BYTE $01           ;0000_0001
