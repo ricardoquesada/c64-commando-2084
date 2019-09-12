@@ -20,6 +20,11 @@
 ; charset.
 
 ;
+; **** CONSTANTS ****
+;
+TOTAL_MAX_SPRITES = 16
+
+;
 ; **** ZP FIELDS ****
 ;
 f4C = $4C
@@ -1337,7 +1342,7 @@ _L00    LDA (p24),Y  ;End of trigger-rows?
 _L01    LDA SPRITES_TYPE05,X
         BEQ _L02
         INX
-        CPX #$0B
+        CPX #(TOTAL_MAX_SPRITES-5)
         BNE _L01
         JMP _L03
 
@@ -2187,7 +2192,7 @@ RUN_ACTIONS   ;$1BA9
 _L00    INC TRIGGER_ROW_IDX
 
         ; Find empty seat
-        LDX #$0A
+        LDX #(TOTAL_MAX_SPRITES-5-1)
 _L01    LDA SPRITES_TYPE05,X
         BEQ _L04
         DEX
@@ -2195,7 +2200,7 @@ _L01    LDA SPRITES_TYPE05,X
 
         ; FIXME: Loop tried twice, probably a bug. Remove
 
-        LDX #$0A
+        LDX #(TOTAL_MAX_SPRITES-5-1)
 _L02    LDA SPRITES_TYPE05,X
         BEQ _L04
         DEX
@@ -2208,19 +2213,19 @@ _L02    LDA SPRITES_TYPE05,X
         ; $08, $09, $13, $0C, $06, $0B, $05
         LDX #$0A
 _L03    LDA SPRITES_TYPE05,X
-        CMP #$08
+        CMP #$08        ;anim_type_08: soldier bullet
         BEQ _L04
-        CMP #$09
+        CMP #$09        ;anim_type_09: soldier bullet end
         BEQ _L04
-        CMP #$13
+        CMP #$13        ;anim_type_13: delayed cleanup
         BEQ _L04
-        CMP #$0C
+        CMP #$0C        ;anim_type_0C: explosion
         BEQ _L04
-        CMP #$06
+        CMP #$06        ;anim_type_06: soldier die
         BEQ _L04
-        CMP #$0B
+        CMP #$0B        ;anim_type_0B: grenade
         BEQ _L04
-        CMP #$05
+        CMP #$05        ;anim_type_05: regular solider
         BEQ _L04
         DEX
         BPL _L03
@@ -2506,7 +2511,7 @@ ACTION_NEW_TRUCK       ;$1EED
 _L00    LDA SPRITES_TYPE05,Y
         BEQ _L01
         INY
-        CPY #$0B
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE _L00
         RTS
 
@@ -2575,7 +2580,7 @@ ACTION_NEW_BIKE_LVL1       ;$1F8F
 _L00    LDA SPRITES_TYPE05,Y
         BEQ _L01
         INY
-        CPY #$0B
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE _L00
         RTS
 
@@ -3445,7 +3450,7 @@ _L03    LDA #$01
 _L04    LDA SPRITES_TYPE05,Y
         BEQ _L05
         INY
-        CPY #$0B
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE _L04
         RTS
 
@@ -3521,7 +3526,7 @@ TYPE_ANIM_SOLDIER_JUMPING_FROM_TRUCK    ;$2697
 _L00    LDA SPRITES_TYPE05,Y
         BEQ _L01
         INY
-        CPY #$0B
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE _L00
         RTS
 
@@ -3624,14 +3629,14 @@ b2754   LDA SPRITES_Y00
 b275E   LDA SPRITES_TYPE05,Y
         BEQ b2769
         INY
-        CPY #$0B     ;#%00001011
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE b275E
         RTS
 
-b2769   LDA #$00     ;#%00000000
+b2769   LDA #$00
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_X05,X
-        LDA #$E8     ;Frame Bazooka guy #3
+        LDA #$E8            ;Frame Bazooka guy #3
         STA SPRITES_PTR05,X
         LDA SPRITES_X_LO05,X
         STA SPRITES_X_LO05,Y
@@ -3639,44 +3644,44 @@ b2769   LDA #$00     ;#%00000000
         STA SPRITES_Y05,Y
         LDA #$21            ;anim_type_21: turret fire end
         STA SPRITES_TYPE05,Y
-        LDA #$01     ;white
+        LDA #$01            ;white
         STA SPRITES_COLOR05,Y
-        LDA #$EA     ;Frame bazooka left-down
+        LDA #$EA            ;Frame bazooka left-down
         STA SPRITES_PTR05,Y
         LDA SPRITES_X_HI05,X
         STA SPRITES_X_HI05,Y
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_TMP_C05,Y
         STA SPRITES_BKG_PRI05,Y
-        LDA #$02     ;#%00000010
+        LDA #$02
         STA SPRITES_DELTA_Y05,Y
         LDA SPRITES_X_HI05,X
         BNE b27CA
         LDA SPRITES_X_LO05,X
         SEC
-        SBC #$1E     ;#%00011110
+        SBC #$1E
         CMP SPRITES_X_LO00
         BCS b27CA
         LDA SPRITES_X_LO05,X
         CLC
-        ADC #$1E     ;#%00011110
+        ADC #$1E
         CMP SPRITES_X_LO00
         BCC b27D5
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_X05,Y
-        LDA #$E9     ;Frame bazooka down
+        LDA #$E9            ;Frame bazooka down
         STA SPRITES_PTR05,Y
         RTS
 
-b27CA   LDA #$FE     ;#%11111110
+b27CA   LDA #$FE
         STA SPRITES_DELTA_X05,Y
-        LDA #$EA     ;Frame bazooka left-down
+        LDA #$EA            ;Frame bazooka left-down
         STA SPRITES_PTR05,Y
         RTS
 
-b27D5   LDA #$02     ;#%00000010
+b27D5   LDA #$02
         STA SPRITES_DELTA_X05,Y
-        LDA #$EB     ;Frame bazooka right-down
+        LDA #$EB            ;Frame bazooka right-down
         STA SPRITES_PTR05,Y
         RTS
 
@@ -3702,7 +3707,7 @@ _L01    LDA SPRITES_Y00
 _L02    LDA SPRITES_TYPE05,Y
         BEQ _L04
         INY
-        CPY #$0B
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE _L02
 
 _L03    RTS
@@ -4304,7 +4309,7 @@ b2C39   LDY #$00     ;#%00000000
 b2C3B   LDA SPRITES_TYPE05,Y
         BEQ b2C46
         INY
-        CPY #$0B     ;#%00001011
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE b2C3B
         RTS
 
@@ -4702,7 +4707,7 @@ _L00    RTS
 
 _L01    LDA #$09            ;anim_type_09: soldier bullet end
         STA SPRITES_TYPE05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_TMP_C05,X
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
@@ -4738,7 +4743,7 @@ _L00    JSR _L01
         RTS
 
         ; Cleanup sprite
-_L01    LDA #$00
+_L01    LDA #$00            ;anim_type_00: spawn soldiers
         STA SPRITES_TYPE05,X
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
@@ -5179,7 +5184,7 @@ THROW_GRENADE   ;$32ED
 _L00    LDA SPRITES_TYPE05,Y
         BEQ _L02
         INY
-        CPY #$0B
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE _L00
 
 _L01    LDY #$FF
@@ -5281,7 +5286,7 @@ j33D0   LDA SPRITES_TMP_C05,X
 _L00    LDA SPRITES_TYPE05,Y
         BEQ _L02
         INY
-        CPY #$0B
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE _L00
 _L01    RTS
 
@@ -5885,7 +5890,7 @@ TYPE_ANIM_EXPLOSION    ;$388B
         STA SPRITES_PTR05,X
         RTS
 
-_L00    LDA #$00            ;anim_type_00: cleanup
+_L00    LDA #$00            ;anim_type_00: spawn soldiers
         STA SPRITES_TYPE05,X
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
