@@ -323,6 +323,7 @@ GAME_LOOP            ;$08CB
         STA V_SCROLL_BIT_IDX
         CMP #$07     ;#%00000111
         BNE _L00
+
         DEC V_SCROLL_ROW_IDX
         JSR APPLY_DELTA_MOV
         JSR LEVEL_DRAW_VIEWPORT
@@ -6968,8 +6969,6 @@ _L04
 ; It is ~5 raster-line faster than the original one.
 .IF ENABLE_NEW_RENDER_VIEWPORT == 1
 LEVEL_DRAW_VIEWPORT
-;        DEC $D020
-
         ; Calculate offset
         LDX V_SCROLL_ROW_IDX
         LDA MAP_OFFSET_LO,X
@@ -7013,8 +7012,6 @@ _L03    LDA f0000,Y
         CPY #$48
         BNE _L03
 
-;        INC $D020
-
         RTS
 
         ; Addresses to the map.
@@ -7034,7 +7031,6 @@ MAP_OFFSET_HI
 ; Copies "current" map to screen RAM
 ; Original version. Slighty slower version.
 LEVEL_DRAW_VIEWPORT             ;$3F93
-;        DEC $D020
         LDA #<pE000  ;Screen RAM low
         STA _L04
         LDA #>pE000  ;Screen RAM hi
@@ -7093,7 +7089,6 @@ _L06    CLC
 _L07    CMP #$48     ;#%01001000
         BNE _L00
 
-;        INC $D020
         RTS
 .ENDIF      ; ENABLE_NEW_RENDER_VIEWPORT == 0
 
@@ -7247,8 +7242,6 @@ IRQ_A   NOP
         NOP
         NOP
 
-        INC $D020
-
         LDA #%01110111
         STA $D011
 ;        LDA $D011    ;VIC Control Register 1
@@ -7269,8 +7262,6 @@ IRQ_A   NOP
         LDA #%10000100  ;Video Matrix: $E000, Charset: $D000
         STA $D018
 
-        INC RASTER_TICK
-
         LDA #$DE
         STA $D012       ;Raster Position
 
@@ -7282,8 +7273,6 @@ IRQ_A   NOP
         LDY #>IRQ_B
         STX $0314
         STY $0315
-
-        DEC $D020
 
         ASL $D019    ;VIC Interrupt Request Register (IRR)
 
@@ -7302,7 +7291,7 @@ IRQ_B   NOP
         NOP
         NOP
 
-        DEC $D020
+        INC RASTER_TICK
 
 ;        LDA $D011    ;VIC Control Register 1
 ;        AND #$9F     ;#%10011111    Turn Off bitmap, turn off Extended color
@@ -7334,8 +7323,6 @@ _L00
         STX $0314
         STY $0315
 
-        INC $D020
-
         ASL $D019    ;VIC Interrupt Request Register (IRR)
 
         PLA
@@ -7359,7 +7346,6 @@ IRQ_C
         ;STA $D00D
         ;STA $D00F
 
-;        DEC $D020
         ; Set the correct charset for the level
         LDA LEVEL_NR
         AND #$03        ;#%00000011
@@ -7406,8 +7392,6 @@ IRQ_C
         STA $D01B               ;Sprite to Background Display Priority
         .NEXT
 
-;        INC $D020
-
         LDX SPRITES_SORT_ORDER_TBL + 8
         LDA SPRITES_PREV_Y00,X
         SEC
@@ -7423,8 +7407,6 @@ IRQ_C
 
         ASL $D019       ;VIC Interrupt Request Register (IRR)
 
-;        INC $D020
-
         PLA
         TAY
         PLA
@@ -7439,7 +7421,6 @@ IRQ_C
 
 IRQ_D   ;$4284
 
-;        INC $D020
 ;        LDA #$FF
 ;        STA $D001
 ;        STA $D003
@@ -7491,8 +7472,6 @@ IRQ_D   ;$4284
 
         ASL $D019       ;VIC Interrupt Request Register (IRR)
 
-;        DEC $D020
-
         PLA
         TAY
         PLA
@@ -7509,7 +7488,6 @@ JMP_IRQ_A
 
 IRQ_D   ;$4284
 
-;        INC $D020
         ; Turn off MSB and sprite-bkg pri for upper 4 sprites.
         ; Each sprite will set it individually in case it is needed
         LDA $D010       ;Sprites 0-7 MSB of X coordinate
@@ -7540,8 +7518,6 @@ IRQ_D   ;$4284
         ORA $D01B    ;Sprite to Background Display Priority
         STA $D01B    ;Sprite to Background Display Priority
         .NEXT
-
-;        DEC $D020
 
         ; Y pos for next raster interrupt based on sprite-12 Y pos
         LDX SPRITES_SORT_ORDER_TBL + 8 + 4
@@ -7580,8 +7556,6 @@ IRQ_E
         ;STA $D003
         ;STA $D005
         ;STA $D007
-
-;        DEC $D020
 
         ; Turn off MSB and sprite-bkg pri for lower 4 sprites.
         ; Each sprite will set it individually in case it is needed
@@ -7629,8 +7603,6 @@ IRQ_E
         STY $0315
 
         ASL $D019    ;VIC Interrupt Request Register (IRR)
-
-;        INC $D020
 
         PLA
         TAY
