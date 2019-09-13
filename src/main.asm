@@ -20,12 +20,12 @@
 ; What in theory is missing to have a working LVL2 is the map, and if fix the
 ; charset.
 
+ENABLE_DEBUG = 1                ;If enabled, INC $D020 in raster routines
 ENABLE_DOUBLE_JOYSTICKS = 1     ;
 ENABLE_NEW_SORT_ALGO = 1        ;4x faster
-ENABLE_NEW_IRQ_D = 0            ;If enabled, process 8 sprites in just one single IRQ
-ENABLE_NEW_IRQ_C = 0            ;If enabled, split raster at sprites[8].y
+ENABLE_NEW_IRQ_D = 1            ;If enabled, process 8 sprites in just one single IRQ
+ENABLE_NEW_IRQ_C = 1            ;If enabled, split raster at sprites[8].y
 ENABLE_NEW_RENDER_VIEWPORT = 1  ;Slighty faster viewport render version
-ENABLE_DEBUG = 0                ;If enabled, INC $D020 in raster routines
 ENABLE_AUTOFIRE = 1             ;If enabled, hero will shoot automatically
 TOTAL_FIRE_COOLDOWN = $20       ;Frames to wait before autofiring again
 INITIAL_LEVEL = 0               ;Default $00. For testing only
@@ -7345,17 +7345,12 @@ _L00
 ; raster = $1e
 ; Renders 8 sprites
 IRQ_C
-        ;LDA #$FF
-        ;STA $D001
-        ;STA $D003
-        ;STA $D005
-        ;STA $D007
-        ;STA $D009
-        ;STA $D00B
-        ;STA $D00D
-        ;STA $D00F
-
         #INC_D020
+
+        LDA #$FF
+        .FOR I:=0, I<8, I+=1
+        STA $D001+I
+        .NEXT
 
         ; Set the correct charset for the level
         LDA LEVEL_NR
@@ -7447,17 +7442,12 @@ IRQ_C
 
 IRQ_D   ;$4284
 
-;        LDA #$FF
-;        STA $D001
-;        STA $D003
-;        STA $D005
-;        STA $D007
-;        STA $D009
-;        STA $D00B
-;        STA $D00D
-;        STA $D00F
-
         #DEC_D020
+
+        LDA #$FF
+        .FOR I:=0, I<8, I+=1
+        STA $D001+I
+        .NEXT
 
         ; Turn off MSB and sprite-bkg pri for upper 4 sprites.
         ; Each sprite will set it individually in case it is needed
@@ -7489,9 +7479,9 @@ IRQ_D   ;$4284
 
         #INC_D020
 
-        LDA #$D5-1
+        LDA #$D5
         CMP $D012
-        BCC JMP_IRQ_A           ;Too late for IRQ. Jump directly.
+        BCC _JMP_IRQ_A           ;Too late for IRQ. Jump directly.
         LDA #$D5
         STA $D012               ;Raster Position
 ;        LDA $D011
@@ -7512,7 +7502,7 @@ IRQ_D   ;$4284
         PLA
         RTI
 
-JMP_IRQ_A
+_JMP_IRQ_A
         JMP IRQ_A
 
 .ELSE   ;ENABLE_NEW_IRQ_D == 0
@@ -7582,7 +7572,6 @@ IRQ_D   ;$4284
         TAX
         PLA
         RTI
-.ENDIF  ;ENABLE_NEW_IRQ_D == 0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; sprite multiplexor: sprites 0-3
@@ -7629,9 +7618,9 @@ IRQ_E
 
         #DEC_D020
 
-        LDA #$D5-1
+        LDA #$D5
         CMP $D012
-        BCC JMP_IRQ_A               ;Too late for IRQ. Jump directly.
+        BCC _JMP_IRQ_A               ;Too late for IRQ. Jump directly.
         LDA #$D5
         STA $D012                   ;Raster Position
 ;        LDA $D011
@@ -7652,18 +7641,11 @@ IRQ_E
         PLA
         RTI
 
-JMP_IRQ_A
+_JMP_IRQ_A
         JMP IRQ_A
 
-        ; Masks
-MASK_0000_0001   .BYTE $01           ;0000_0001
-MASK_0000_0010   .BYTE $02           ;0000_0010
-MASK_0000_0100   .BYTE $04           ;0000_0100
-MASK_0000_1000   .BYTE $08           ;0000_1000
-MASK_0001_0000   .BYTE $10           ;0001_0000
-MASK_0010_0000   .BYTE $20           ;0010_0000
-MASK_0100_0000   .BYTE $40           ;0100_0000
-MASK_1000_0000   .BYTE $80           ;1000_0000
+.ENDIF  ;ENABLE_NEW_IRQ_D == 0
+
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
         *= $5000
