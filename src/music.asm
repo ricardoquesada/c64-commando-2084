@@ -83,7 +83,7 @@ b505F   LDA f54E8,X
 b5083   JMP j519B
 
 b5086   LDY f54EC,X
-        LDA (p5D),Y
+        LDA (a5D),Y
         CMP #$FF     ;#%11111111
         BEQ b5099
         CMP #$FE     ;#%11111110
@@ -109,7 +109,7 @@ b50AA   TAY
         LDY f54EF,X
         LDA #$FF     ;#%11111111
         STA a5501
-        LDA (p5F),Y
+        LDA (a5F),Y
         STA f54F5,X
         STA a5502
         AND #$1F     ;#%00011111
@@ -120,7 +120,7 @@ b50AA   TAY
         LDA a5502
         BPL b50ED
         INY
-        LDA (p5F),Y
+        LDA (a5F),Y
         BPL b50E7
         STA f5520,X
         JMP j50EA
@@ -128,7 +128,7 @@ b50AA   TAY
 b50E7   STA f54FE,X
 j50EA   INC f54EF,X
 b50ED   INY
-        LDA (p5F),Y
+        LDA (a5F),Y
         STA f54FB,X
         ASL A
         TAY
@@ -173,7 +173,7 @@ b5154   LDX a5504
         STA f54F8,X
         INC f54EF,X
         LDY f54EF,X
-        LDA (p5F),Y
+        LDA (a5F),Y
         CMP #$FF     ;#%11111111
         BNE b5171
         LDA #$00     ;#%00000000

@@ -46,23 +46,23 @@ IS_PLAY_MUSIC_IN_IRQ = $12      ;Play music inside IRQ? 1=Yes
 a14 = $14
 a19 = $19                       ;Stores current hero animation, but seems unused
 a1A = $1A
+SPRITES_IDX_TBL = $2C           ;$2C-$3B Related to sprite Y pos, used in raster multiplexer
+
 a3D = $3D
 a3F = $3F
 a41 = $41
-SPRITES_IDX_TBL = $4B           ;$4B-$5A Related to sprite Y pos, used in raster multiplexer
-                                ; $4B-$53 processed in IRQ_C (8 sprites)
-                                ; $53-$56: processed in IRQ_D (SPRITES_IDX_TBL+8: 4 sprites)
-                                ; $57-$5A: processed in IRQ_E (SPRITES_IDX_TBL+12: 4 sprites)
-a5D = $5D                       ;Used by music
-a5E = $5E                       ;Used by music
-a5F = $5F                       ;Used by music
-a60 = $60                       ;Used by music
-Z_SPRITES_X08 = $70
-Z_SPRITES_Y08 = $78
-Z_SPRITES_COLOR08 = $80
-Z_SPRITES_PTR08 = $88
-Z_SPRITES_X08_HI = $90
-Z_SPRITES_BKG_PRI08 = $91
+a5D = $42                       ;Used by music
+a5E = $43                       ;Used by music
+a5F = $44                       ;Used by music
+a60 = $45                       ;Used by music
+Z_SPRITES_IDX_X = $50
+Z_SPRITES_IDX_Y = $60
+Z_SPRITES_IDX_COLOR = $70
+Z_SPRITES_IDX_PTR = $80
+Z_SPRITES_IDX_0_7_HI_X = $90
+Z_SPRITES_IDX_8_15_HI_X = $91
+Z_SPRITES_IDX_0_7_BKG_PRI = $92
+Z_SPRITES_IDX_8_15_BKG_PRI = $93
 aA5 = $A5
 aAE = $AE
 aC9 = $C9
@@ -87,8 +87,6 @@ p28 = $28                       ;what sprite type to create at row
 p29 = $29
 p2A = $2A                       ;charset attributes: background priority, collision, etc.
 p2B = $2B
-p5D = $5D                       ;used by music
-p5F = $5F                       ;used by music
 pF7 = $F7
 pFB = $FB                       ;$FB/$FC: different meanings depending to the game state
 pFC = $FC                       ; On Hiscore, it points to Screen RAM
@@ -158,7 +156,7 @@ HISCORE_IS_CHAR_ANIM = $0511    ;1: if the selected char in hiscore is being ani
 HISCORE_ANIM_CHAR_COUNTER = $0512       ;Counter to the selected char animation in hiscore
 REQUIRES_SETUP_HERO_ANIM = $513       ;If 1, SETUP_HERO_ANIMATION must be called
 
-; Sprites related. Allocating space for 24 sprites, in case we need them
+; Sprites related. Allocating space for 32 sprites, in case we need them
 SPRITES_X_HI00 = $0600         ;MSB for X pos
 SPRITES_X_HI01 = $0601
 SPRITES_X_HI04 = $0604
@@ -200,9 +198,6 @@ SPRITES_TMP_A04 = $0724         ;referenced in throw grenade
 SPRITES_TMP_A05 = $0725         ;Used to link sprites together (?)
 SPRITES_TMP_B05 = $0745         ;Used as index to delta_tbl, and more. Slots: TOTAL-5 (all enemies sprites)
 SPRITES_TMP_C05 = $0765         ;Used as counter. Slots: TOTAL-5 (all enemies sprites)
-SPRITES_PREV_Y00 = $0780        ;Value before applying delta to SPRITES_Y00. Used in raster interrupt.
-                                ; But for Hero PREV_Y is always equal to Y
-                                ; Not sure why it is being used
 
 aE34E = $E34E
 aE34F = $E34F
@@ -349,6 +344,7 @@ GAME_LOOP            ;$08CB
         JSR MUSIC_PLAY
         DEC V_SCROLL_ROW_IDX
         JSR APPLY_DELTA_MOV
+        JSR PRE_PROCESS_IRQ_D
         JSR LEVEL_DRAW_VIEWPORT
         JMP GAME_LOOP
 
@@ -357,6 +353,7 @@ _L00
         JSR MUSIC_PLAY
         JSR APPLY_DELTA_MOV
         JSR SORT_SPRITES_BY_Y
+        JSR PRE_PROCESS_IRQ_D
         JSR TRY_THROW_GRENADE
         JSR ANIM_ENEMIES
         JSR RUN_ACTIONS
@@ -737,7 +734,7 @@ _L00    STA HISCORE_NAME,X
         STA HISCORE_SELECTED_CHAR
         JSR APPLY_DELTA_MOV
         JSR SORT_SPRITES_BY_Y
-        RTS
+        JMP PRE_PROCESS_IRQ_D
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 HISCORE_READ_JOY_MOV
@@ -861,6 +858,7 @@ _L05    #WAIT_RASTER_AT_BOTTOM
         JSR HISCORE_ANIM_CHAR
         JSR APPLY_DELTA_MOV
         JSR SORT_SPRITES_BY_Y
+        JSR PRE_PROCESS_IRQ_D
         JSR s0C6F
         LDA HISCORE_SELECTED_CHAR
         CMP #$78     ;#%01111000
@@ -1181,6 +1179,8 @@ _L00    LDA _MS_SPRITES_Y,X
 
         JSR APPLY_DELTA_MOV
         JSR SORT_SPRITES_BY_Y
+        JSR PRE_PROCESS_IRQ_D
+
         LDA #$00        ;black
         STA $D025       ;Sprite Multi-Color Register 0
         LDA #$07        ;yellow
@@ -1721,15 +1721,6 @@ SCREEN_REFRESH_LIVES
         CLC
         ADC #$21     ;#%00100001
         STA aE362
-        RTS
-
-;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Unused (?)
-        LDX #(TOTAL_MAX_SPRITES-1)
-_L00    LDA SPRITES_Y00,X
-        STA SPRITES_PREV_Y00,X
-        DEX
-        BPL _L00
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -6652,6 +6643,8 @@ _L00    LDA f3D27,X
 
         JSR APPLY_DELTA_MOV
         JSR SORT_SPRITES_BY_Y
+        JSR PRE_PROCESS_IRQ_D
+
         LDA #$FF     ;#%11111111
         STA COUNTER1
 _L01    LDX #$00     ;#%00000000
@@ -6705,13 +6698,10 @@ _L00    PLA
         CLC
         ADC SPRITES_DELTA_Y00
         STA SPRITES_Y00
-        STA SPRITES_PREV_Y00
 
         ; For the remaining sprites: 1-15
         LDX #$01
-_L01    LDA SPRITES_Y00,X
-        STA SPRITES_PREV_Y00,X
-        LDA SPRITES_TYPE00,X
+_L01    LDA SPRITES_TYPE00,X
         BEQ _L03
 
         ; Apply delta X
@@ -6737,25 +6727,9 @@ _L02    PLA
         SBC V_SCROLL_DELTA
         STA SPRITES_Y00,X
 _L03    INX
-        CPX #$10     ;#%00010000
+        CPX #TOTAL_MAX_SPRITES
         BNE _L01
         RTS
-
-        ; Unused (?)
-
-        LDA #$00     ;#%00000000
-        STA SPRITES_TYPE00,X
-        STA SPRITES_DELTA_X00,X
-        STA SPRITES_DELTA_Y00,X
-        LDA ORIG_SPRITE_Y00,X
-        STA SPRITES_Y00,X
-        LDA #$64     ;#%01100100
-        STA SPRITES_X_LO00,X
-        LDA #$FF     ;#%11111111
-        STA SPRITES_X_HI00,X
-        LDA #$FF     ;#%11111111
-        STA SPRITES_PTR00,X
-        JMP _L03
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; CLEANUP_SPRITES
@@ -6784,15 +6758,15 @@ _L00    LDA #$64
 ; min grenades is 5, and more
 SETUP_LEVEL             ;$3DFE
         JSR CLEANUP_SPRITES
-        LDA #$97     ;#%10010111
+        LDA #$97
         STA SPRITES_X_LO00
-        LDA #$B4     ;#%10110100
+        LDA #$B4
         STA SPRITES_Y00
         LDA #$98     ;#%10011000
         STA SPRITES_PTR00
         LDA #$06     ;blue
         STA SPRITES_COLOR00
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_X_HI00
         STA SPRITES_DELTA_X00
         STA SPRITES_DELTA_Y00
@@ -6800,6 +6774,7 @@ SETUP_LEVEL             ;$3DFE
         STA HERO_ANIM_MOV_IDX
         STA SPRITES_BKG_PRI00
         STA IS_HERO_DEAD
+        STA V_SCROLL_DELTA
         LDA LEVEL_NR
         AND #$03     ;#%00000011
         ASL A
@@ -6897,6 +6872,54 @@ f3EEE   .ADDR f3EDA         ;LVL0
         .ADDR f3EDF         ;LVL1
         .ADDR f3EDF         ;LVL2
         .ADDR f3EE9         ;LVL3
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+PRE_PROCESS_IRQ_D
+        ; Process from SPRITES_IDX_TBL
+        LDA #$00
+        STA Z_SPRITES_IDX_0_7_BKG_PRI
+        STA Z_SPRITES_IDX_8_15_BKG_PRI
+        STA Z_SPRITES_IDX_0_7_HI_X
+        STA Z_SPRITES_IDX_8_15_HI_X
+
+        .FOR I := 0, I < 16, I += 1
+        LDX SPRITES_IDX_TBL + I
+        LDA SPRITES_Y00,X
+        STA Z_SPRITES_IDX_Y+I
+
+        LDA SPRITES_X_LO00,X
+        STA Z_SPRITES_IDX_X+I
+
+        LDA SPRITES_PTR00,X
+        STA Z_SPRITES_IDX_PTR+I
+
+        LDA SPRITES_COLOR00,X
+        STA Z_SPRITES_IDX_COLOR+I
+
+        .IF I < 8
+        LDA SPRITES_X_HI00,X
+        AND #1<<(7-I)
+        ORA Z_SPRITES_IDX_0_7_HI_X
+        STA Z_SPRITES_IDX_0_7_HI_X
+
+        LDA SPRITES_BKG_PRI00,X
+        AND #1<<(7-I)
+        ORA Z_SPRITES_IDX_0_7_BKG_PRI
+        STA Z_SPRITES_IDX_0_7_BKG_PRI
+        .ELSE
+        LDA SPRITES_X_HI00,X
+        AND #1<<(7-(I-8))
+        ORA Z_SPRITES_IDX_8_15_HI_X
+        STA Z_SPRITES_IDX_8_15_HI_X
+
+        LDA SPRITES_BKG_PRI00,X
+        AND #1<<(7-(I-8))
+        ORA Z_SPRITES_IDX_8_15_BKG_PRI
+        STA Z_SPRITES_IDX_8_15_BKG_PRI
+        .ENDIF
+        .NEXT
+
+        RTS
 
 .IF ENABLE_NEW_SORT_ALGO == 1
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -7355,11 +7378,6 @@ _L00
 IRQ_C
         #INC_D020
 
-        LDA #$FF
-        .FOR I:=0, I<8, I+=1
-        STA $D001+I
-        .NEXT
-
         ; Set the correct charset for the level
         LDA LEVEL_NR
         AND #$03        ;#%00000011
@@ -7380,43 +7398,33 @@ IRQ_C
         LDA BKG_COLOR2
         STA $D023       ;Background Color 2, Multi-Color Register 1
 
-        LDA #$00
-        STA $D010       ;Sprites 0-7 MSB of X coordinate
-        STA $D01B       ;Sprite to Background Display Priority
-
         ; Process from SPRITES_IDX_TBL 0 to 7
         ; Uses HW Sprites 7 to 0
-        .FOR I := 0, I < 8, I += 1
-        LDX SPRITES_IDX_TBL + I
-        LDA SPRITES_PREV_Y00,X
-        STA $D001 + (7-I) * 2   ;Sprite 0 Y Pos
-        LDA SPRITES_X_LO00,X
-        STA $D000 + (7-I) * 2   ;Sprite 0 X Pos
-        LDA SPRITES_PTR00,X
-        STA fE3F8 + (7-I)
-        LDA SPRITES_COLOR00,X
-        STA $D027 + (7-I)       ;Sprite 0 Color
-        LDA SPRITES_X_HI00,X
-        AND #(1<<(7-I))
-        ORA $D010               ;Sprites 0-7 MSB of X coordinate
-        STA $D010               ;Sprites 0-7 MSB of X coordinate
-        LDA SPRITES_BKG_PRI00,X
-        AND #(1<<(7-I))
-        ORA $D01B               ;Sprite to Background Display Priority
-        STA $D01B               ;Sprite to Background Display Priority
+        .FOR I:=0, I<8, I+=1
+        LDA Z_SPRITES_IDX_X + I
+        STA $D000+(7-I)*2
+        LDA Z_SPRITES_IDX_Y + I
+        STA $D001+(7-I)*2
+        LDA Z_SPRITES_IDX_COLOR + I
+        STA $D027+(7-I)
+        LDA Z_SPRITES_IDX_PTR + I
+        STA $E3F8+(7-I)
         .NEXT
+
+        LDA Z_SPRITES_IDX_0_7_HI_X
+        STA $D010
+        LDA Z_SPRITES_IDX_0_7_BKG_PRI
+        STA $D01B
 
         #DEC_D020
 
 .IF ENABLE_NEW_IRQ_C == 1
-        LDX SPRITES_IDX_TBL + 8
-        LDA SPRITES_PREV_Y00,X
+        LDA Z_SPRITES_IDX_Y+8
         SEC
         SBC #$02
 .ELSE   ;ENABLE_NEW_IRQ_C != 1
         ; Not sure whether this logic is a bug or a feature
-        LDX SPRITES_IDX_TBL + 3
-        LDA SPRITES_PREV_Y00,X
+        LDA Z_SPRITES_IDX_Y+3
         CLC
         ADC #$14     ;20 pixels below. Each sprite has 21 pixels.
 .ENDIF  ;ENABLE_NEW_IRQ_C != 1
@@ -7452,38 +7460,23 @@ IRQ_D   ;$4284
 
         #DEC_D020
 
-        LDA #$FF
-        .FOR I:=0, I<8, I+=1
-        STA $D001+I
-        .NEXT
-
-        ; Turn off MSB and sprite-bkg pri for upper 4 sprites.
-        ; Each sprite will set it individually in case it is needed
-        LDA #$00
-        STA $D010       ;Sprites 0-7 MSB of X coordinate
-        STA $D01B       ;Sprite to Background Display Priority
-
         ; Process from SPRITES_IDX_TBL 8 to 15
         ; Uses HW Sprites 7 to 0
-        .FOR I := 0, I < 8, I += 1
-        LDX SPRITES_IDX_TBL + I + 8
-        LDA SPRITES_PREV_Y00,X
-        STA $D001 + (7-I) * 2   ;Sprite 0 Y Pos
-        LDA SPRITES_X_LO00,X
-        STA $D000 + (7-I) * 2   ;Sprite 0 X Pos
-        LDA SPRITES_PTR00,X
-        STA fE3F8 + (7-I)
-        LDA SPRITES_COLOR00,X
-        STA $D027 + (7-I)       ;Sprite 0 Color
-        LDA SPRITES_X_HI00,X
-        AND #(1<<(7-I))
-        ORA $D010               ;Sprites 0-7 MSB of X coordinate
-        STA $D010               ;Sprites 0-7 MSB of X coordinate
-        LDA SPRITES_BKG_PRI00,X
-        AND #(1<<(7-I))
-        ORA $D01B               ;Sprite to Background Display Priority
-        STA $D01B               ;Sprite to Background Display Priority
+        .FOR I:=8, I<16, I+=1
+        LDA Z_SPRITES_IDX_X + I
+        STA $D000+(7-(I-8))*2
+        LDA Z_SPRITES_IDX_Y + I
+        STA $D001+(7-(I-8))*2
+        LDA Z_SPRITES_IDX_COLOR + I
+        STA $D027+7-(I-8)
+        LDA Z_SPRITES_IDX_PTR + I
+        STA $E3F8+7-(I-8)
         .NEXT
+
+        LDA Z_SPRITES_IDX_8_15_HI_X
+        STA $D010
+        LDA Z_SPRITES_IDX_8_15_BKG_PRI
+        STA $D01B
 
         #INC_D020
 
@@ -7521,42 +7514,29 @@ IRQ_D   ;$4284
 
         #DEC_D020
 
-        ; Turn off MSB and sprite-bkg pri for upper 4 sprites.
-        ; Each sprite will set it individually in case it is needed
-        LDA $D010       ;Sprites 0-7 MSB of X coordinate
-        AND #$0F        ;#%00001111
-        STA $D010       ;Sprites 0-7 MSB of X coordinate
-        LDA $D01B       ;Sprite to Background Display Priority
-        AND #$0F        ;#%00001111
-        STA $D01B       ;Sprite to Background Display Priority
-
         ; Process from SPRITES_IDX_TBL 8 to 11
         ; Uses HW Sprites 7 to 4
-        .FOR I:=8, I<12, I+=1
-        LDX SPRITES_IDX_TBL + I
-        LDA SPRITES_PREV_Y00,X
-        STA $D00F - (I-8) * 2   ;Sprite 7 Y Pos
-        LDA SPRITES_X_LO00,X
-        STA $D00E - (I-8) * 2   ;Sprite 7 X Pos
-        LDA SPRITES_PTR00,X
-        STA aE3FF - (I - 8)     ;Sprite 7 frame
-        LDA SPRITES_COLOR00,X
-        STA $D02E - (I - 8)     ;Sprite 7 Color
-        LDA SPRITES_X_HI00,X
-        AND #(1 << (15-I))      ;Mask from 2^7 to 2^4
-        ORA $D010    ;Sprites 0-7 MSB of X coordinate
-        STA $D010    ;Sprites 0-7 MSB of X coordinate
-        LDA SPRITES_BKG_PRI00,X
-        AND #(1 << (15-I))      ;Mask from 2^7 to 2^4
-        ORA $D01B    ;Sprite to Background Display Priority
-        STA $D01B    ;Sprite to Background Display Priority
+        .FOR I:=3, I>=0, I-=1
+        LDA Z_SPRITES_IDX_X + 8 + I
+        STA $D000+I*2
+        LDA Z_SPRITES_IDX_Y + 8 + I
+        STA $D001+I*2
+        LDA Z_SPRITES_IDX_COLOR + 8 + I
+        STA $D027+I
+        LDA Z_SPRITES_IDX_PTR + 8 + I
+        STA $E3F8+I
         .NEXT
+
+        LDA Z_SPRITES_IDX_8_15_HI_X
+        STA $D010
+        LDA Z_SPRITES_IDX_8_15_BKG_PRI
+        STA $D01B
 
         #INC_D020
 
         ; Y pos for next raster interrupt based on sprite-12 Y pos
         LDX SPRITES_IDX_TBL + 8 + 4
-        LDA SPRITES_PREV_Y00,X
+        LDA Z_SPRITES_IDX_Y,X
         SEC
         SBC #$02
         CMP $D012
