@@ -1,6 +1,10 @@
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Commando 2084:
 ; Main routine
+;
+; Based on disassembly of original code.
+; Changes by riq/pvm.
+;
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Note about levels:
 ; LVL0 -> Is "level 1" in the game
