@@ -20,10 +20,10 @@
 ; What in theory is missing to have a working LVL2 is the map, and if fix the
 ; charset.
 
-ENABLE_DEBUG = 1                ;If enabled, INC $D020 in raster routines
+ENABLE_DEBUG = 0                ;If enabled, INC $D020 in raster routines
 ENABLE_DOUBLE_JOYSTICKS = 1     ;
 ENABLE_NEW_SORT_ALGO = 1        ;4x faster
-ENABLE_NEW_IRQ_D = 1            ;If enabled, process 8 sprites in just one single IRQ
+ENABLE_NEW_IRQ_D = 0            ;If enabled, process 8 sprites in just one single IRQ
 ENABLE_NEW_IRQ_C = 1            ;If enabled, split raster at sprites[8].y
 ENABLE_NEW_RENDER_VIEWPORT = 1  ;Slighty faster viewport render version
 ENABLE_AUTOFIRE = 1             ;If enabled, hero will shoot automatically
@@ -344,7 +344,6 @@ GAME_LOOP            ;$08CB
         JSR MUSIC_PLAY
         DEC V_SCROLL_ROW_IDX
         JSR APPLY_DELTA_MOV
-        JSR PRE_PROCESS_IRQ_D
         JSR LEVEL_DRAW_VIEWPORT
         JMP GAME_LOOP
 
@@ -353,7 +352,6 @@ _L00
         JSR MUSIC_PLAY
         JSR APPLY_DELTA_MOV
         JSR SORT_SPRITES_BY_Y
-        JSR PRE_PROCESS_IRQ_D
         JSR TRY_THROW_GRENADE
         JSR ANIM_ENEMIES
         JSR RUN_ACTIONS
@@ -733,8 +731,7 @@ _L00    STA HISCORE_NAME,X
         LDA #$20
         STA HISCORE_SELECTED_CHAR
         JSR APPLY_DELTA_MOV
-        JSR SORT_SPRITES_BY_Y
-        JMP PRE_PROCESS_IRQ_D
+        JMP SORT_SPRITES_BY_Y
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 HISCORE_READ_JOY_MOV
@@ -858,7 +855,6 @@ _L05    #WAIT_RASTER_AT_BOTTOM
         JSR HISCORE_ANIM_CHAR
         JSR APPLY_DELTA_MOV
         JSR SORT_SPRITES_BY_Y
-        JSR PRE_PROCESS_IRQ_D
         JSR s0C6F
         LDA HISCORE_SELECTED_CHAR
         CMP #$78     ;#%01111000
@@ -1181,7 +1177,6 @@ _L00    LDA _MS_SPRITES_Y,X
 
         JSR APPLY_DELTA_MOV
         JSR SORT_SPRITES_BY_Y
-        JSR PRE_PROCESS_IRQ_D
 
         LDA #$00        ;black
         STA $D025       ;Sprite Multi-Color Register 0
@@ -1207,7 +1202,6 @@ _L02    LDA _2084_PTR,X
         STA SPRITES_PTR05 + 7,X
         DEX
         BPL _L02
-        JSR PRE_PROCESS_IRQ_D
 
         ; Show our own credits
         JSR PRINT_CREDITS_2084
@@ -6646,7 +6640,6 @@ _L00    LDA f3D27,X
 
         JSR APPLY_DELTA_MOV
         JSR SORT_SPRITES_BY_Y
-        JSR PRE_PROCESS_IRQ_D
 
         LDA #$FF     ;#%11111111
         STA COUNTER1
@@ -6877,7 +6870,11 @@ f3EEE   .ADDR f3EDA         ;LVL0
         .ADDR f3EE9         ;LVL3
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-PRE_PROCESS_IRQ_D
+; Simulates a double-buffer rendering.
+; This pre-process all the heavy-lifting needed at IRQ time, but the cost is that
+; everything will be one-frame delayed. But in a way, coordinate Y was already
+; one frame delayed, so this it not a big penalty.
+DO_DOUBLE_BUFFER
         ; Process from SPRITES_IDX_TBL
         LDA #$00
         STA Z_SPRITES_IDX_0_7_BKG_PRI
@@ -7381,6 +7378,11 @@ _L00
 IRQ_C
         #INC_D020
 
+        ; FIXME: perhaps this should be outside the IRQ, but adding it here
+        ; to prevent adding it in many places. Besides, it is good to call
+        ; this before doing the rendering.
+        JSR DO_DOUBLE_BUFFER
+
         ; Set the correct charset for the level
         LDA LEVEL_NR
         AND #$03        ;#%00000011
@@ -7467,13 +7469,13 @@ IRQ_D   ;$4284
         ; Uses HW Sprites 7 to 0
         .FOR I:=8, I<16, I+=1
         LDA Z_SPRITES_IDX_X + I
-        STA $D000+(7-(I-8))*2
+        STA $D000+(15-I)*2
         LDA Z_SPRITES_IDX_Y + I
-        STA $D001+(7-(I-8))*2
+        STA $D001+(15-I)*2
         LDA Z_SPRITES_IDX_COLOR + I
-        STA $D027+7-(I-8)
+        STA $D027+15-I
         LDA Z_SPRITES_IDX_PTR + I
-        STA $E3F8+7-(I-8)
+        STA $E3F8+15-I
         .NEXT
 
         LDA Z_SPRITES_IDX_8_15_HI_X
@@ -7519,27 +7521,37 @@ IRQ_D   ;$4284
 
         ; Process from SPRITES_IDX_TBL 8 to 11
         ; Uses HW Sprites 7 to 4
-        .FOR I:=3, I>=0, I-=1
-        LDA Z_SPRITES_IDX_X + 8 + I
-        STA $D000+I*2
-        LDA Z_SPRITES_IDX_Y + 8 + I
-        STA $D001+I*2
-        LDA Z_SPRITES_IDX_COLOR + 8 + I
-        STA $D027+I
-        LDA Z_SPRITES_IDX_PTR + 8 + I
-        STA $E3F8+I
+        .FOR I:=8, I<12, I+=1
+        LDA Z_SPRITES_IDX_X + I
+        STA $D000+(15-I)*2
+        LDA Z_SPRITES_IDX_Y + I
+        STA $D001+(15-I)*2
+        LDA Z_SPRITES_IDX_COLOR + I
+        STA $D027+15-I
+        LDA Z_SPRITES_IDX_PTR + I
+        STA $E3F8+15-I
         .NEXT
 
         LDA Z_SPRITES_IDX_8_15_HI_X
+        AND #%11110000
+        STA Z_TEMP1
+        LDA $D010
+        AND #%00001111
+        ORA Z_TEMP1
         STA $D010
+
         LDA Z_SPRITES_IDX_8_15_BKG_PRI
+        AND #%11110000
+        STA Z_TEMP1
+        LDA $D01B
+        AND #%00001111
+        ORA Z_TEMP1
         STA $D01B
 
         #INC_D020
 
         ; Y pos for next raster interrupt based on sprite-12 Y pos
-        LDX SPRITES_IDX_TBL + 8 + 4
-        LDA Z_SPRITES_IDX_Y,X
+        LDA Z_SPRITES_IDX_Y + 8 + 4
         SEC
         SBC #$02
         CMP $D012
@@ -7576,43 +7588,40 @@ IRQ_E
 
         #INC_D020
 
-        ; Turn off MSB and sprite-bkg pri for lower 4 sprites.
-        ; Each sprite will set it individually in case it is needed
-        LDA $D010    ;Sprites 0-7 MSB of X coordinate
-        AND #$F0     ;#%11110000
-        STA $D010    ;Sprites 0-7 MSB of X coordinate
-        LDA $D01B    ;Sprite to Background Display Priority
-        AND #$F0     ;#%11110000
-        STA $D01B    ;Sprite to Background Display Priority
-
         ; Process from SPRITES_IDX_TBL 12 to 15
-        ; Uses HW Sprites 3 to 0
+        ; Uses HW Sprites 0 to 3
         .FOR I:=12, I<16, I+=1
-        LDX SPRITES_IDX_TBL + I
-        LDA SPRITES_PREV_Y00,X
-        STA $D007 - (I-12) * 2      ;Sprite 3 Y Pos
-        LDA SPRITES_X_LO00,X
-        STA $D006 - (I-12) * 2      ;Sprite 3 X Pos
-        LDA SPRITES_PTR00,X
-        STA aE3FB - (I - 12)
-        LDA SPRITES_COLOR00,X
-        STA $D02A - (I - 12)        ;Sprite 3 Color
-        LDA SPRITES_X_HI00,X
-        AND #(1 << (15-I))          ;Mask from 2^3 to 2^0
-        ORA $D010                   ;Sprites 0-7 MSB of X coordinate
-        STA $D010                   ;Sprites 0-7 MSB of X coordinate
-        LDA SPRITES_BKG_PRI00,X
-        AND #(1 << (15-I))          ;Mask from 2^3 to 2^0
-        ORA $D01B                   ;Sprite to Background Display Priority
-        STA $D01B                   ;Sprite to Background Display Priority
+        LDA Z_SPRITES_IDX_X + I
+        STA $D000+(15-I)*2
+        LDA Z_SPRITES_IDX_Y + I
+        STA $D001+(15-I)*2
+        LDA Z_SPRITES_IDX_COLOR + I
+        STA $D027+15-I
+        LDA Z_SPRITES_IDX_PTR + I
+        STA $E3F8+15-I
         .NEXT
+
+        LDA Z_SPRITES_IDX_8_15_HI_X
+        AND #%00001111
+        STA Z_TEMP1
+        LDA $D010
+        AND #%11110000
+        ORA Z_TEMP1
+        STA $D010
+
+        LDA Z_SPRITES_IDX_8_15_BKG_PRI
+        AND #%00001111
+        STA Z_TEMP1
+        LDA $D01B
+        AND #%11110000
+        ORA Z_TEMP1
+        STA $D01B
 
         #DEC_D020
 
         LDA #$D5
         CMP $D012
         BCC _JMP_IRQ_A               ;Too late for IRQ. Jump directly.
-        LDA #$D5
         STA $D012                   ;Raster Position
 ;        LDA $D011
 ;        AND #%01111111              ;Turn off raster MSB
