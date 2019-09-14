@@ -40,12 +40,40 @@ TOTAL_ENEMIES_IN_FORT = $20     ;Default $14
 ; **** ZP ABSOLUTE ADDRESSES ****
 ;
 a01 = $01
-a5D = $5D
-a5E = $5E
-a5F = $5F
-a60 = $60
+Z_TEMP1 = $10
+Z_TEMP2 = $11
+IS_PLAY_MUSIC_IN_IRQ = $12      ;Play music inside IRQ? 1=Yes
+a14 = $14
+a19 = $19                       ;Stores current hero animation, but seems unused
+a1A = $1A
+a3D = $3D
+a3F = $3F
+a41 = $41
+SPRITES_IDX_TBL = $4B           ;$4B-$5A Related to sprite Y pos, used in raster multiplexer
+                                ; $4B-$53 processed in IRQ_C (8 sprites)
+                                ; $53-$56: processed in IRQ_D (SPRITES_IDX_TBL+8: 4 sprites)
+                                ; $57-$5A: processed in IRQ_E (SPRITES_IDX_TBL+12: 4 sprites)
+a5D = $5D                       ;Used by music
+a5E = $5E                       ;Used by music
+a5F = $5F                       ;Used by music
+a60 = $60                       ;Used by music
+Z_SPRITES_X08 = $70
+Z_SPRITES_Y08 = $78
+Z_SPRITES_COLOR08 = $80
+Z_SPRITES_PTR08 = $88
+Z_SPRITES_X08_HI = $90
+Z_SPRITES_BKG_PRI08 = $91
 aA5 = $A5
 aAE = $AE
+aC9 = $C9
+aD7 = $D7
+a00F7 = $00F7
+a00F8 = $00F8
+a00FB = $00FB
+a00FC = $00FC
+a00FD = $00FD
+a00FE = $00FE
+
 ;
 ; **** ZP POINTERS ****
 ;
@@ -81,28 +109,6 @@ fE3F8 = $E3F8
 ;
 ; **** ABSOLUTE ADDRESSES ****
 ;
-Z_TEMP1 = $10
-Z_TEMP2 = $11
-IS_PLAY_MUSIC_IN_IRQ = $0012    ;Play music inside IRQ? 1=Yes
-a0014 = $0014
-a0019 = $0019                   ;Stores current hero animation, but seems unused
-a001A = $001A
-a003D = $003D
-a003F = $003F
-a0041 = $0041
-SPRITES_IDX_TBL = $004B  ;$4B-$5A Related to sprite Y pos, used in raster multiplexer
-                                ; $4B-$53 processed in IRQ_C (8 sprites)
-                                ; $53-$56: processed in IRQ_D (SPRITES_IDX_TBL+8: 4 sprites)
-                                ; $57-$5A: processed in IRQ_E (SPRITES_IDX_TBL+12: 4 sprites)
-a00A7 = $00A7
-a00C9 = $00C9
-a00D7 = $00D7
-a00F7 = $00F7
-a00F8 = $00F8
-a00FB = $00FB
-a00FC = $00FC
-a00FD = $00FD
-a00FE = $00FE
 a0400 = $0400
 a0401 = $0401
 V_SCROLL_BIT_IDX = $0402        ;pixels scrolled vertically: 0-7
@@ -5652,21 +5658,21 @@ SETUP_VIC_BANK          ;$35AD
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-s35CE   LDA GAME_TICK   ;unused
+s35CE   LDA GAME_TICK   ;FIXME: unused
         LDA a04E1
-        AND #$0F     ;#%00001111
+        AND #$0F        ;#%00001111
         CMP HERO_ANIM_MOV_IDX
         BEQ _L02
         SEC
         SBC HERO_ANIM_MOV_IDX
-        AND #$0F     ;#%00001111
-        CMP #$08     ;#%00001000
+        AND #$0F        ;#%00001111
+        CMP #$08        ;#%00001000
         BCC _L01
         INC a04E1
         INC a04E1
 _L01    DEC a04E1
 _L02    LDA a04E1
-        AND #$0F     ;#%00001111
+        AND #$0F        ;#%00001111
         STA a04E1
         RTS
 
@@ -6179,6 +6185,7 @@ TYPE_ANIM_HERO_MAIN
 
 _L00
 .IF ENABLE_AUTOFIRE==0
+        ; Autofire disabled
         LDA $DC00    ;CIA1: Data Port Register A (in-game fire)
         AND #$10     ;#%00010000
         BNE _L02
@@ -6190,7 +6197,8 @@ _L00
         LDA FIRE_COOLDOWN
         AND #$07     ;#%00000111
         BNE _L01
-.ELSE
+.ELSE   ; ENABLE_AUTOFIRE != 0
+        ; Autofire enabled
         INC FIRE_COOLDOWN
         LDA FIRE_COOLDOWN
         CMP #TOTAL_FIRE_COOLDOWN
@@ -6417,9 +6425,9 @@ _L08    LDA $DC00    ;CIA1: Data Port Register A (multiple directions)
         STX HERO_ANIM_MOV_IDX
 .ENDIF
         LDA #<HERO_FRAMES_UP_RIGHT  ;#%10111000
-        STA a0019
+        STA a19
         LDA #>HERO_FRAMES_UP_RIGHT  ;#%00111100
-        STA a001A
+        STA a1A
         ;FIXME: unintended fallthrough.
         ;       a jump must be placed here
 
@@ -6430,9 +6438,9 @@ _L09    CMP #$75     ;#%01110101        down-right
         STX HERO_ANIM_MOV_IDX
 .ENDIF
         LDA #<HERO_FRAMES_DOWN_RIGHT  ;#%10110000
-        STA a0019
+        STA a19
         LDA #>HERO_FRAMES_DOWN_RIGHT  ;#%00111100
-        STA a001A
+        STA a1A
         ;FIXME: unintended fallthrough.
         ;       a jump must be placed here
 
@@ -6443,9 +6451,9 @@ _L10    CMP #$79     ;#%01111001        down-left
         STX HERO_ANIM_MOV_IDX
 .ENDIF
         LDA #<HERO_FRAMES_DOWN_LEFT  ;#%10110100
-        STA a0019
+        STA a19
         LDA #>HERO_FRAMES_DOWN_LEFT  ;#%00111100
-        STA a001A
+        STA a1A
         ;FIXME: unintended fallthrough.
         ;       a jump must be placed here
 
@@ -6456,9 +6464,9 @@ _L11    CMP #$7A     ;#%01111010        up-left
         STX HERO_ANIM_MOV_IDX
 .ENDIF
         LDA #<HERO_FRAMES_UP_LEFT  ;#%10111100
-        STA a0019
+        STA a19
         LDA #>HERO_FRAMES_UP_LEFT  ;#%00111100
-        STA a001A
+        STA a1A
 
 _L12    LDA $DC00    ;CIA1: Data Port Register A (in-game direction changed)
         AND #$0F     ;#%00001111
@@ -6928,52 +6936,52 @@ NOSWAP2 INX
         BNE SORTLOOP
         RTS
 
-.ELSE   ; ENABLE_NEW_SORT_ALGO
+.ELSE   ; ENABLE_NEW_SORT_ALGO != 1
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Sort sprites in SPRITES_IDX_TBL by Y position
 ; This is the original sorting algorithm. Kind of slow
 SORT_SPRITES_BY_Y       ;$3F24
         LDA #$0F        ;Number of sprites to sort (?)
-        STA a0014
-        STA a00D7
-_L00    LSR a0014
+        STA a14
+        STA aD7
+_L00    LSR a14
         BEQ _L04
-        LDA a00D7
+        LDA aD7
         SEC
-        SBC a0014
-        STA a00C9
+        SBC a14
+        STA aC9
         LDA #$00
-        STA a003D
-_L01    LDA a003D
-        STA a003F
-_L02    LDA a003F
+        STA a3D
+_L01    LDA a3D
+        STA a3F
+_L02    LDA a3F
         CLC
-        ADC a0014
-        STA a0041
-        LDX a0041
+        ADC a14
+        STA a41
+        LDX a41
         LDY SPRITES_IDX_TBL,X
         LDA SPRITES_Y00,Y
-        LDX a003F
+        LDX a3F
         LDY SPRITES_IDX_TBL,X
         CMP SPRITES_Y00,Y
         BCS _L03
-        LDX a003F
-        LDY a0041
+        LDX a3F
+        LDY a41
         LDA SPRITES_IDX_TBL,Y
         PHA
         LDA SPRITES_IDX_TBL,X
         STA SPRITES_IDX_TBL,Y
         PLA
         STA SPRITES_IDX_TBL,X
-        LDA a003F
+        LDA a3F
         SEC
-        SBC a0014
-        STA a003F
+        SBC a14
+        STA a3F
         BPL _L02
-_L03    INC a003D
-        LDA a00C9
-        CMP a003D
+_L03    INC a3D
+        LDA aC9
+        CMP a3D
         BCC _L00
         JMP _L01
 
@@ -6981,10 +6989,10 @@ _L04
         RTS
 .ENDIF  ; ENABLE_NEW_SORT_ALGO
 
+.IF ENABLE_NEW_RENDER_VIEWPORT == 1
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Slighty faster render-viewport function.
 ; It is ~5 raster-line faster than the original one.
-.IF ENABLE_NEW_RENDER_VIEWPORT == 1
 LEVEL_DRAW_VIEWPORT
         ; Calculate offset
         LDX V_SCROLL_ROW_IDX
@@ -7042,7 +7050,7 @@ MAP_OFFSET_HI
         .BYTE >(40*I)
 .NEXT
 
-.ELSE   ; ENABLE_NEW_RENDER_VIEWPORT == 0
+.ELSE   ; ENABLE_NEW_RENDER_VIEWPORT != 1
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Copies "current" map to screen RAM
@@ -7107,7 +7115,7 @@ _L07    CMP #$48     ;#%01001000
         BNE _L00
 
         RTS
-.ENDIF      ; ENABLE_NEW_RENDER_VIEWPORT == 0
+.ENDIF      ; ENABLE_NEW_RENDER_VIEWPORT != 0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Not really a random number generator, but can be thought of one.
@@ -7405,13 +7413,13 @@ IRQ_C
         LDA SPRITES_PREV_Y00,X
         SEC
         SBC #$02
-.ELSE   ;ENABLE_NEW_IRQ_C == 0
+.ELSE   ;ENABLE_NEW_IRQ_C != 1
         ; Not sure whether this logic is a bug or a feature
         LDX SPRITES_IDX_TBL + 3
         LDA SPRITES_PREV_Y00,X
         CLC
         ADC #$14     ;20 pixels below. Each sprite has 21 pixels.
-.ENDIF  ;ENABLE_NEW_IRQ_C == 0
+.ENDIF  ;ENABLE_NEW_IRQ_C != 1
 
         CMP $D012
         BCC IRQ_D               ;Jump, too late for IRQ
@@ -7436,7 +7444,7 @@ IRQ_C
         RTI
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; sprite multiplexor: sprites 4-7
+; sprite multiplexor: sprites 0-7
 ; raster = $??
 .IF ENABLE_NEW_IRQ_D == 1
 
@@ -7505,10 +7513,10 @@ IRQ_D   ;$4284
 _JMP_IRQ_A
         JMP IRQ_A
 
-.ELSE   ;ENABLE_NEW_IRQ_D == 0
+.ELSE   ;ENABLE_NEW_IRQ_D != 1
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-
+; sprite multiplexor: sprites 4-7
 IRQ_D   ;$4284
 
         #DEC_D020
