@@ -3,7 +3,9 @@
 ; Main routine
 ;
 ; Based on disassembly of original code.
-; Changes by riq/pvm.
+; Modded by riq.
+;
+; See README.md to for list of all changes.
 ;
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Note about levels:
@@ -30,10 +32,13 @@ ENABLE_NEW_SORT_ALGO = 1        ;4x faster
 ENABLE_NEW_IRQ_D = 0            ;If enabled, process 8 sprites in just one single IRQ
 ENABLE_NEW_IRQ_C = 1            ;If enabled, split raster at sprites[8].y
 ENABLE_NEW_RENDER_VIEWPORT = 1  ;Slighty faster viewport render version
+ENABLE_GAMEOVER_IN_LVL4 = 1     ;If enabled, game does not restart when L3 is complete
+ENABLE_NEW_LIFE_WHEN_SCORING = 0;If enabled, allows extra life when scoring 10000 points.
+                                ; Disabled, since unijoysticle mode is too easy.
 ENABLE_AUTOFIRE = 1             ;If enabled, hero will shoot automatically
-TOTAL_FIRE_COOLDOWN = $20       ;Frames to wait before autofiring again
-INITIAL_LEVEL = 0               ;Default $00. For testing only
-TOTAL_MAX_SPRITES = 16          ;Default 16
+TOTAL_FIRE_COOLDOWN = $28       ;Frames to wait before autofiring again
+INITIAL_LEVEL = 0               ;0,1 or 3
+TOTAL_MAX_SPRITES = 16          ;Default 16. 16 is the only supported value ATM.
 ; Using double joysticks make the game easier. Increase difficulty
 ; by reducing lives, and incrementing the total enemies in fort
 TOTAL_LIVES = $05               ;BCD. Default 5
@@ -46,7 +51,6 @@ TOTAL_ENEMIES_IN_FORT = $20     ;Default $14
 a01 = $01
 Z_TEMP1 = $10
 Z_TEMP2 = $11
-IS_PLAY_MUSIC_IN_IRQ = $12      ;Play music inside IRQ? 1=Yes
 a14 = $14
 a19 = $19                       ;Stores current hero animation, but seems unused
 a1A = $1A
@@ -291,8 +295,6 @@ _L01    TXA
         STA a0501
 
 START                   ;$0883
-        LDA #$01
-        STA IS_PLAY_MUSIC_IN_IRQ
         LDA #$A5        ;Set initial starting row
         STA V_SCROLL_ROW_IDX
         JSR SETUP_LEVEL
@@ -324,9 +326,6 @@ START_LEVEL          ;$08B8
         LDA #$00            ;Song to play (main theme)
         JSR MUSIC_INIT
 
-        LDA #$00            ;Don't play music on IRQ
-        STA IS_PLAY_MUSIC_IN_IRQ
-
         ; Restart after life lost
 RESTART
         JSR SETUP_LEVEL
@@ -345,7 +344,6 @@ GAME_LOOP            ;$08CB
         CMP #$07     ;#%00000111
         BNE _L00
 
-        JSR MUSIC_PLAY
         DEC V_SCROLL_ROW_IDX
         JSR APPLY_DELTA_MOV
         JSR LEVEL_DRAW_VIEWPORT
@@ -353,7 +351,6 @@ GAME_LOOP            ;$08CB
 
 _L00
         INC GAME_TICK
-        JSR MUSIC_PLAY
         JSR APPLY_DELTA_MOV
         JSR SORT_SPRITES_BY_Y
         JSR TRY_THROW_GRENADE
@@ -385,9 +382,6 @@ _L01    LDA SPRITES_Y00
         ;
         ; Level complete
         ;
-        LDA #$01                    ;Music in IRQ now
-        STA IS_PLAY_MUSIC_IN_IRQ
-
         LDA #$14     ;Points won after completing a level
         JSR SCORE_ADD
         LDA LEVEL_NR
@@ -409,9 +403,13 @@ _L02    LDA #$02     ;Song to play (Level complete)
         ; the level is changed to LVL3.
         LDA LEVEL_NR
         AND #$03
+.IF ENABLE_GAMEOVER_IN_LVL4 == 1
+        BEQ GAME_OVER
+.ENDIF
         CMP #$02
         BNE _L03
         INC LEVEL_NR
+
 
 _L03    JMP START_LEVEL
 
@@ -461,9 +459,6 @@ _L03    DEC LIVES
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 GAME_OVER
-        LDA #$01
-        STA IS_PLAY_MUSIC_IN_IRQ
-
         LDX #$06     ;#%00000110
 _L00    TXA
         ASL A
@@ -1499,8 +1494,8 @@ _L00    LDA _TXT_1ST,Y
         STA _L06
 
         LDA LEVEL_NR
-        AND #$03     ;#%00000011
-        CMP #$03     ;#%00000011
+        AND #$03
+        CMP #$03
         BNE _L01
 
         LDA #<p12FD
@@ -1512,7 +1507,7 @@ _L00    LDA _TXT_1ST,Y
         LDA #>p130F
         STA _L06
 
-_L01    LDA #$02     ;#%00000010
+_L01    LDA #$02                    ;Needed for correct charset in IRQ
         STA LEVEL_NR
         JSR CLEANUP_SPRITES
         JSR CLEAR_SCREEN
@@ -1530,7 +1525,7 @@ _L04    LDA f2596,X
         LDY #$05
         JSR DELAY
         INX
-        CPX #$12        ;msg len
+        CPX #$12                    ;msg len
         BNE _L04
 
         ; Print "Now rush the NNN area" msg
@@ -1544,11 +1539,12 @@ _L07    LDA f2596,X
         LDY #$05
         JSR DELAY
         INX
-        CPX #$15        ;msg len
+        CPX #$15                    ;msg len
         BNE _L07
 
         LDY #$78
         JSR DELAY
+
         PLA
         STA LEVEL_NR
         RTS
@@ -1616,6 +1612,8 @@ SCORE_ADD
         ADC SCORE_LSB
         STA SCORE_LSB
         BCC _L00
+
+.IF ENABLE_NEW_LIFE_WHEN_SCORING == 1
         LDA SCORE_MSB
         CLC
         ADC #$01     ;#%00000001
@@ -1625,6 +1623,8 @@ SCORE_ADD
         JSR SCREEN_REFRESH_LIVES
         LDA #$0C     ;#%00001100
         JSR SFX_PLAY
+.ENDIF  ; ENABLE_NEW_LIFE_WHEN_SCORING
+
 _L00    CLD
         ; fall-through
 
@@ -6677,6 +6677,7 @@ f3D3D   .BYTE $32,$32,$32,$32,$32,$32,$32,$6E
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 APPLY_DELTA_MOV         ;$3D48
+        #INC_D020
         ; For the hero (sprite 0)
         ; Apply delta X
         LDA SPRITES_X_LO00
@@ -6700,35 +6701,36 @@ _L00    PLA
         STA SPRITES_Y00
 
         ; For the remaining sprites: 1-15
-        LDX #$01
-_L01    LDA SPRITES_TYPE00,X
-        BEQ _L03
+        .FOR I:=1, I<TOTAL_MAX_SPRITES, I+=1
+        LDA SPRITES_TYPE00+I
+        BEQ ++
 
         ; Apply delta X
-        LDA SPRITES_X_LO00,X
+        LDA SPRITES_X_LO00+I
         CLC
-        ADC SPRITES_DELTA_X00,X
+        ADC SPRITES_DELTA_X00+I
         PHA
-        BVS _L02
-        EOR SPRITES_X_LO00,X
+        BVS +
+        EOR SPRITES_X_LO00+I
         AND #$80     ;#%10000000
-        BEQ _L02
-        LDA SPRITES_X_HI00,X
-        EOR #$FF     ;#%11111111
-        STA SPRITES_X_HI00,X
-_L02    PLA
-        STA SPRITES_X_LO00,X
+        BEQ +
+        LDA SPRITES_X_HI00+I
+        EOR #$FF
+        STA SPRITES_X_HI00+I
++       PLA
+        STA SPRITES_X_LO00+I
 
         ; Apply delta Y
-        LDA SPRITES_Y00,X
+        LDA SPRITES_Y00+I
         CLC
-        ADC SPRITES_DELTA_Y00,X
+        ADC SPRITES_DELTA_Y00+I
         SEC
         SBC V_SCROLL_DELTA
-        STA SPRITES_Y00,X
-_L03    INX
-        CPX #TOTAL_MAX_SPRITES
-        BNE _L01
+        STA SPRITES_Y00+I
++
+        .NEXT
+
+        #DEC_D020
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -6931,6 +6933,7 @@ DO_DOUBLE_BUFFER
 ; Taken from:
 ; http://selmiak.bplaced.net/games/c64/index.php?lang=eng&game=Tutorials&page=Sprite-Multiplexing
 SORT_SPRITES_BY_Y
+        #DEC_D020
         LDX #$00
         TXA
 SORTLOOP
@@ -6961,6 +6964,7 @@ NOSWAP1 LDA SPRITES_Y00,Y
 NOSWAP2 INX
         CPX #TOTAL_MAX_SPRITES
         BNE SORTLOOP
+        #INC_D020
         RTS
 
 .ELSE   ; ENABLE_NEW_SORT_ALGO != 1
@@ -6969,6 +6973,7 @@ NOSWAP2 INX
 ; Sort sprites in SPRITES_IDX_TBL by Y position
 ; This is the original sorting algorithm. Kind of slow
 SORT_SPRITES_BY_Y       ;$3F24
+        #DEC_D020
         LDA #$0F        ;Number of sprites to sort (?)
         STA a14
         STA aD7
@@ -7013,6 +7018,7 @@ _L03    INC a3D
         JMP _L01
 
 _L04
+        #INC_D020
         RTS
 .ENDIF  ; ENABLE_NEW_SORT_ALGO
 
@@ -7289,10 +7295,10 @@ SETUP_IRQ               ;$4106
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; raster = $d5
 IRQ_A   NOP
-        NOP
-        NOP
-        NOP
-        NOP
+;        NOP
+;        NOP
+;        NOP
+;        NOP
 ;        NOP
 ;        NOP
 
@@ -7339,7 +7345,8 @@ IRQ_B   NOP
         NOP
         NOP
         NOP
-        NOP
+
+        #INC_D020
 
         LDA #%10000100  ;Video Matrix: $E000, Charset: $D000
         STA $D018
@@ -7352,11 +7359,8 @@ IRQ_B   NOP
         LDA #$02     ;red
         STA $D023    ;Background Color 2, Multi-Color Register 1
 
-        ; Hack: Don't play music in IRQ while in game.
-        ; In theory all the music should be played outside IRQ, but it required
-        ; more changes in the code.
-        LDA IS_PLAY_MUSIC_IN_IRQ
-        BEQ _L00
+        ; I tried moving MUSIC_PLAY outside IRQ, and performance was about the same.
+        ; Moving it back to inside IRQ since it makes the code more mantainable.
         JSR MUSIC_PLAY
 _L00
         LDA #$1E
@@ -7368,6 +7372,8 @@ _L00
         STY $0315
 
         ASL $D019    ;VIC Interrupt Request Register (IRR)
+
+        #DEC_D020
 
         PLA
         TAY
