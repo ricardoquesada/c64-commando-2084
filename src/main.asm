@@ -1149,11 +1149,13 @@ SCREEN_MAIN_TITLE
 
         ; Hack: Needed so that we make sure that "Commando" is rendered in
         ; IRQ_C, while "2084" is rendered in IRQ_D.
-        LDX #(TOTAL_MAX_SPRITES-1)
+        LDX #(TOTAL_MAX_SPRITES-1-1)
         LDA #$A0
 _L000   STA SPRITES_Y00,X
         DEX
         BPL _L000
+        LDA #$20
+        STA SPRITES_Y00+15
 
         LDX #$00
 _L00    LDA _MS_SPRITES_Y,X
@@ -1205,6 +1207,7 @@ _L02    LDA _2084_PTR,X
         STA SPRITES_PTR05 + 7,X
         DEX
         BPL _L02
+        JSR PRE_PROCESS_IRQ_D
 
         ; Show our own credits
         JSR PRINT_CREDITS_2084
@@ -6906,14 +6909,14 @@ PRE_PROCESS_IRQ_D
         AND #1<<(7-I)
         ORA Z_SPRITES_IDX_0_7_BKG_PRI
         STA Z_SPRITES_IDX_0_7_BKG_PRI
-        .ELSE
+        .ELSE   ; I >= 8
         LDA SPRITES_X_HI00,X
-        AND #1<<(7-(I-8))
+        AND #1<<(15-I)
         ORA Z_SPRITES_IDX_8_15_HI_X
         STA Z_SPRITES_IDX_8_15_HI_X
 
         LDA SPRITES_BKG_PRI00,X
-        AND #1<<(7-(I-8))
+        AND #1<<(15-I)
         ORA Z_SPRITES_IDX_8_15_BKG_PRI
         STA Z_SPRITES_IDX_8_15_BKG_PRI
         .ENDIF
