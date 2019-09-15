@@ -1,6 +1,6 @@
 # Commando 2084 for the Commodore 64
 
-![commando64](https://lh3.googleusercontent.com/CYbhcN1rpUhmLYNjEJ1w2DxtG3BkMeSQivqskxLK_rCTjKBnLBx7NkcdiBmSv_jQO3F6XWBgF4CcEd3vuuD8v5Tt-2_hxgNaQTSJWNAdHLd1vbYC673Ut_IE0uCMeJ0U-NVQNpo7IZQ=w-no)
+![commando64](https://lh3.googleusercontent.com/CYbhcN1rpUhmLYNjEJ1w2DxtG3BkMeSQivqskxLK_rCTjKBnLBx7NkcdiBmSv_jQO3F6XWBgF4CcEd3vuuD8v5Tt-2_hxgNaQTSJWNAdHLd1vbYC673Ut_IE0uCMeJ0U-NVQNpo7IZQ=-no)
 
 Commando 2084 is game for the Commodoreo 64.
 It is like the original Commando with the following changes:
@@ -33,11 +33,12 @@ Get the latest binary from here:
 
 * [commando-2084.d64][d64]
 
-[d64]: https://gitlab.com/ricardoquesada/c64-commando-2084/blob/commando-2084/bin/commando-2084.d64
+[d64]: https://gitlab.com/ricardoquesada/c64-commando-2084/blob/master/bin/commando-2084.d64
 
 ## Source code
 
-The source code is the disassembled Commando (fully commented) plus my own changes.
+The source code is the disassembled Commando (fully commented) plus my own
+changes.
 
 ### Requirements to compile the game
 
@@ -55,7 +56,9 @@ $ make
 [vice]: http://vice-emu.sourceforge.net/
 [exomizer]: https://bitbucket.org/magli143/exomizer/wiki/Home
 
-
 ## Original source code
 
-The original, unmodified source code can be found here:
+The original, unmodified, fully commented source code of Commando can be found
+in this branch:
+
+* https://gitlab.com/ricardoquesada/c64-commando-2084/tree/orig
