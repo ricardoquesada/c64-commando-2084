@@ -1,10 +1,10 @@
-# Commando for the Commodore 64 - decompiled
+# Commando for the Commodore 64
 
 ![commando64](https://lh3.googleusercontent.com/d8wonEvj2mcU2kp2gstEmZNFVUgZ8mGVxNiBTiHPXLiEC2tcs-aavTmsyoUnwm8oFBaqr7gQrHSuhvFl21gXBMDV7MUQmV7Fh7lefMMZVdd1FsDqGL5WxZ4pGp3PvKMk-ptyT123Glo=-no)
 
-This is the decompiled source code for the Commodore 64. It includes:
+This is the disassembled, fully commented source code of Commando for the C64. It includes:
 
-* Well commented source code. "Easy" to follow (requires some C64 internals
+* Fully commented source code. "Easy" to follow (requires some C64 internals
   knowledge).
 * Source code can be compiled (it actually generates the exactly
   same binary as the original one).
@@ -44,8 +44,7 @@ the middle of the code.
 
 ## Original
 
-Although I do own the original copy of Commando, my copy crashes.
-My original floppy disk is corrupted :(
+Although I do own the original copy of Commando, my original floppy disk is corrupted :(
 
 * ![commando][commando_img]
 
@@ -75,17 +74,108 @@ For more info about this level, search for "lvl2" in the [`main.asm`][main.asm] 
 
 ## Analysis
 
-TODO: Explain the following
+### Map and actions
 
-* 16 sprites
-* actions
-* row-trigger
-* animations
-* animation-0
+* Each level consist of 40x200 map.
+* Each level consists of:
+  * Charset unique for the level: LVL0 at `$C000`, LVL1 at `$C800`, LVL3 at `$D800`
+  * Each char in the charset contains a mask that indicates the background
+    priority. See `LVL0_CHARSET_MASK_TBL` in [main.asm].
+  * Map. LVL0 is at `$6000`, LVL1 at `$8000`, LVL3 at `$A000`
+  * List of actions: each action represents something that must be created
+    (like an animation) or done (like opening a door). See `LVL0_ACTION_TBL` in [main.asm].
+  * List of rows: when the master row index (see`V_SCROLL_ROW_IDX`).
+    matches this number, the associated action is executed. See
+    `LVL0_TRIGGER_ROW_TBL` in [main.asm].
+  * Actions can be receive an option "sprite X position" argument. See
+    `LVL0_SPRITE_X_LO_TBL` and `LVL0_SPRITE_X_HI_TBL` in [main.asm]
 
-## Tools used
+### Sprites
 
-* [Regenerator][regenerator]: To do the first-pass decompilation
+The game supports up to 16 sprites.
+
+* Sprite 0 is used for the hero
+* Sprites 1-3 are used for hero's bullets
+* Sprite 4 is used for hero grenades
+* Sprites 5-15 are used for enemies, including its bullets/grenades.
+
+Each sprite has:
+
+* X and Y coordinates (including X LSB and X MSB)
+* Sprite frame (which sprite to render). `$FF` is an empty frame.
+* Sprite color
+* Background priority (e.g: should it be rendered behind a tree?)
+* Animation type (see below). If it is `0`, it means it is an empty sprite.
+* Extra variables that are used for different things. Varies from anim type to
+  anim type.
+
+Some enemies, like the motorcycle, take two sprites.
+
+### Animation type
+
+An animation is what the sprite should do while in the game. For example, the
+animation type `TYPE_ANIM_SOLDIER_BULLET`, animates the bullet. See
+`TYPE_ANIM_TBL_LO` in [main.asm] for the complete list of animation types.
+
+An sprite can change its animation in runtime. For example, the
+`TYPE_ANIM_SOLIDER_BEHIND_SMTH` has certain logic. But when the hero is at the
+same Y position as it, then it changes it animation to `TYPE_ANIM_SOLDIER`.
+Similar, the `TYPE_ANIM_SOLDIER_JUMPING` animates the soldier the "jumping"
+solider. But when the solider lands, it changes it animation to
+`TYPE_ANIM_SOLDIER`. And the bullets and grenades also have two different
+animations. E.g: `TYPE_ANIM_HERO_GRENADE` and `TYPE_ANIM_HERO_GRENADE_END`.
+
+### Animation type 0
+
+When a sprite goes out of bounds, or an enemy dies, or an animation ends, that
+sprite is set with animation type `0`, which is the `TYPE_ANIM_SPAWN_SOLIDER`.
+
+What this animation does, is to create random enemies. And when an enemy is
+created, it changes in animation type to something different than 0.
+
+That means, that when there map is "full" of enemies (all animation types are
+different than `0`), the `TYPE_ANIM_SPAWN_SOLDIER` is not called. And when there
+many empty sprites, it gets called more often.
+
+### Collision detection
+
+Collision detection is done by software.
+
+There is a routine to check whether the hero is hit (see `CHECK_COLLISION`) and
+another for enemies (see `TYPE_ANIM_HERO_BULLET`, `TYPE_ANIM_HERO_GRENADE_END`).
+
+Each animation type has contains a mask (see `f2544`) that indicates whether it
+can collide with bullet, grenades, both or nothing.
+
+### Comments
+
+From a high-level (architecture) point of view, the code is very well designed.
+It is pretty easy to add new types of actions, or create new levels, or modify
+existing ones with little change in the code/data.
+
+In fact, it should be easy to port the main logic to other 6502 architecture
+fairly easy.
+
+From lower-level point of view, it seems that parts of the code could be
+improved (see `FIXME` in [main.asm]), specially regarding performance and
+flickers. Most probably due to time-pressure I guess.
+
+Additionally, it seems that the assembler used didn't optimize the code to use
+zero page. For example, calls to:
+
+```asm
+    STY $FB,Y
+```
+
+are assembled to:
+
+```asm
+   STY $00FB,Y      ;3 byte variation, instead of the two-one.
+```
+
+## Tools used for disassembling
+
+* [Regenerator][regenerator]: To do the first-pass diassembly
 * [Infiltrator Disassembler][infiltrator]: To analyze data
 * [VICE][vice]: For testing + analyze data
 * [VChar64][vchar64]: To regenerate the charsets + maps

@@ -5726,13 +5726,16 @@ CLEANUP_HERO_SPRITE     ;$371D
 TYPE_ANIM_HERO_GRENADE_END ;$373C
         INC SPRITES_TMP_A01,X
         LDY #$00     ;#%00000000
+
 b3741   LDA SPRITES_TYPE05,Y
         STY a00FB,b
         TAY
         LDA f2544,Y
         LDY a00FB,b
-        AND #$02     ;#%00000010
+        AND #$02            ;grenade mask
         BEQ b3793
+
+        ; Collision between hero grenade and enemy?
         LDA SPRITES_X_HI01,X
         CMP SPRITES_X_HI05,Y
         BNE b3793
@@ -5970,8 +5973,10 @@ _L01    LDA SPRITES_TYPE05,Y
         TAY
         LDA f2544,Y
         LDY a00FB,b
-        AND #$01
+        AND #$01                ;bullet mask
         BEQ _L02
+
+        ; Is there collision between enemy and bullet?
         LDA SPRITES_X_HI01,X
         CMP SPRITES_X_HI05,Y
         BNE _L02
@@ -5997,6 +6002,7 @@ _L01    LDA SPRITES_TYPE05,Y
         BCS _L02
         JSR DIE_ANIM_AND_SCORE
         JSR CLEANUP_HERO_SPRITE
+
 _L02    INY
         CPY #$0B     ;#%00001011
         BNE _L01
