@@ -43,7 +43,7 @@ TOTAL_MAX_SPRITES = 16          ;Default 16. 16 is the only supported value ATM.
 ; by reducing lives, and incrementing the total enemies in fort
 TOTAL_LIVES = $05               ;BCD. Default 5
 TOTAL_GRENADES = $05            ;BCD. Default 5
-TOTAL_ENEMIES_IN_FORT = $20     ;Default $14
+TOTAL_ENEMIES_IN_FORT = $1C     ;Default $14
 
 ;
 ; **** ZP ABSOLUTE ADDRESSES ****
