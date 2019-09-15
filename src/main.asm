@@ -51,6 +51,7 @@ TOTAL_ENEMIES_IN_FORT = $20     ;Default $14
 a01 = $01
 Z_TEMP1 = $10
 Z_TEMP2 = $11
+Z_PLAY_MUSIC_INSIDE_IRQ = $12   ;When enabled, music will be played inside IRQ
 a14 = $14
 a19 = $19                       ;Stores current hero animation, but seems unused
 a1A = $1A
@@ -323,11 +324,14 @@ START                   ;$0883
 START_LEVEL          ;$08B8
         LDA #$A5
         STA V_SCROLL_ROW_IDX
-        LDA #$00            ;Song to play (main theme)
+        LDA #$00                        ;Song to play (main theme)
         JSR MUSIC_INIT
 
         ; Restart after life lost
 RESTART
+        LDA #$00                        ;Play music from main loop, not IRQ
+        STA Z_PLAY_MUSIC_INSIDE_IRQ
+
         JSR SETUP_LEVEL
         JSR SETUP_SCREEN
         JSR SETUP_IRQ
@@ -335,6 +339,8 @@ RESTART
         ; Main loop
 GAME_LOOP            ;$08CB
         #WAIT_RASTER_AT_BOTTOM
+        JSR MUSIC_PLAY
+
         LDA V_SCROLL_DELTA
         BEQ _L00
         CLC
@@ -382,7 +388,9 @@ _L01    LDA SPRITES_Y00
         ;
         ; Level complete
         ;
-        LDA #$14     ;Points won after completing a level
+        LDA #$01                ;Play music from IRQ
+        STA Z_PLAY_MUSIC_INSIDE_IRQ
+        LDA #$14                ;Points won after completing a level
         JSR SCORE_ADD
         LDA LEVEL_NR
         AND #$03
@@ -459,6 +467,9 @@ _L03    DEC LIVES
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 GAME_OVER
+        LDA #$01                ;Play music from IRQ
+        STA Z_PLAY_MUSIC_INSIDE_IRQ
+
         LDX #$06     ;#%00000110
 _L00    TXA
         ASL A
@@ -1131,8 +1142,10 @@ HISCORE_LSB01
 SCREEN_MAIN_TITLE
         JSR CLEANUP_SPRITES
         JSR CLEAR_SCREEN
-        LDA #$00     ;#%00000000
+        LDA #$00            ;Black
         STA BKG_COLOR0
+        LDA #$01            ;In main title, music is played from IRQ
+        STA Z_PLAY_MUSIC_INSIDE_IRQ
 
         ; HACK: Sets level number to LVL2 in order to use the charset from $D000
         LDA #$02     ;#%00000010
@@ -7359,8 +7372,12 @@ IRQ_B   NOP
         LDA #$02     ;red
         STA $D023    ;Background Color 2, Multi-Color Register 1
 
-        ; I tried moving MUSIC_PLAY outside IRQ, and performance was about the same.
-        ; Moving it back to inside IRQ since it makes the code more mantainable.
+        ; Playing music outside IRQ migth avoid certain flickers during gameplay.
+        ; Ideally all music should be played outside, but it is easier (but horrible)
+        ; to have this switch. So, gameplay music is outside IRQ. But when not in
+        ; gameplay (cut-scene as an example, is played inside).
+        LDA Z_PLAY_MUSIC_INSIDE_IRQ
+        BEQ _L00
         JSR MUSIC_PLAY
 _L00
         LDA #$1E
