@@ -33,7 +33,7 @@ Get the latest binary from here:
 
 * [commando-2084.d64][d64]
 
-[d64]: https://gitlab.com/ricardoquesada/c64-commando-2048/blob/commando-2084/bin/commando-2084.d64
+[d64]: https://gitlab.com/ricardoquesada/c64-commando-2084/blob/commando-2084/bin/commando-2084.d64
 
 ## Source code
 
