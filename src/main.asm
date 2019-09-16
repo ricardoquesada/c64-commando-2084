@@ -4393,7 +4393,7 @@ _L00    LDA ENEMIES_IN_FORT
         LDA #$3F     ;#%00111111
         STA a0504
         DEC ENEMIES_IN_FORT
-        BNE _L01        ;FIXME: LOL!?!
+        BNE _L01        ;FIXME: probably an "RTS" is missing here?
 
 _L01    LDA LEVEL_NR
         AND #$03
@@ -4645,7 +4645,7 @@ CONVERT_TO_TYPE_ANIM_EXPLOSION       ;$2EEB
         LDA #$02     ;red
         STA SPRITES_COLOR05,X
         LDA IS_HERO_DEAD
-        BNE _L00    ;LOL!
+        BNE _L00    ;FIXME: what should happen on the other condition?
 _L00    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -5107,54 +5107,55 @@ _L01    JSR UPDATE_ENEMY_PATH
         JSR s3128
 _L02    RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 j3255   JSR GET_RANDOM
         AND #$01     ;#%00000001
-        BNE b32A8
+        BNE _L04
         LDA SPRITES_X_HI05,X
         CMP SPRITES_X_HI00
-        BEQ b3276
-        BCC b326E
+        BEQ _L01
+        BCC _L00
         LDA #$0C     ;#%00001100
         STA a00FB,b
-        JMP j3289
+        JMP _L02
 
-b326E   LDA #$04     ;#%00000100
+_L00    LDA #$04     ;#%00000100
         STA a00FB,b
-        JMP j3289
+        JMP _L02
 
-b3276   LDA #$04     ;#%00000100
+_L01    LDA #$04     ;#%00000100
         STA a00FB,b
         LDA SPRITES_X_LO00
         SEC
         SBC SPRITES_X_LO05,X
-        BPL j3289
+        BPL _L02
         LDA #$0C     ;#%00001100
         STA a00FB,b
-j3289   LDA SPRITES_Y00
+_L02    LDA SPRITES_Y00
         SEC
         SBC SPRITES_Y05,X
-        BPL b329B
+        BPL _L03
         LSR a00FB,b
         LDA a00FB,b
-        JMP j32BA
+        JMP _L06
 
-b329B   LDA a00FB,b
+_L03    LDA a00FB,b
         CLC
         ADC #$08     ;#%00001000
         LSR A
         STA a00FB,b
-        JMP j32BA
+        JMP _L06
 
-b32A8   JSR GET_RANDOM
+_L04    JSR GET_RANDOM
         AND #$03     ;#%00000011
         SEC
         SBC #$02     ;#%00000010
         CMP #$FE     ;#%11111110
-        BNE b32B6
+        BNE _L05
         LDA #$00     ;#%00000000
-b32B6   CLC
+_L05    CLC
         ADC SPRITES_TMP_A05,X
-j32BA   AND #$0F     ;#%00001111
+_L06    AND #$0F     ;#%00001111
         STA SPRITES_TMP_A05,X
         TAY
         LDA DELTA_X_TBL,Y
