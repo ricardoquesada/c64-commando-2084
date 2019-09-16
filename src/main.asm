@@ -69,9 +69,11 @@ Z_SPRITES_IDX_Y = $60
 Z_SPRITES_IDX_COLOR = $70
 Z_SPRITES_IDX_PTR = $80
 Z_SPRITES_IDX_0_7_HI_X = $90
-Z_SPRITES_IDX_8_15_HI_X = $91
-Z_SPRITES_IDX_0_7_BKG_PRI = $92
-Z_SPRITES_IDX_8_15_BKG_PRI = $93
+Z_SPRITES_IDX_8_11_HI_X = $91
+Z_SPRITES_IDX_12_15_HI_X = $92
+Z_SPRITES_IDX_0_7_BKG_PRI = $93
+Z_SPRITES_IDX_8_11_BKG_PRI = $94
+Z_SPRITES_IDX_12_15_BKG_PRI = $95
 aA5 = $A5
 aAE = $AE
 aC9 = $C9
@@ -1741,16 +1743,17 @@ SCREEN_REFRESH_LIVES
 ; Original Y positions for all 16 sprites
 ; Used also when restoring the sprites
 ORIG_SPRITE_Y00
-        .BYTE $C2
+        .BYTE $B4                               ;Hero
 ORIG_SPRITE_Y01
-        .BYTE $C2,$C2,$C2,$28
+        .BYTE $B3,$B3,$B3                       ;Bullets: lower pri than Hero
+        .BYTE $B3                               ;Grenade: lower pri than hero
 ORIG_SPRITE_Y05
-        .BYTE $28,$28,$28,$1E,$1E,$1E,$1E,$1E
-        .BYTE $1E,$1E,$1E
+        .BYTE $28,$28,$28,$28,$28,$28,$28,$28   ;Enemies
+        .BYTE $28,$28,$28
 
         ; Extra values, just in case we decide to add new sprites
-        .BYTE $1E,$1E,$1E,$1E,$1E,$1E,$1E,$1E
-        .BYTE $1E,$1E,$1E,$1E,$1E,$1E,$1E,$1E
+        .BYTE $28,$28,$28,$28,$28,$28,$28,$28
+        .BYTE $28,$28,$28,$28,$28,$28,$28,$28
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; $D018 points to right charset for level
@@ -6690,7 +6693,6 @@ f3D3D   .BYTE $32,$32,$32,$32,$32,$32,$32,$6E
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 APPLY_DELTA_MOV         ;$3D48
-        #INC_D020
         ; For the hero (sprite 0)
         ; Apply delta X
         LDA SPRITES_X_LO00
@@ -6743,7 +6745,6 @@ _L00    PLA
 +
         .NEXT
 
-        #DEC_D020
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -6897,9 +6898,11 @@ DO_DOUBLE_BUFFER
         ; Process from SPRITES_IDX_TBL
         LDA #$00
         STA Z_SPRITES_IDX_0_7_BKG_PRI
-        STA Z_SPRITES_IDX_8_15_BKG_PRI
+        STA Z_SPRITES_IDX_8_11_BKG_PRI
+        STA Z_SPRITES_IDX_12_15_BKG_PRI
         STA Z_SPRITES_IDX_0_7_HI_X
-        STA Z_SPRITES_IDX_8_15_HI_X
+        STA Z_SPRITES_IDX_8_11_HI_X
+        STA Z_SPRITES_IDX_12_15_HI_X
 
         .FOR I := 0, I < 16, I += 1
         LDX SPRITES_IDX_TBL + I
@@ -6925,16 +6928,26 @@ DO_DOUBLE_BUFFER
         AND #1<<(7-I)
         ORA Z_SPRITES_IDX_0_7_BKG_PRI
         STA Z_SPRITES_IDX_0_7_BKG_PRI
-        .ELSE   ; I >= 8
+        .ELSIF I < 12
         LDA SPRITES_X_HI00,X
         AND #1<<(15-I)
-        ORA Z_SPRITES_IDX_8_15_HI_X
-        STA Z_SPRITES_IDX_8_15_HI_X
+        ORA Z_SPRITES_IDX_8_11_HI_X
+        STA Z_SPRITES_IDX_8_11_HI_X
 
         LDA SPRITES_BKG_PRI00,X
         AND #1<<(15-I)
-        ORA Z_SPRITES_IDX_8_15_BKG_PRI
-        STA Z_SPRITES_IDX_8_15_BKG_PRI
+        ORA Z_SPRITES_IDX_8_11_BKG_PRI
+        STA Z_SPRITES_IDX_8_11_BKG_PRI
+        .ELSE   ;I < 16
+        LDA SPRITES_X_HI00,X
+        AND #1<<(15-I)
+        ORA Z_SPRITES_IDX_12_15_HI_X
+        STA Z_SPRITES_IDX_12_15_HI_X
+
+        LDA SPRITES_BKG_PRI00,X
+        AND #1<<(15-I)
+        ORA Z_SPRITES_IDX_12_15_BKG_PRI
+        STA Z_SPRITES_IDX_12_15_BKG_PRI
         .ENDIF
         .NEXT
 
@@ -7403,7 +7416,7 @@ _L00
 ; raster = $1e
 ; Renders 8 sprites
 IRQ_C
-        #INC_D020
+        #DEC_D020
 
         ; FIXME: perhaps this should be outside the IRQ, but adding it here
         ; to prevent adding it in many places. Besides, it is good to call
@@ -7448,7 +7461,7 @@ IRQ_C
         LDA Z_SPRITES_IDX_0_7_BKG_PRI
         STA $D01B
 
-        #DEC_D020
+        #INC_D020
 
 .IF ENABLE_NEW_IRQ_C == 1
         LDA Z_SPRITES_IDX_Y+8
@@ -7460,7 +7473,6 @@ IRQ_C
         CLC
         ADC #$14     ;20 pixels below. Each sprite has 21 pixels.
 .ENDIF  ;ENABLE_NEW_IRQ_C != 1
-
         CMP $D012
         BCC IRQ_D               ;Jump, too late for IRQ
         STA $D012
@@ -7490,7 +7502,7 @@ IRQ_C
 
 IRQ_D   ;$4284
 
-        #DEC_D020
+        #INC_D020
 
         ; Process from SPRITES_IDX_TBL 8 to 15
         ; Uses HW Sprites 7 to 0
@@ -7505,21 +7517,23 @@ IRQ_D   ;$4284
         STA $E3F8+15-I
         .NEXT
 
-        LDA Z_SPRITES_IDX_8_15_HI_X
+        LDA Z_SPRITES_IDX_8_11_HI_X
+        ORA Z_SPRITES_IDX_12_15_HI_X
         STA $D010
-        LDA Z_SPRITES_IDX_8_15_BKG_PRI
+        LDA Z_SPRITES_IDX_8_11_BKG_PRI
+        ORA Z_SPRITES_IDX_12_15_BKG_PRI
         STA $D01B
 
-        #INC_D020
+        #DEC_D020
 
         LDA #$D5
         CMP $D012
         BCC _JMP_IRQ_A           ;Too late for IRQ. Jump directly.
         LDA #$D5
         STA $D012               ;Raster Position
-;        LDA $D011
-;        AND #%01111111          ;Turn off raster MSB
-;        STA $D011
+        LDA $D011
+        AND #%01111111          ;Turn off raster MSB
+        STA $D011
 
         LDX #<IRQ_A
         LDY #>IRQ_A
@@ -7544,7 +7558,7 @@ _JMP_IRQ_A
 ; sprite multiplexor: sprites 4-7
 IRQ_D   ;$4284
 
-        #DEC_D020
+        #INC_D020
 
         ; Process from SPRITES_IDX_TBL 8 to 11
         ; Uses HW Sprites 7 to 4
@@ -7559,35 +7573,29 @@ IRQ_D   ;$4284
         STA $E3F8+15-I
         .NEXT
 
-        LDA Z_SPRITES_IDX_8_15_HI_X
-        AND #%11110000
-        STA Z_TEMP1
         LDA $D010
         AND #%00001111
-        ORA Z_TEMP1
+        ORA Z_SPRITES_IDX_8_11_HI_X
         STA $D010
 
-        LDA Z_SPRITES_IDX_8_15_BKG_PRI
-        AND #%11110000
-        STA Z_TEMP1
         LDA $D01B
         AND #%00001111
-        ORA Z_TEMP1
+        LDA Z_SPRITES_IDX_8_11_BKG_PRI
         STA $D01B
 
-        #INC_D020
+        #DEC_D020
 
         ; Y pos for next raster interrupt based on sprite-12 Y pos
         LDA Z_SPRITES_IDX_Y + 8 + 4
         SEC
-        SBC #$02
+        SBC #$03
         CMP $D012
         BCC IRQ_E       ;Too late for IRQ. Jump directly.
         STA $D012       ;Raster Position
 
-;        LDA $D011
-;        AND #%01111111              ;Turn off raster MSB
-;        STA $D011
+        LDA $D011
+        AND #%01111111              ;Turn off raster MSB
+        STA $D011
 
         LDX #<IRQ_E
         LDY #>IRQ_E
@@ -7613,7 +7621,7 @@ IRQ_E
         ;STA $D005
         ;STA $D007
 
-        #INC_D020
+        #DEC_D020
 
         ; Process from SPRITES_IDX_TBL 12 to 15
         ; Uses HW Sprites 0 to 3
@@ -7628,31 +7636,26 @@ IRQ_E
         STA $E3F8+15-I
         .NEXT
 
-        LDA Z_SPRITES_IDX_8_15_HI_X
-        AND #%00001111
-        STA Z_TEMP1
         LDA $D010
         AND #%11110000
-        ORA Z_TEMP1
+        ORA Z_SPRITES_IDX_12_15_HI_X
         STA $D010
 
-        LDA Z_SPRITES_IDX_8_15_BKG_PRI
-        AND #%00001111
-        STA Z_TEMP1
         LDA $D01B
         AND #%11110000
-        ORA Z_TEMP1
+        ORA Z_SPRITES_IDX_12_15_BKG_PRI
         STA $D01B
 
-        #DEC_D020
+        #INC_D020
 
-        LDA #$D5
+        LDA #($D5-2)
         CMP $D012
-        BCC _JMP_IRQ_A               ;Too late for IRQ. Jump directly.
+        BCC _JMP_IRQ_A              ;Too late for IRQ. Jump directly.
+        LDA #$D5
         STA $D012                   ;Raster Position
-;        LDA $D011
-;        AND #%01111111              ;Turn off raster MSB
-;        STA $D011
+        LDA $D011
+        AND #%01111111              ;Turn off raster MSB
+        STA $D011
 
         LDX #<IRQ_A
         LDY #>IRQ_A
