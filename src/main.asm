@@ -29,8 +29,8 @@
 ENABLE_DEBUG = 0                ;If enabled, INC $D020 in raster routines
 ENABLE_DOUBLE_JOYSTICKS = 1     ;
 ENABLE_NEW_SORT_ALGO = 1        ;4x faster
-ENABLE_NEW_IRQ_D = 0            ;If enabled, process 8 sprites in just one single IRQ
 ENABLE_NEW_IRQ_C = 1            ;If enabled, split raster at sprites[8].y
+ENABLE_NEW_IRQ_D = 0            ;If enabled, process 8 sprites in just one single IRQ
 ENABLE_NEW_RENDER_VIEWPORT = 1  ;Slighty faster viewport render version
 ENABLE_GAMEOVER_IN_LVL4 = 1     ;If enabled, game does not restart when L3 is complete
 ENABLE_NEW_LIFE_WHEN_SCORING = 0;If enabled, allows extra life when scoring 10000 points.
@@ -1745,8 +1745,13 @@ SCREEN_REFRESH_LIVES
 ORIG_SPRITE_Y00
         .BYTE $B4                               ;Hero
 ORIG_SPRITE_Y01
+.IF ENABLE_NEW_IRQ_D == 1
+        .BYTE $28,$28,$28                       ;Bullets: lower pri than Hero
+        .BYTE $28                               ;Grenade: lower pri than hero
+.ELSE   ;ENABLE_NEW_IRQ_D == 0
         .BYTE $B3,$B3,$B3                       ;Bullets: lower pri than Hero
         .BYTE $B3                               ;Grenade: lower pri than hero
+.ENDIF
 ORIG_SPRITE_Y05
         .BYTE $28,$28,$28,$28,$28,$28,$28,$28   ;Enemies
         .BYTE $28,$28,$28
@@ -2521,11 +2526,12 @@ _L01    TYA
 ; Uses anim_type_22.
 ; Requires an extra empty seat
 ACTION_NEW_PINK_CAR     ;$1F5F
-        ; FIXME: Might override existing seat. ACTION_NEW_BIKE_LVL1 might fail
-        ; if no extra seat is found. The fix should be:
-        ; If Y == #$0B, ret
         JSR ACTION_NEW_BIKE_LVL1
+        CPY #(TOTAL_MAX_SPRITES-5)              ;Sprite alloced?
+        BCC _L00                                ;Continue if so
+        RTS
 
+_L00
         LDA #$1E
         STA SPRITES_X_LO05,X
         LDA #$36
@@ -3617,7 +3623,7 @@ TYPE_ANIM_22        ;$26DD
         LDY SPRITES_TMP_A05,X
         LDA SPRITES_TMP_C05,X
         AND #$0F            ;#%00001111
-        BNE _L00            ;FIXME: probably it should say _L01 instead
+        BNE _L01
 
         INC SPRITES_Y05,X
         LDA SPRITES_Y05,X
@@ -4519,7 +4525,7 @@ _L00    LDA ENEMIES_IN_FORT
         LDA #$3F     ;#%00111111
         STA a0504
         DEC ENEMIES_IN_FORT
-        BNE _L01        ;FIXME: LOL!?!
+        BNE _L01        ;FIXME: Probably a RTS is missing here?
 
 _L01    LDA LEVEL_NR
         AND #$03
@@ -6436,8 +6442,7 @@ _L08    LDA $DC00    ;CIA1: Data Port Register A (multiple directions)
         STA a19
         LDA #>HERO_FRAMES_UP_RIGHT  ;#%00111100
         STA a1A
-        ;FIXME: unintended fallthrough.
-        ;       a jump must be placed here
+        BNE _L12                    ;jump always
 
 _L09    CMP #$75     ;#%01110101        down-right
         BNE _L10
@@ -6449,8 +6454,7 @@ _L09    CMP #$75     ;#%01110101        down-right
         STA a19
         LDA #>HERO_FRAMES_DOWN_RIGHT  ;#%00111100
         STA a1A
-        ;FIXME: unintended fallthrough.
-        ;       a jump must be placed here
+        BNE _L12                    ;jump always
 
 _L10    CMP #$79     ;#%01111001        down-left
         BNE _L11
@@ -6462,8 +6466,7 @@ _L10    CMP #$79     ;#%01111001        down-left
         STA a19
         LDA #>HERO_FRAMES_DOWN_LEFT  ;#%00111100
         STA a1A
-        ;FIXME: unintended fallthrough.
-        ;       a jump must be placed here
+        BNE _L12                    ;jump always
 
 _L11    CMP #$7A     ;#%01111010        up-left
         BNE _L12
@@ -7507,10 +7510,10 @@ IRQ_D   ;$4284
         ; Process from SPRITES_IDX_TBL 8 to 15
         ; Uses HW Sprites 7 to 0
         .FOR I:=8, I<16, I+=1
-        LDA Z_SPRITES_IDX_X + I
-        STA $D000+(15-I)*2
         LDA Z_SPRITES_IDX_Y + I
         STA $D001+(15-I)*2
+        LDA Z_SPRITES_IDX_X + I
+        STA $D000+(15-I)*2
         LDA Z_SPRITES_IDX_COLOR + I
         STA $D027+15-I
         LDA Z_SPRITES_IDX_PTR + I
@@ -7529,7 +7532,6 @@ IRQ_D   ;$4284
         LDA #$D5
         CMP $D012
         BCC _JMP_IRQ_A           ;Too late for IRQ. Jump directly.
-        LDA #$D5
         STA $D012               ;Raster Position
         LDA $D011
         AND #%01111111          ;Turn off raster MSB
@@ -7563,10 +7565,10 @@ IRQ_D   ;$4284
         ; Process from SPRITES_IDX_TBL 8 to 11
         ; Uses HW Sprites 7 to 4
         .FOR I:=8, I<12, I+=1
-        LDA Z_SPRITES_IDX_X + I
-        STA $D000+(15-I)*2
         LDA Z_SPRITES_IDX_Y + I
         STA $D001+(15-I)*2
+        LDA Z_SPRITES_IDX_X + I
+        STA $D000+(15-I)*2
         LDA Z_SPRITES_IDX_COLOR + I
         STA $D027+15-I
         LDA Z_SPRITES_IDX_PTR + I
@@ -7588,7 +7590,7 @@ IRQ_D   ;$4284
         ; Y pos for next raster interrupt based on sprite-12 Y pos
         LDA Z_SPRITES_IDX_Y + 8 + 4
         SEC
-        SBC #$03
+        SBC #$02
         CMP $D012
         BCC IRQ_E       ;Too late for IRQ. Jump directly.
         STA $D012       ;Raster Position
@@ -7626,10 +7628,10 @@ IRQ_E
         ; Process from SPRITES_IDX_TBL 12 to 15
         ; Uses HW Sprites 0 to 3
         .FOR I:=12, I<16, I+=1
-        LDA Z_SPRITES_IDX_X + I
-        STA $D000+(15-I)*2
         LDA Z_SPRITES_IDX_Y + I
         STA $D001+(15-I)*2
+        LDA Z_SPRITES_IDX_X + I
+        STA $D000+(15-I)*2
         LDA Z_SPRITES_IDX_COLOR + I
         STA $D027+15-I
         LDA Z_SPRITES_IDX_PTR + I

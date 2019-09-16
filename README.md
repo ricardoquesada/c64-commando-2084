@@ -21,9 +21,10 @@ It is like the original Commando with the following changes:
   * Music is played outside IRQ
   * Unrolled some functions like "apply delta"
   * And other tiny improvements here and there
-* Considerable smaller binary (98 blocks)
+* Smaller binary, single load
   * Removed unused data/code
   * Compressed binary using exomizer
+* Misc fixes
 
 [unijoysticle]: https://retro.moe/unijoysticle2/
 
