@@ -55,7 +55,9 @@ the cracked version, without any other additional code.
 
 [commando_img]: https://lh3.googleusercontent.com/HROp0I73I5q99QCjNyzmAojqRDRfSnvfCyVK_dpfAynzTyems4IcKItHzQk6umfYrzKm3FnJvhTmhlg2kjb1--zfkOQbqsKtpQugIcHdiXtFR2vF6vwZN9Wq_u63nquz9jIXJGz5xwI=-no
 
-## Findings
+## Analysis
+
+### Findings
 
 Apparently, the original idea was to ship Commando with 4 levels instead of 3.
 There is a lot of code/data that indicates that a "level 2" (the levels that are
@@ -65,25 +67,25 @@ All the actions, charset-mask, trigger rows are present. What's missing is the
 the map and a partial charset. The charset used for the main screen is likely
 the one designed for level2.
 
-"Level 2" was probably removed due to lack of time (?) or due lack of RAM to
-create a single-load game (?).
+Especulation from my part, "Level 2" was probably removed due to lack of time
+(?) or due lack of RAM to create a single-load game (?).
 
-For more info about this level, search for "lvl2" in the [`main.asm`][main.asm] file.
+For more info about this level, search for "LVL2" in the [`main.asm`][main.asm].
 
 [main.asm]: src/main.asm
-
-## Analysis
 
 ### Map and actions
 
 * Each level consist of 40x200 map.
 * Each level consists of:
-  * Charset unique for the level: LVL0 at `$C000`, LVL1 at `$C800`, LVL3 at `$D800`
+  * Charset unique for the level: LVL0 at `$C000`, LVL1 at `$C800`,
+    LVL3 at `$D800`
   * Each char in the charset contains a mask that indicates the background
     priority. See `LVL0_CHARSET_MASK_TBL` in [main.asm].
   * Map. LVL0 is at `$6000`, LVL1 at `$8000`, LVL3 at `$A000`
-  * List of actions: each action represents something that must be created
-    (like an animation) or done (like opening a door). See `LVL0_ACTION_TBL` in [main.asm].
+  * List of actions: each action represents a sprite that must be created.
+    But an action can performn non-related sprite tasks as well, like opening a
+    door. See `LVL0_ACTION_TBL` in [main.asm].
   * List of rows: when the master row index (see`V_SCROLL_ROW_IDX`).
     matches this number, the associated action is executed. See
     `LVL0_TRIGGER_ROW_TBL` in [main.asm].
@@ -92,7 +94,7 @@ For more info about this level, search for "lvl2" in the [`main.asm`][main.asm] 
 
 ### Sprites
 
-The game supports up to 16 sprites.
+The game supports up to 16 virtual sprites.
 
 * Sprite 0 is used for the hero
 * Sprites 1-3 are used for hero's bullets
@@ -113,17 +115,16 @@ Some enemies, like the motorcycle, take two sprites.
 
 ### Animation type
 
-An animation is what the sprite should do while in the game. For example, the
-animation type `TYPE_ANIM_SOLDIER_BULLET`, animates the bullet. See
+An animation represents what the sprite should do during the game. For example,
+the animation type `TYPE_ANIM_SOLDIER_BULLET`, animates the bullet. See
 `TYPE_ANIM_TBL_LO` in [main.asm] for the complete list of animation types.
 
 An sprite can change its animation in runtime. For example, the
 `TYPE_ANIM_SOLIDER_BEHIND_SMTH` has certain logic. But when the hero is at the
-same Y position as it, then it changes it animation to `TYPE_ANIM_SOLDIER`.
-Similar, the `TYPE_ANIM_SOLDIER_JUMPING` animates the soldier the "jumping"
-solider. But when the solider lands, it changes it animation to
-`TYPE_ANIM_SOLDIER`. And the bullets and grenades also have two different
-animations. E.g: `TYPE_ANIM_HERO_GRENADE` and `TYPE_ANIM_HERO_GRENADE_END`.
+same Y position as it is, then it changes its animation to `TYPE_ANIM_SOLDIER`.
+Similar, the `TYPE_ANIM_SOLDIER_JUMPING` animates the "jumping" solider. But
+when the solider lands, it changes its animation to `TYPE_ANIM_SOLDIER`. Those
+are only two examples, but most animations change its animation type in runtime.
 
 ### Animation type 0
 
@@ -139,13 +140,15 @@ many empty sprites, it gets called more often.
 
 ### Collision detection
 
-Collision detection is done by software.
+Collision detection is done in software (no hardware collision detection is
+used).
 
 There is a routine to check whether the hero is hit (see `CHECK_COLLISION`) and
 another for enemies (see `TYPE_ANIM_HERO_BULLET`, `TYPE_ANIM_HERO_GRENADE_END`).
 
 Each animation type has contains a mask (see `f2544`) that indicates whether it
-can collide with bullet, grenades, both or nothing.
+can collide with bullet, grenades, both or nothing. For example, when the soldier
+is in the trench, it can only be killed with a grenade.
 
 ### Comments
 
@@ -158,7 +161,9 @@ fairly easy.
 
 From lower-level point of view, it seems that parts of the code could be
 improved (see `FIXME` in [main.asm]), specially regarding performance and
-flickers. Most probably due to time-pressure I guess.
+flickers. Seeing mnay Level-2 traces, plus seeing certain bugs makes me thing
+the the development team was under pressure to release the game ASAP (something
+fairly commong in the gaming industry).
 
 Additionally, it seems that the assembler used didn't optimize the code to use
 zero page. For example, calls to:
@@ -175,7 +180,7 @@ are assembled to:
 
 ## Tools used for disassembling
 
-* [Regenerator][regenerator]: To do the first-pass diassembly
+* [Regenerator][regenerator]: To do the disassembly
 * [Infiltrator Disassembler][infiltrator]: To analyze data
 * [VICE][vice]: For testing + analyze data
 * [VChar64][vchar64]: To regenerate the charsets + maps
