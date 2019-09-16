@@ -4,10 +4,8 @@
 
 This is the disassembled, fully commented source code of Commando for the C64. It includes:
 
-* Fully commented source code. "Easy" to follow (requires some C64 internals
-  knowledge).
-* Source code can be compiled (it actually generates the exactly
-  same binary as the original one).
+* "Easy" to follow source code (requires some C64 internals knowledge).
+* Source code can be compiled. It generates the exactly same binary as the original one.
 * Can be modified and game won't break. All hardcoded addresses were converted
   to labels.
 
@@ -19,7 +17,7 @@ This is the disassembled, fully commented source code of Commando for the C64. I
 [64tass]: http://tass64.sourceforge.net/
 [vice]: http://vice-emu.sourceforge.net/
 
-To compile it to generate the binary:
+To compile it do:
 
 ```sh
 $ make
@@ -29,9 +27,9 @@ $ make
 
 ### Code
 
-The code is using labels for everything. All the harcoded addresses were
+The code is using labels for everything. All the hardcoded addresses were
 converted to labels (think of tables with hundreds of addresses).
-The game runs perfectly Ok, even you if add a `nop` in
+The game runs as intended, even you if add a `nop` in
 the middle of the code.
 
 ### Data
@@ -61,13 +59,13 @@ the cracked version, without any other additional code.
 
 Apparently, the original idea was to ship Commando with 4 levels instead of 3.
 There is a lot of code/data that indicates that a "level 2" (the levels that are
-shipped with Commando are level 0, 1 and 3) was in progress, or finished.
+shipped with Commando are level 0, 1 and 3) was in progress, or even finished.
 
 All the actions, charset-mask, trigger rows are present. What's missing is the
 the map and a partial charset. The charset used for the main screen is likely
-the one designed for level2.
+the one designed for level 2.
 
-Especulation from my part, "Level 2" was probably removed due to lack of time
+Speculation from my part, "Level 2" was probably removed due to lack of time
 (?) or due lack of RAM to create a single-load game (?).
 
 For more info about this level, search for "LVL2" in the [`main.asm`][main.asm].
@@ -150,20 +148,17 @@ Each animation type has contains a mask (see `f2544`) that indicates whether it
 can collide with bullet, grenades, both or nothing. For example, when the soldier
 is in the trench, it can only be killed with a grenade.
 
-### Comments
+### Personal thoughts
 
 From a high-level (architecture) point of view, the code is very well designed.
 It is pretty easy to add new types of actions, or create new levels, or modify
 existing ones with little change in the code/data.
 
-In fact, it should be easy to port the main logic to other 6502 architecture
-fairly easy.
-
 From lower-level point of view, it seems that parts of the code could be
 improved (see `FIXME` in [main.asm]), specially regarding performance and
-flickers. Seeing mnay Level-2 traces, plus seeing certain bugs makes me thing
-the the development team was under pressure to release the game ASAP (something
-fairly commong in the gaming industry).
+flickers. Seeing many Level-2 traces, plus seeing certain bugs makes me think
+that the development team was under pressure to release the game ASAP (something
+fairly common in the gaming industry).
 
 Additionally, it seems that the assembler used didn't optimize the code to use
 zero page. For example, calls to:
