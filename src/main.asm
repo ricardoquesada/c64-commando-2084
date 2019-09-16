@@ -1,5 +1,8 @@
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Main routine
+; Commando for the C64 disassembled.
+; 
+; Comments by riq
+;
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Note about levels:
 ; LVL0 -> Is "level 1" in the game
@@ -83,7 +86,7 @@ fE3F8 = $E3F8
 ;
 a003D = $003D
 a003F = $003F
-SPRITE_IDX_TBL = $004B                   ;$4B-$5A sprite index, used in raster multiplexer
+SPRITE_IDX_TBL = $004B          ;$4B-$5A sprite index, used in raster multiplexer
 a00A7 = $00A7
 VIC_SPRITE_IDX = $00A8          ;Index used for sprite pos (e.g: $D000,idx) in raster intr.
 a00C9 = $00C9
@@ -98,7 +101,7 @@ a0401 = $0401
 V_SCROLL_BIT_IDX = $0402        ;pixels scrolled vertically: 0-7
 V_SCROLL_ROW_IDX = $0403        ;index to the row in the level: 0 means end of scroll (top of map)
 V_SCROLL_DELTA = $0404          ;How many pixels needs to get scrolled. $0: no scroll needed, $ff: -1 one pixel
-a0405 = $0405
+LVL_MAP_MSB = $0405             ;MSB address for the level map: lvl0=$60, lvl1=$80, lvl3=$a0
 IRQ_ADDR_LO = $0406
 IRQ_ADDR_HI = $0407
 GAME_TICK = $040A               ;Incremented from main loop
@@ -223,11 +226,11 @@ eF00A = $F00A
         .BYTE $00,$0B,$08,$0A,$00,$9E,$32,$30
         .BYTE $36,$31,$00,$00,$00
 
-        LDA #$00     ;#%00000000
+        LDA #$00
         TAY
         STA aA5
         STA aAE
-        LDA #$09     ;#%00001001
+        LDA #$09
         JSR s0828
         JSR s083D
         JSR eF00A       ;set charset: copy from e000-efff to d000-dfff
@@ -252,7 +255,7 @@ s0828   LDA #$01
 
 s083D   SEI
 b083E   LDA a01
-        EOR #$02     ;#%00000010
+        EOR #$02        ;#%00000010
         STA a01
         RTS
 
@@ -317,10 +320,6 @@ START                   ;$0883
         LDA #$05     ;#%00000101
         STA GRENADES
         STA LIVES
-
-        ;riq
-        ;lda #3
-        ;sta LEVEL_NR
 
 START_LEVEL          ;$08B8
         LDA #$A5     ;#%10100101
@@ -1727,7 +1726,7 @@ INIT_LEVEL_DATA                 ;$1445
         AND #$03     ;#%00000011
         TAY
         LDA f3ECE,Y
-        STA a0405
+        STA LVL_MAP_MSB
         LDA LEVEL_NR
         AND #$03     ;#%00000011
         ASL A
@@ -1895,7 +1894,7 @@ LEVEL_PATCH_DOOR         ;$15DA
 
         LDA #$0D     ;#%00001101
         STA a00FB,b
-        LDA a0405
+        LDA LVL_MAP_MSB
         STA a00FC,b
         LDX #$00     ;#%00000000
 _L00    LDY #$00     ;#%00000000
@@ -1958,7 +1957,6 @@ f16A8   .BYTE $CC,$45,$00,$00,$00,$00,$00,$00
         .BYTE $00,$00,$00,$00,$00,$30,$90
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; riq
 j172F   LDA TMP_SPRITE_X_LO
         SEC
         SBC #$10     ;#%00010000
@@ -2017,8 +2015,8 @@ _L00    STA a00FB,b
         ADC #$00
         STA a00FD,b
         LDA a00FD,b
-        CLC
-        ADC a0405
+        CLC                 ;FIXME: CLC/ADC could be replaced with ORA
+        ADC LVL_MAP_MSB
         STA a00FD,b
         RTS
 
@@ -3601,7 +3599,7 @@ TYPE_ANIM_BAZOOKA_ENEMY     ;$2724
         INC SPRITES_TMP_C05,X
         LDA SPRITES_TMP_C05,X
         AND #$07     ;#%00000111
-        BNE b274C
+        BNE _L00
         LDA SPRITES_TMP_C05,X
         AND #$18     ;#%00011000
         LSR A
@@ -3615,25 +3613,25 @@ TYPE_ANIM_BAZOOKA_ENEMY     ;$2724
         STA SPRITES_DELTA_X05,X
         LDA DELTA_Y_TBL,Y
         STA SPRITES_DELTA_Y05,X
-b274C   LDA SPRITES_TMP_C05,X
+_L00    LDA SPRITES_TMP_C05,X
         AND #$1F     ;#%00011111
-        BEQ b2754
-b2753   RTS
+        BEQ _L02
+_L01    RTS
 
-b2754   LDA SPRITES_Y00
+_L02    LDA SPRITES_Y00
         CMP SPRITES_Y05,X
-        BCC b2753
+        BCC _L01
 
         ; Find empty seat
         LDY #$00
-b275E   LDA SPRITES_TYPE05,Y
-        BEQ b2769
+_L03    LDA SPRITES_TYPE05,Y
+        BEQ _L04
         INY
         CPY #(TOTAL_MAX_SPRITES-5)
-        BNE b275E
+        BNE _L03
         RTS
 
-b2769   LDA #$00
+_L04    LDA #$00
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_X05,X
         LDA #$E8            ;Frame Bazooka guy #3
@@ -3656,30 +3654,30 @@ b2769   LDA #$00
         LDA #$02
         STA SPRITES_DELTA_Y05,Y
         LDA SPRITES_X_HI05,X
-        BNE b27CA
+        BNE _L05
         LDA SPRITES_X_LO05,X
         SEC
         SBC #$1E
         CMP SPRITES_X_LO00
-        BCS b27CA
+        BCS _L05
         LDA SPRITES_X_LO05,X
         CLC
         ADC #$1E
         CMP SPRITES_X_LO00
-        BCC b27D5
+        BCC _L06
         LDA #$00
         STA SPRITES_DELTA_X05,Y
         LDA #$E9            ;Frame bazooka down
         STA SPRITES_PTR05,Y
         RTS
 
-b27CA   LDA #$FE
+_L05    LDA #$FE
         STA SPRITES_DELTA_X05,Y
         LDA #$EA            ;Frame bazooka left-down
         STA SPRITES_PTR05,Y
         RTS
 
-b27D5   LDA #$02
+_L06    LDA #$02
         STA SPRITES_DELTA_X05,Y
         LDA #$EB            ;Frame bazooka right-down
         STA SPRITES_PTR05,Y
@@ -4266,26 +4264,26 @@ _L07    RTS
 TYPE_ANIM_MORTAR_ENEMY  ;$2BDF
         INC SPRITES_TMP_C05,X
         LDA a04EA
-        BEQ b2C0C
+        BEQ _L02
         LDA SPRITES_TMP_C05,X
         AND #$1F     ;#%00011111
         CMP #$03     ;#%00000011
-        BNE b2BF5
+        BNE _L00
         LDA #$CF     ;Mortar guy frame #2
         STA SPRITES_PTR05,X
-b2BF5   CMP #$0F     ;#%00001111
-        BNE b2BFE
+_L00    CMP #$0F     ;#%00001111
+        BNE _L01
         LDA #$CE     ;Mortar guy frame #1
         STA SPRITES_PTR05,X
-b2BFE   CMP #$14     ;#%00010100
-        BNE b2C0C
+_L01    CMP #$14     ;#%00010100
+        BNE _L02
         LDA #$CD     ;Mortar guy frame #0
         STA SPRITES_PTR05,X
         LDA #$00     ;#%00000000
         STA a04EA
-b2C0C   LDA SPRITES_Y05,X
+_L02    LDA SPRITES_Y05,X
         CMP #$82     ;#%10000010
-        BCC b2C31
+        BCC _L03
         LDA #$98     ;Frame Hero/Enemy heading up
         STA SPRITES_PTR05,X
         LDA #$00
@@ -4299,21 +4297,21 @@ b2C0C   LDA SPRITES_Y05,X
         STA SPRITES_TYPE05,X
         RTS
 
-b2C31   LDA SPRITES_TMP_C05,X
+_L03    LDA SPRITES_TMP_C05,X
         AND #$3F     ;#%00111111
-        BEQ b2C39
+        BEQ _L04
         RTS
 
         ; Find empty seat
-b2C39   LDY #$00     ;#%00000000
-b2C3B   LDA SPRITES_TYPE05,Y
-        BEQ b2C46
+_L04    LDY #$00     ;#%00000000
+_L05    LDA SPRITES_TYPE05,Y
+        BEQ _L06
         INY
         CPY #(TOTAL_MAX_SPRITES-5)
-        BNE b2C3B
+        BNE _L05
         RTS
 
-b2C46   LDA SPRITES_X_HI00
+_L06    LDA SPRITES_X_HI00
         BNE b2CC0
         LDA #$FF     ;#%11111111
         SEC
@@ -4344,9 +4342,9 @@ b2C46   LDA SPRITES_X_HI00
         STA a00FB,b
         INC a00FB,b
         LDA a00FB,b
-        BNE b2C97
+        BNE _L07
         LDA #$FF     ;#%11111111
-b2C97   STA SPRITES_DELTA_X05,Y
+_L07    STA SPRITES_DELTA_X05,Y
         LDA a00FC,b
         STA SPRITES_DELTA_Y05,Y
         LDA SPRITES_DELTA_Y05,Y
@@ -4940,7 +4938,6 @@ _L01    JSR GET_RANDOM
 _L02    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; riq: investigate
 ; Compares hero with sprite X, and based on positions updates 04AC var.
 s3128   LDA SPRITES_X_HI05,X
         CMP SPRITES_X_HI00
@@ -5277,7 +5274,7 @@ _L06    LDA a00FB,b
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; riq: related to shoot
+; related to shoot
 j33D0   LDA SPRITES_TMP_C05,X
         AND a0504
         BNE _L01
@@ -5767,7 +5764,7 @@ b3741   LDA SPRITES_TYPE05,Y
 
 b3790   JSR DIE_ANIM_AND_SCORE
 b3793   INY
-        CPY #$0B     ;#%00001011
+        CPY #(TOTAL_MAX_SPRITES-5)
         BNE b3741
 
         LDA SPRITES_TMP_A01,X
@@ -5816,7 +5813,7 @@ j37CF   TXA
         STA SPRITES_Y01,X
         LDA #$0C            ;anim_type_0C: explosion
         STA SPRITES_TYPE05,Y
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_TMP_C05,Y
         TAX
         LDA FRAME_EXPLOSION,X
@@ -6691,12 +6688,16 @@ _L02    LDA #$00
         STA GRENADES
 _L03    RTS
 
+        ;LVL MAP MSB address. E.g: $6000,$8000,$8000,$A000
 f3ECE   .BYTE $60,$80,$80,$A0
+
 f3ED2   .BYTE $3F,$1F,$0F,$0F,$0F,$0F,$0F,$0F
-f3EDA   .BYTE $13,$3D,$61,$83,$AF
-f3EDF   .BYTE $13,$3D,$61
-        .BYTE $83,$A6,$13,$3D,$61,$83,$B2
-f3EE9   .BYTE $13,$3D,$61,$83,$A6
+
+        ; Restart row index for each level.
+f3EDA   .BYTE $13,$3D,$61,$83,$AF   ;LVL0
+f3EDF   .BYTE $13,$3D,$61,$83,$A6   ;LVL1
+        .BYTE $13,$3D,$61,$83,$B2   ;LVL2
+f3EE9   .BYTE $13,$3D,$61,$83,$A6   ;LVL3
 
 f3EEF    =*+1
 f3EEE   .ADDR f3EDA         ;LVL0
@@ -6803,7 +6804,7 @@ LEVEL_DRAW_VIEWPORT             ;$3F93
         LDA a00FC,b
         ADC a00FD,b
         CLC
-        ADC a0405
+        ADC LVL_MAP_MSB
         STA _L02
 
 _L00    LDY #$27     ;Copy entire row (40 chars)
