@@ -721,7 +721,7 @@ HISCORE_SETUP_SPRITES   ;$0B94
         STA SPRITES_COLOR00
         LDA #$00
         STA SPRITES_BKG_PRI00
-        LDA #$01
+        LDA #$01            ;hero_anim_type_01: bullet
         STA SPRITES_TYPE00
 
         LDX #$07
@@ -900,7 +900,7 @@ HISCORE_READ_JOY_FIRE       ;$0D59
 
 _L00
         ; Cleanup bullet sprite
-        LDA #$00
+        LDA #$00                ;hero_anim_type_00
         STA SPRITES_TYPE01
         STA HISCORE_IS_BULLET_ANIM
         LDA #$FF                ;Empty sprite
@@ -929,7 +929,7 @@ _L03
         STA SPRITES_Y01
         LDA SPRITES_X_HI00
         STA SPRITES_X_HI01
-        LDA #$01
+        LDA #$01                ;hero_anim_type_01: bullet
         STA SPRITES_TYPE01
         LDA #$90                ;Bullet frame
         STA SPRITES_PTR01
@@ -3255,7 +3255,7 @@ _L02    LDA SPRITES_TYPE05,Y
         BNE _L03
 
         LDA SPRITES_TYPE01,X
-        CMP #$04        ;anim_type_04: hero grenade
+        CMP #$04        ;hero_anim_type_04: hero grenade
         BEQ _L03
 
         LDA #$BD        ;"1000" sprite frame
@@ -5711,8 +5711,8 @@ HERO_TYPE_ANIM_TBL
 ; Calls the different hero-related animation, based on the sprite type assigned.
 ; E.g: throw grenade, bullet start, bullet end, main anim, etc.
 ANIM_HERO       ;$3641
-        ; Sprites 1-5 are bullets / grenades
-        LDX #$00     ;#%00000000
+        ; Sprites 1-4 are bullets / grenades
+        LDX #$00
 
         ; If bullet/grenade is outside bounds, remove it
 _L00    LDA SPRITES_Y01,X
@@ -5742,7 +5742,7 @@ _JUMP_LO =*+1
 _JUMP_HI =*+2
         JSR $FFFF           ;Self-modifying
         INX
-        CPX #$04            ;For sprites 1-5
+        CPX #$04            ;For sprites 1-4
         BNE _L00
 
         RTS
@@ -5753,7 +5753,7 @@ _JUMP_HI =*+2
 TYPE_ANIM_GRENADE
         INC SPRITES_TMP_A01,X
         LDA SPRITES_TMP_A01,X
-        CMP #$0F     ;#%00001111
+        CMP #$0F        ;#%00001111
         BCS _L00
         LSR A
         LSR A
@@ -5761,7 +5761,7 @@ TYPE_ANIM_GRENADE
         LDA f36F9,Y
         STA SPRITES_PTR00
 _L00    LDA SPRITES_TMP_A01,X
-        AND #$07     ;#%00000111
+        AND #$07        ;#%00000111
         BNE _L01
         LDA SPRITES_TMP_A01,X
         LSR A
@@ -5771,7 +5771,7 @@ _L00    LDA SPRITES_TMP_A01,X
         LDA FRAME_GRENADE1,Y
         STA SPRITES_PTR01,X
         LDA SPRITES_TMP_A01,X
-_L01    CMP #$28     ;#%00101000
+_L01    CMP #$28        ;#%00101000
         BEQ _L03
         LDA SPRITES_X_LO01,X
         STA TMP_SPRITE_X_LO
@@ -5780,24 +5780,24 @@ _L01    CMP #$28     ;#%00101000
         LDA SPRITES_X_HI01,X
         STA TMP_SPRITE_X_HI
         JSR j172F
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_BKG_PRI01,X
 
         ; Get charset mask info
-        LDY #$00     ;#%00000000
+        LDY #$00
         LDA (pFC),Y
         TAY
         LDA (p2A),Y
-        AND #$02     ;#%00000010
+        AND #$02        ;#%00000010
         BEQ _L02
 
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_BKG_PRI01,X
 _L02    RTS
 
-_L03    LDA #$04     ;#%00000100
+_L03    LDA #$04        ;hero_anim_type_04: hero grenade
         STA SPRITES_TYPE01,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_TMP_A01,X
         STA SPRITES_DELTA_X01,X
         STA SPRITES_DELTA_Y01,X
@@ -5838,7 +5838,7 @@ FRAME_BULLET_END             ;$3714
 ; Not necessarily the hero in itself, but sprites associated with it like bullet
 ; and grenade.
 CLEANUP_HERO_SPRITE     ;$371D
-        LDA #$00
+        LDA #$00                ;hero_anim_type_00
         STA SPRITES_TYPE01,X
         STA SPRITES_DELTA_X01,X
         STA SPRITES_DELTA_Y01,X
@@ -5909,7 +5909,7 @@ b3793   INY
         STA SPRITES_PTR01,X
         RTS
 
-b37A9   LDA #$00     ;#%00000000
+b37A9   LDA #$00            ;hero_anim_type_00
         STA SPRITES_TYPE01,X
         STA SPRITES_DELTA_X01,X
         STA SPRITES_DELTA_Y01,X
@@ -6067,20 +6067,20 @@ _L00    LDA SPRITES_TYPE04      ;Don't throw if there is already a grenade in pr
         STA SPRITES_X_HI04
         LDA #$00
         STA SPRITES_DELTA_X04
-        LDA #$FE     ;#%11111110
+        LDA #$FE                ;#%11111110
         STA SPRITES_DELTA_Y04
-        LDA #$93     ;Grenade (small) frame
+        LDA #$93                ;Grenade (small) frame
         STA SPRITES_PTR04
-        LDA #$0E     ;light blue
+        LDA #$0E                ;light blue
         STA SPRITES_COLOR04
         LDA SPRITES_BKG_PRI00
         STA SPRITES_BKG_PRI04
-        LDA #$02     ;anim_type_02: hero grenade
+        LDA #$02                ;anim_type_02: hero grenade
         STA SPRITES_TYPE04
         LDA #$00
         STA SPRITES_TMP_A04
         STA HERO_ANIM_MOV_IDX
-        LDA #$A4     ;#%10100100
+        LDA #$A4
         STA SPRITES_PTR00
         SED
         LDA GRENADES
@@ -6089,7 +6089,7 @@ _L00    LDA SPRITES_TYPE04      ;Don't throw if there is already a grenade in pr
         STA GRENADES
         CLD
         JSR SCREEN_REFRESH_GRENADES
-        LDA #$01     ;Throw grenade SFX
+        LDA #$01                ;Throw grenade SFX
         JSR SFX_PLAY
 _SKIP   RTS
 
@@ -6173,9 +6173,9 @@ _L03    LDA #$00     ;#%00000000
         STA SPRITES_BKG_PRI01,X
         RTS
 
-_L04    LDA #$03     ;#%00000011
+_L04    LDA #$03            ;hero_anim_type_03: bullet end
         STA SPRITES_TYPE01,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_TMP_A01,X
         STA SPRITES_DELTA_X01,X
         STA SPRITES_DELTA_Y01,X
@@ -6241,13 +6241,13 @@ _L00
         LDA SPRITES_X_HI00
         STA SPRITES_X_HI01,X
 
-        LDA #$01
+        LDA #$01            ;hero_anim_type_01: bullet
         STA SPRITES_TYPE01,X
-        LDA #$90        ;Bullet frame
+        LDA #$90            ;Bullet frame
         STA SPRITES_PTR01,X
         LDA #$00
         STA SPRITES_TMP_A01,X
-        LDA #$01        ;white
+        LDA #$01            ;white
         STA SPRITES_COLOR01,X
 
 _L01    RTS
@@ -6765,7 +6765,7 @@ _L00    LDA #$64
         STA SPRITES_PTR00,X
         LDA #$00
         STA SPRITES_BKG_PRI00,X
-        STA SPRITES_TYPE00,X
+        STA SPRITES_TYPE00,X            ;hero_anim_type_00, anim_type_00
         DEX
         BPL _L00
         RTS
