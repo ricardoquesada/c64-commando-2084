@@ -130,7 +130,7 @@ GAME_TICK = $040A               ;Incremented from main loop
 RASTER_TICK = $040B             ;Incremented from raster routine
 FIRE_COOLDOWN = $04DF           ;reset with $ff
 HERO_ANIM_MOV_IDX = $04E0       ;Movement anim for hero: left,right,up,down,diagonally,etc.
-                                ; See: SOLDIER_ANIM_FRAMES_HI/LO
+                                ; See: SOLDIER_ANIM_FRAMES
 a04E1 = $04E1                   ;Bullet speed idx (???)
 BKG_COLOR0 = $04E2
 BKG_COLOR1 = $04E3
@@ -3332,9 +3332,9 @@ _L01    JSR CLEANUP_SPRITE
 _L02    LDA SPRITES_TYPE05,X
         ASL A
         TAY
-        LDA TYPE_ANIM_TBL_LO,Y
+        LDA TYPE_ANIM_TBL,Y
         STA _JUMP_LO
-        LDA TYPE_ANIM_TBL_HI,Y
+        LDA TYPE_ANIM_TBL+1,Y
         STA _JUMP_HI
         INC a04E7
 _JUMP_LO = *+1
@@ -3348,8 +3348,7 @@ _JUMP_HI = *+2
         RTS
 
         ; Anim table
-TYPE_ANIM_TBL_HI =*+1
-TYPE_ANIM_TBL_LO
+TYPE_ANIM_TBL
         .ADDR TYPE_ANIM_SPAWN_SOLDIER           ;$00
         .ADDR TYPE_ANIM_HERO_BULLET             ;$01
         .ADDR TYPE_ANIM_HERO_GRENADE            ;$02
@@ -4080,9 +4079,9 @@ _L03    LDA #$04
 _L04    LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         TAY
-        LDA SOLDIER_ANIM_FRAMES_LO,Y
+        LDA SOLDIER_ANIM_FRAMES,Y
         STA a00FB
-        LDA SOLDIER_ANIM_FRAMES_HI,Y
+        LDA SOLDIER_ANIM_FRAMES+1,Y
         STA a00FC
         LDA GAME_TICK
         AND #$0C     ;#%00001100
@@ -4139,9 +4138,9 @@ _L02    CMP #$14
         LDA SPRITES_TMP_B05,X
         AND #$FE
         TAY
-        LDA SOLDIER_ANIM_FRAMES_LO,Y
+        LDA SOLDIER_ANIM_FRAMES,Y
         STA a00FB
-        LDA SOLDIER_ANIM_FRAMES_HI,Y
+        LDA SOLDIER_ANIM_FRAMES+1,Y
         STA a00FC
         LDA GAME_TICK
         AND #$0C     ;#%00001100
@@ -4166,9 +4165,9 @@ TYPE_ANIM_SOLDIER_FROM_SIDE_A     ;$2A34
         LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         TAY
-        LDA SOLDIER_ANIM_FRAMES_LO,Y
+        LDA SOLDIER_ANIM_FRAMES,Y
         STA a00FB
-        LDA SOLDIER_ANIM_FRAMES_HI,Y
+        LDA SOLDIER_ANIM_FRAMES+1,Y
         STA a00FC
         LDA GAME_TICK
         AND #$0C     ;#%00001100
@@ -4993,9 +4992,9 @@ _L01    BCS _L02
         LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         TAY
-        LDA SOLDIER_ANIM_FRAMES_LO,Y
+        LDA SOLDIER_ANIM_FRAMES,Y
         STA a00FB
-        LDA SOLDIER_ANIM_FRAMES_HI,Y
+        LDA SOLDIER_ANIM_FRAMES+1,Y
         STA a00FC
         LDA GAME_TICK
         AND #$0C     ;#%00001100
@@ -5041,9 +5040,9 @@ TYPE_ANIM_SOLIDER_GO_UP     ;$30DD
         LDA SPRITES_TMP_B05,X
         AND #$FE     ;#%11111110
         TAY
-        LDA SOLDIER_ANIM_FRAMES_LO,Y
+        LDA SOLDIER_ANIM_FRAMES,Y
         STA a00FB
-        LDA SOLDIER_ANIM_FRAMES_HI,Y
+        LDA SOLDIER_ANIM_FRAMES+1,Y
         STA a00FC
         LDA GAME_TICK
         AND #$0C     ;#%00001100
@@ -5211,9 +5210,9 @@ TYPE_ANIM_SOLDIER        ;$3205
         LDA SPRITES_TMP_B05,X
         AND #$FE
         TAY
-        LDA SOLDIER_ANIM_FRAMES_LO,Y
+        LDA SOLDIER_ANIM_FRAMES,Y
         STA a00FB
-        LDA SOLDIER_ANIM_FRAMES_HI,Y
+        LDA SOLDIER_ANIM_FRAMES+1,Y
         STA a00FC
         LDA GAME_TICK
         AND #$0C
@@ -5703,8 +5702,7 @@ f3617   .BYTE $04,$04,$04,$04,$00,$00,$02,$02
 f3627   .BYTE $00,$00,$02,$02,$00,$00,$02,$02
         .BYTE $00,$00,$02,$02,$00,$00,$07,$07
 
-HERO_TYPE_ANIM_TBL_HI=*+1
-HERO_TYPE_ANIM_TBL_LO
+HERO_TYPE_ANIM_TBL
         .ADDR TYPE_ANIM_HERO_MAIN
         .ADDR TYPE_ANIM_HERO_BULLET
         .ADDR TYPE_ANIM_HERO_GRENADE
@@ -5736,9 +5734,9 @@ _L01    JSR CLEANUP_HERO_SPRITE
 _L02    LDA SPRITES_TYPE01,X
         ASL A
         TAY
-        LDA HERO_TYPE_ANIM_TBL_LO,Y
+        LDA HERO_TYPE_ANIM_TBL,Y
         STA _JUMP_LO
-        LDA HERO_TYPE_ANIM_TBL_HI,Y
+        LDA HERO_TYPE_ANIM_TBL+1,Y
         STA _JUMP_HI
 _JUMP_LO =*+1
 _JUMP_HI =*+2
@@ -6493,9 +6491,9 @@ _L12    LDA $DC00    ;CIA1: Data Port Register A (in-game direction changed)
 SETUP_HERO_ANIMATION            ;$3BAC
         LDA HERO_ANIM_MOV_IDX
         TAY
-        LDA SOLDIER_ANIM_FRAMES_LO,Y
+        LDA SOLDIER_ANIM_FRAMES,Y
         STA a00FB
-        LDA SOLDIER_ANIM_FRAMES_HI,Y
+        LDA SOLDIER_ANIM_FRAMES+1,Y
         STA a00FC
         INC COUNTER1
         LDA COUNTER1
@@ -6629,8 +6627,7 @@ HERO_FRAMES_UP_LEFT
         .BYTE $A9,$AA,$AB,$E2                   ;Anim up-left
 
 ; These frames are shared by the hero and the regular enemies
-SOLDIER_ANIM_FRAMES_HI   =*+1           ;$3CC1
-SOLDIER_ANIM_FRAMES_LO                  ;$3CC0
+SOLDIER_ANIM_FRAMES                     ;$3CC0
         .ADDR HERO_FRAMES_UP            ;0
         .ADDR HERO_FRAMES_UP_RIGHT      ;1
         .ADDR HERO_FRAMES_RIGHT         ;2
