@@ -115,7 +115,7 @@ Some enemies, like the motorcycle, take two sprites.
 
 An animation represents what the sprite should do during the game. For example,
 the animation type `TYPE_ANIM_SOLDIER_BULLET`, animates the bullet. See
-`TYPE_ANIM_TBL_LO` in [main.asm] for the complete list of animation types.
+`TYPE_ANIM_TBL` in [main.asm] for the complete list of animation types.
 
 An sprite can change its animation in runtime. For example, the
 `TYPE_ANIM_SOLIDER_BEHIND_SMTH` has certain logic. But when the hero is at the

@@ -1316,7 +1316,7 @@ f1074   .BYTE $00,$00,$00,$00,$00,$01,$00,$00   ;$00-$07
 ; E.g: after losing a life.
 RERUN_ACTIONS             ;$109B
         LDY #$00
-_L00    LDA (p24),Y  ;End of trigger-rows?
+_L00    LDA (p24),Y         ;End of trigger-rows?
         CMP #$FF
         BEQ _L04
         CMP V_SCROLL_ROW_IDX
@@ -1326,14 +1326,14 @@ _L00    LDA (p24),Y  ;End of trigger-rows?
         CMP V_SCROLL_ROW_IDX
         BCS _L03
         STY a00FD,b
-        LDA (p28),Y     ;Object to init
+        LDA (p28),Y         ;Object to init
         ASL A
         TAY
 
         ; $FB/$FC -> action table
-        LDA ACTION_TBL_LO,Y   ;Prepare jump table for actions
+        LDA ACTION_TBL,Y    ;Prepare jump table for actions
         STA a00FB,b
-        LDA ACTION_TBL_HI,Y
+        LDA ACTION_TBL+1,Y
         STA a00FC,b
 
         ; Find empty seat
@@ -1352,7 +1352,7 @@ _L02    TXA
         TAX
 
         LDY a00FD,b
-        LDA (p24),Y     ; trigger row
+        LDA (p24),Y         ;Trigger row
         SEC
         SBC V_SCROLL_ROW_IDX
         ASL A
@@ -1384,8 +1384,8 @@ PRINT_CREDITS       ;$10FC
         LDA #>pD829  ;Color RAM hi
         STA a00FE,b
 
-        LDX #$00     ;#%00000000
-_L00    LDY #$00     ;#%00000000
+        LDX #$00
+_L00    LDY #$00
 _L01    LDA CREDITS_TXT,X
         CMP #$FF     ;End of line?
         BEQ _L02
@@ -2237,14 +2237,13 @@ _L04    STY a00FD,b
         LDA (p28),Y
         ASL A
         TAY
-        LDA ACTION_TBL_LO,Y
+        LDA ACTION_TBL,Y
         STA a00FB,b
-        LDA ACTION_TBL_HI,Y
+        LDA ACTION_TBL+1,Y
         STA a00FC,b
         JMP (a00FB)
 
-ACTION_TBL_HI = *+1         ;$1C07
-ACTION_TBL_LO               ;$1C06
+ACTION_TBL                              ;$1C06
         .ADDR ACTION_NEW_SOLDIER_BEHIND_TRENCH  ;$00
         .ADDR ACTION_NEW_JUMPING_SOLDIER_R  ;$01
         .ADDR ACTION_NEW_JUMPING_SOLDIER_L  ;$02
@@ -3269,9 +3268,9 @@ _L01    JSR CLEANUP_SPRITE
 _L02    LDA SPRITES_TYPE05,X
         ASL A
         TAY
-        LDA TYPE_ANIM_TBL_LO,Y
+        LDA TYPE_ANIM_TBL,Y
         STA a00FB,b
-        LDA TYPE_ANIM_TBL_HI,Y
+        LDA TYPE_ANIM_TBL+1,Y
         STA a00FC,b
         INC a04E7
         JSR JMP_FB
@@ -3284,9 +3283,8 @@ _L02    LDA SPRITES_TYPE05,X
 JMP_FB              ;$24EF
         JMP (a00FB)
 
-        ; Anim table
-TYPE_ANIM_TBL_HI =*+1
-TYPE_ANIM_TBL_LO
+        ; Animation table
+TYPE_ANIM_TBL
         .ADDR TYPE_ANIM_SPAWN_SOLDIER           ;$00
         .ADDR TYPE_ANIM_HERO_BULLET             ;$01
         .ADDR TYPE_ANIM_HERO_GRENADE            ;$02
@@ -5568,8 +5566,7 @@ f3617   .BYTE $04,$04,$04,$04,$00,$00,$02,$02
 f3627   .BYTE $00,$00,$02,$02,$00,$00,$02,$02
         .BYTE $00,$00,$02,$02,$00,$00,$07,$07
 
-HERO_TYPE_ANIM_TBL_HI=*+1
-HERO_TYPE_ANIM_TBL_LO
+HERO_TYPE_ANIM_TBL
         .ADDR TYPE_ANIM_HERO_MAIN
         .ADDR TYPE_ANIM_HERO_BULLET
         .ADDR TYPE_ANIM_HERO_GRENADE
@@ -5601,9 +5598,9 @@ _L01    JSR CLEANUP_HERO_SPRITE
 _L02    LDA SPRITES_TYPE01,X
         ASL A
         TAY
-        LDA HERO_TYPE_ANIM_TBL_LO,Y
+        LDA HERO_TYPE_ANIM_TBL,Y
         STA a00FB,b
-        LDA HERO_TYPE_ANIM_TBL_HI,Y
+        LDA HERO_TYPE_ANIM_TBL+1,Y
         STA a00FC,b
         JSR _L03
         INX
