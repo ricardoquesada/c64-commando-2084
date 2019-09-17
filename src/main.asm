@@ -1744,14 +1744,14 @@ SCREEN_REFRESH_LIVES
 ; Original Y positions for all 16 sprites
 ; Used also when restoring the sprites
 ORIG_SPRITE_Y00
-        .BYTE $B4                               ;Hero
+        .BYTE $C2                               ;Hero
 ORIG_SPRITE_Y01
 .IF ENABLE_NEW_IRQ_D == 1
         .BYTE $28,$28,$28                       ;Bullets: lower pri than Hero
         .BYTE $28                               ;Grenade: lower pri than hero
 .ELSE   ;ENABLE_NEW_IRQ_D == 0
-        .BYTE $B3,$B3,$B3                       ;Bullets: lower pri than Hero
-        .BYTE $B3                               ;Grenade: lower pri than hero
+        .BYTE $C2,$C2,$C2                       ;Bullets: lower pri than Hero
+        .BYTE $C2                               ;Grenade: lower pri than hero
 .ENDIF
 ORIG_SPRITE_Y05
         .BYTE $28,$28,$28,$28,$28,$28,$28,$28   ;Enemies
