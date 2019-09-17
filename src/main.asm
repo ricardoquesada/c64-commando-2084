@@ -5761,7 +5761,7 @@ b3741   LDA SPRITES_TYPE05,Y
         LDA SPRITES_TYPE05,Y
         CMP #$1E            ;anim_type_1E: turret fire
         BNE b3790
-        JMP j37CF
+        JMP DESTROY_TURRET
 
 b3790   JSR DIE_ANIM_AND_SCORE
 b3793   INY
@@ -5795,20 +5795,23 @@ b37A9   LDA #$00     ;#%00000000
 FRAME_EXPLOSION     ;$37CA
         .BYTE $AF,$AE,$AD,$AF,$FF
 
-j37CF   TXA
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Destroys the turret
+DESTROY_TURRET
+        TXA
         PHA
         TYA
         PHA
-        LDA #$0A     ;#%00001010
+        LDA #$0A            ;Points scored
         JSR SCORE_ADD
-        LDA #$02     ;#%00000010
+        LDA #$02            ;"Turret destroyed" SFX
         JSR SFX_PLAY
         LDA SPRITES_TMP_B05,Y
-        CMP #$0A     ;#%00001010
-        BEQ b3848
+        CMP #$0A
+        BEQ _L01
         LDA SPRITES_X_LO05,Y
         SEC
-        SBC #$0E     ;#%00001110
+        SBC #$0E
         STA SPRITES_X_LO01,X
         LDA SPRITES_Y05,Y
         STA SPRITES_Y01,X
@@ -5819,37 +5822,38 @@ j37CF   TXA
         TAX
         LDA FRAME_EXPLOSION,X
         STA SPRITES_PTR05,Y
-        LDA #$08     ;orange
+        LDA #$08            ;orange
         STA SPRITES_COLOR05,Y
         LDA SPRITES_X_LO05,Y
         SEC
-        SBC #$18     ;#%00011000
+        SBC #$18
         STA TMP_SPRITE_X_LO
         LDA SPRITES_Y05,Y
         SEC
-        SBC #$2E     ;#%00101110
+        SBC #$2E
         STA TMP_SPRITE_Y
         LDA SPRITES_X_HI05,Y
         STA TMP_SPRITE_X_HI
         LDA SPRITES_Y05,Y
         SEC
-        SBC #$0A     ;#%00001010
+        SBC #$0A
         STA SPRITES_Y05,Y
         JSR j172F
         LDA a00FC,b
         STA a00FB,b
         LDA a00FD,b
         STA a00FC,b
-        LDA #$04
+        LDA #$04            ;Draw left turret destroyed
         JSR LEVEL_PATCH_TURRET
         JSR LEVEL_DRAW_VIEWPORT
-j3841   PLA
+_L00    PLA
         TAY
         PLA
         TAX
-        JMP b3793
+        JMP b3793           ;A grenade could kill more than one enemy at the time.
+                            ; Continue with the next enemy.
 
-b3848   LDA SPRITES_X_LO05,Y
+_L01    LDA SPRITES_X_LO05,Y
         CLC
         ADC #$0E
         STA SPRITES_X_LO01,X
@@ -5868,14 +5872,14 @@ b3848   LDA SPRITES_X_LO05,Y
         SEC
         SBC #$0A
         STA SPRITES_Y05,Y
-        LDA #<$859A  ;Turret location in lvl1 lo
+        LDA #<$859A         ;Turret location in lvl1 lo
         STA a00FB,b
-        LDA #>$859A  ;Turret location in lvl1 hi
+        LDA #>$859A         ;Turret location in lvl1 hi
         STA a00FC,b
-        LDA #$06
+        LDA #$06            ;Draw right turret destroyed
         JSR LEVEL_PATCH_TURRET
         JSR LEVEL_DRAW_VIEWPORT
-        JMP j3841
+        JMP _L00
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Animate explosion
