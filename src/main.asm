@@ -2243,33 +2243,33 @@ _L04    STY pFD,b
 
 ACTION_TBL                              ;$1C06
         .ADDR ACTION_NEW_SOLDIER_BEHIND_TRENCH  ;$00
-        .ADDR ACTION_NEW_JUMPING_SOLDIER_R  ;$01
-        .ADDR ACTION_NEW_JUMPING_SOLDIER_L  ;$02
-        .ADDR ACTION_NEW_MORTAR_ENEMY   ;$03
-        .ADDR ACTION_NEW_BIKE_LVL0      ;$04
-        .ADDR ACTION_NEW_POW_GUARD      ;$05
-        .ADDR ACTION_NEW_POW            ;$06
-        .ADDR ACTION_NEW_GRENADE_BOX    ;$07
+        .ADDR ACTION_NEW_JUMPING_SOLDIER_R      ;$01
+        .ADDR ACTION_NEW_JUMPING_SOLDIER_L      ;$02
+        .ADDR ACTION_NEW_MORTAR_ENEMY           ;$03
+        .ADDR ACTION_NEW_BIKE_LVL0              ;$04
+        .ADDR ACTION_NEW_POW_GUARD              ;$05
+        .ADDR ACTION_NEW_POW                    ;$06
+        .ADDR ACTION_NEW_GRENADE_BOX            ;$07
         .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_L    ;$08
         .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_R    ;$09
         .ADDR ACTION_NEW_SOLDIER_FROM_SIDE_R_B  ;$0A
-        .ADDR ACTION_OPEN_DOOR          ;$0B
-        .ADDR ACTION_0C                 ;$0C
-        .ADDR ACTION_NEW_BOSS_LVL0      ;$0D
-        .ADDR ACTION_NEW_SOLDIER_IN_TRENCH  ;$0E
-        .ADDR ACTION_NEW_TURRET_CANNON_L    ;$0F
-        .ADDR ACTION_NEW_TURRET_CANNON_R    ;$10
-        .ADDR ACTION_NEW_BAZOOKA_ENEMY_R    ;$11
-        .ADDR ACTION_NEW_BAZOOKA_ENEMY_L    ;$12
-        .ADDR ACTION_NEW_BIKE_LVL1      ;$13
-        .ADDR ACTION_NEW_TRUCK          ;$14
-        .ADDR ACTION_NEW_CART_UP_LVL1   ;$15
-        .ADDR ACTION_NEW_PINK_CAR       ;$16
-        .ADDR ACTION_17                 ;$17
-        .ADDR ACTION_18                 ;$18
-        .ADDR ACTION_NEW_SOLDIER_IN_TOWER   ;$19
-        .ADDR ACTION_1A                 ;$1A
-        .ADDR ACTION_VOID               ;$1B
+        .ADDR ACTION_OPEN_DOOR                  ;$0B
+        .ADDR ACTION_0C                         ;$0C
+        .ADDR ACTION_NEW_BOSS_LVL0              ;$0D
+        .ADDR ACTION_NEW_SOLDIER_IN_TRENCH      ;$0E
+        .ADDR ACTION_NEW_TURRET_CANNON_L        ;$0F
+        .ADDR ACTION_NEW_TURRET_CANNON_R        ;$10
+        .ADDR ACTION_NEW_BAZOOKA_ENEMY_R        ;$11
+        .ADDR ACTION_NEW_BAZOOKA_ENEMY_L        ;$12
+        .ADDR ACTION_NEW_BIKE_LVL1              ;$13
+        .ADDR ACTION_NEW_TRUCK                  ;$14
+        .ADDR ACTION_NEW_CART_UP_LVL1           ;$15
+        .ADDR ACTION_NEW_PINK_CAR               ;$16
+        .ADDR ACTION_17                         ;$17
+        .ADDR ACTION_18                         ;$18
+        .ADDR ACTION_NEW_SOLDIER_IN_TOWER       ;$19
+        .ADDR ACTION_1A                         ;$1A
+        .ADDR ACTION_VOID                       ;$1B
 
         ; LVL0 data
 LVL0_TRIGGER_ROW_TBL    ;$1C3E
@@ -4579,7 +4579,7 @@ _L12    JSR GET_RANDOM
         LDA #$00     ;#%00000000
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$15     ;sprite at 0xc540. bug?
+        LDA #$15     ;FIXME: sprite points at 0xc540.
         STA SPRITES_PTR05,X
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
@@ -7160,6 +7160,7 @@ _L0     LDX SPRITE_IDX_TBL,b,Y
 
         ; FIXME: Not sure whether this is a bug or a feature.
         ; Should it be SPRITE_IDX_TBL + 8 (??)
+        ; And instead of adding $14, I guess it should substract $02.
         LDX SPRITE_IDX_TBL + 3,b
         LDA SPRITES_PREV_Y00,X
         CLC
