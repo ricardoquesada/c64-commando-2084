@@ -1,5 +1,9 @@
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Commando for the C64 disassembled
+; https://gitlab.com/ricardoquesada/c64-commando-2084/tree/orig
+;
 ; Music routine
+;
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Not analized. Might be very similar to the one analized here:
 ; http://www.1xn.org/text/C64/rob_hubbards_music.txt

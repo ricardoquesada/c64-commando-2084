@@ -1,4 +1,8 @@
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Commando for the C64 disassembled.
+; https://gitlab.com/ricardoquesada/c64-commando-2084/tree/orig
+;
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 GAME_MAIN = $080D
 ;
 ; **** PREDEFINED LABELS ****

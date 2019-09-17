@@ -1,6 +1,9 @@
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Commando for the C64 disassembled.
-; 
+; https://gitlab.com/ricardoquesada/c64-commando-2084/tree/orig
+;
+; Game logic
+;
 ; Comments by riq
 ;
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -3286,10 +3289,10 @@ JMP_FB              ;$24EF
         ; Animation table
 TYPE_ANIM_TBL
         .ADDR TYPE_ANIM_SPAWN_SOLDIER           ;$00
-        .ADDR TYPE_ANIM_HERO_BULLET             ;$01
-        .ADDR TYPE_ANIM_HERO_GRENADE            ;$02
-        .ADDR TYPE_ANIM_HERO_BULLET_END         ;$03
-        .ADDR TYPE_ANIM_HERO_GRENADE_END        ;$04
+        .ADDR TYPE_ANIM_BULLET                  ;$01
+        .ADDR TYPE_ANIM_GRENADE                 ;$02
+        .ADDR TYPE_ANIM_BULLET_END              ;$03
+        .ADDR TYPE_ANIM_GRENADE_END             ;$04
         .ADDR TYPE_ANIM_SOLDIER                 ;$05
         .ADDR TYPE_ANIM_SOLDIER_DIE             ;$06
         .ADDR TYPE_ANIM_SOLDIER_BEHIND_SMTH     ;$07
@@ -5567,11 +5570,11 @@ f3627   .BYTE $00,$00,$02,$02,$00,$00,$02,$02
         .BYTE $00,$00,$02,$02,$00,$00,$07,$07
 
 HERO_TYPE_ANIM_TBL
-        .ADDR TYPE_ANIM_HERO_MAIN
-        .ADDR TYPE_ANIM_HERO_BULLET
-        .ADDR TYPE_ANIM_HERO_GRENADE
-        .ADDR TYPE_ANIM_HERO_BULLET_END
-        .ADDR TYPE_ANIM_HERO_GRENADE_END
+        .ADDR TYPE_ANIM_HERO_MAIN               ;hero_type_anim_00
+        .ADDR TYPE_ANIM_BULLET                  ;hero_type_anim_01
+        .ADDR TYPE_ANIM_GRENADE                 ;hero_type_anim_02
+        .ADDR TYPE_ANIM_BULLET_END              ;hero_type_anim_03
+        .ADDR TYPE_ANIM_GRENADE_END             ;hero_type_anim_04
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Calls the different hero-related animation, based on the sprite type assigned.
@@ -5593,7 +5596,8 @@ _L00    LDA SPRITES_Y01,X
         BEQ _L02
 _L01    JSR CLEANUP_HERO_SPRITE
 
-        ; TODO: avoid the anim if the sprite has just been cleaned-up
+        ; FIXME: Fallthrough. Intended? will it be possible to call
+        ; TYPE_ANIM_HERO_MAIN more than once per frame?
 
 _L02    LDA SPRITES_TYPE01,X
         ASL A
@@ -5612,9 +5616,9 @@ _L02    LDA SPRITES_TYPE01,X
 _L03    JMP (a00FB)
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: anim_type_02
+; ref: anim_type_02, hero_type_anim_02
 ; Hero anim grenade
-TYPE_ANIM_HERO_GRENADE
+TYPE_ANIM_GRENADE
         INC SPRITES_TMP_A01,X
         LDA SPRITES_TMP_A01,X
         CMP #$0F     ;#%00001111
@@ -5678,9 +5682,9 @@ FRAME_GRENADE1      ;$36F3
 f36F9   .BYTE $A4,$A5,$DE,$98,$98
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: anim_type_03
+; ref: anim_type_03, hero_type_anim_03
 ; Hero Anim bullet end
-TYPE_ANIM_HERO_BULLET_END      ;$36FE
+TYPE_ANIM_BULLET_END      ;$36FE
         INC SPRITES_TMP_A01,X
         LDA SPRITES_TMP_A01,X
         CMP #$09     ;Frames for anim(?)
@@ -5716,9 +5720,9 @@ CLEANUP_HERO_SPRITE     ;$371D
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: anim_type_04
+; ref: anim_type_04, hero_type_anim_04
 ; Exploding grenade animation
-TYPE_ANIM_HERO_GRENADE_END ;$373C
+TYPE_ANIM_GRENADE_END ;$373C
         INC SPRITES_TMP_A01,X
         LDY #$00     ;#%00000000
 
@@ -5953,9 +5957,9 @@ _L00    LDA SPRITES_TYPE04
 _SKIP   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: anim_type_01
+; ref: anim_type_01, hero_type_anim_01
 ; Hero Anim bullet
-TYPE_ANIM_HERO_BULLET  ;$3935
+TYPE_ANIM_BULLET  ;$3935
         INC SPRITES_TMP_A01,X
         LDA SPRITES_TMP_A01,X
         CMP #$0F
@@ -6046,6 +6050,7 @@ _L04    LDA #$03     ;#%00000011
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Animation for hero in "normal" state
 ; X=Sprite to update
+; ref: hero_type_anim_00
 TYPE_ANIM_HERO_MAIN
         LDA IS_HERO_DEAD
         BNE _L02
