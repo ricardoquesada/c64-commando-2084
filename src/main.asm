@@ -147,7 +147,7 @@ TMP_SPRITE_X_LO = $04F0         ;Temp sprite-X LSB for current sprite
 TMP_SPRITE_Y = $04F1            ;ditto for Y
 TMP_SPRITE_X_HI = $04F2         ;ditto for X MSB
 LEVEL_NR = $04F3
-a04F4 = $04F4                   ;Seems to be a delay or something related to enemies inside
+ANY_ENEMY_IN_MAP = $04F4        ;Seems to indicate that an enemy is present. When there are no enemies, can't throw grenades.
 IS_LEVEL_COMPLETE = $04F5       ;0: game in progress, 1:lvl complete. Exit animation finished (unused apparently)
 IS_ANIM_EXIT_DOOR = $04F7       ;1: hero goes to exit door animation in progress
 SCORE_LSB = $04F8
@@ -400,7 +400,7 @@ _L01    LDA SPRITES_Y00
         BNE _L02
 
         ;Play animation at end of Level 3
-        LDA #$09                    ;Fire SFX
+        LDA #$09                    ;"Fire in fort" SFX
         JSR SFX_PLAY
         JSR SET_FORT_ON_FIRE
 
@@ -943,7 +943,7 @@ _L03
         LDY #$00
         STA (pF7),Y
         JSR HISCORE_GET_SELECTED_CHAR
-        LDA #$0B                ;"Fire" SFX
+        LDA #$0B                ;"Hiscore shoot" SFX
         JSR SFX_PLAY
 
         LDA HISCORE_SELECTED_CHAR
@@ -1636,7 +1636,7 @@ SCORE_ADD
         CLD
         INC LIVES
         JSR SCREEN_REFRESH_LIVES
-        LDA #$0C     ;#%00001100
+        LDA #$0C        ;"New life" SFX
         JSR SFX_PLAY
 .ENDIF  ; ENABLE_NEW_LIFE_WHEN_SCORING
 
@@ -2458,7 +2458,7 @@ ACTION_NEW_CART_UP_LVL1     ;$1EAF
         STA SPRITES_TMP_B05,X
         LDA #$25            ;anim_type_25: cart in lvl2 going up
         STA SPRITES_TYPE05,X
-        LDA #$05
+        LDA #$05            ;"Cart goign up" SFX from LVL1
         JSR SFX_PLAY
         RTS
 
@@ -3310,8 +3310,8 @@ _L06    LDA #$00
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Anim routine for enemies
 ANIM_ENEMIES    ;$24B3
-        LDX #$00     ;#%00000000
-        STX a04F4
+        LDX #$00
+        STX ANY_ENEMY_IN_MAP
 
         ; If sprite is out of bounds, clean it up
 _L00    LDA SPRITES_Y05,X
@@ -3339,7 +3339,7 @@ _L02    LDA SPRITES_TYPE05,X
         INC a04E7
 _JUMP_LO = *+1
 _JUMP_HI = *+2
-        JSR $FFFF
+        JSR $FFFF               ;Self-modifying
 
         INX
         CPX #(TOTAL_MAX_SPRITES-5)
@@ -3350,10 +3350,10 @@ _JUMP_HI = *+2
         ; Anim table
 TYPE_ANIM_TBL
         .ADDR TYPE_ANIM_SPAWN_SOLDIER           ;$00
-        .ADDR TYPE_ANIM_HERO_BULLET             ;$01
-        .ADDR TYPE_ANIM_HERO_GRENADE            ;$02
-        .ADDR TYPE_ANIM_HERO_BULLET_END         ;$03
-        .ADDR TYPE_ANIM_HERO_GRENADE_END        ;$04
+        .ADDR TYPE_ANIM_BULLET                  ;$01
+        .ADDR TYPE_ANIM_GRENADE                 ;$02
+        .ADDR TYPE_ANIM_BULLET_END              ;$03
+        .ADDR TYPE_ANIM_GRENADE_END             ;$04
         .ADDR TYPE_ANIM_SOLDIER                 ;$05
         .ADDR TYPE_ANIM_SOLDIER_DIE             ;$06
         .ADDR TYPE_ANIM_SOLDIER_BEHIND_SMTH     ;$07
@@ -4545,7 +4545,7 @@ _L02    JSR GET_RANDOM
         STA SPRITES_Y05,X
         LDA #$1B            ;anim_type_1B: soldier in fort lvl0,1,3
         STA SPRITES_TYPE05,X
-        INC a04F4
+        INC ANY_ENEMY_IN_MAP
         JMP _L06
 
         ; End of lvl1 - soldiers from sides
@@ -4584,7 +4584,7 @@ _L04    JSR GET_RANDOM
         STA SPRITES_Y05,X
         LDA #$1B            ;anim_type_1B: soldier in fort lvl0,1,3
         STA SPRITES_TYPE05,X
-        INC a04F4
+        INC ANY_ENEMY_IN_MAP
         JMP _L06
 
 _L05    JSR GET_RANDOM
@@ -5186,12 +5186,12 @@ _L12    LDA #$0A     ;#%00001010
 ; Sprites that goes out of the fort in LVL0, LVL1 and LVL3
 ; Same logic as regular soldier but with some randomness at the beginning
 TYPE_ANIM_SOLDIER_IN_FORT       ;$31F0
-        INC a04F4
+        INC ANY_ENEMY_IN_MAP
         JSR GET_RANDOM
         AND #$3F     ;#%00111111
         BNE TYPE_ANIM_SOLDIER
         JSR THROW_GRENADE
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_X05,X
         STA SPRITES_DELTA_Y05,X
 
@@ -5700,11 +5700,11 @@ f3627   .BYTE $00,$00,$02,$02,$00,$00,$02,$02
         .BYTE $00,$00,$02,$02,$00,$00,$07,$07
 
 HERO_TYPE_ANIM_TBL
-        .ADDR TYPE_ANIM_HERO_MAIN
-        .ADDR TYPE_ANIM_HERO_BULLET
-        .ADDR TYPE_ANIM_HERO_GRENADE
-        .ADDR TYPE_ANIM_HERO_BULLET_END
-        .ADDR TYPE_ANIM_HERO_GRENADE_END
+        .ADDR TYPE_ANIM_HERO_MAIN               ;hero_anim_type_00
+        .ADDR TYPE_ANIM_BULLET                  ;hero_anim_type_01
+        .ADDR TYPE_ANIM_GRENADE                 ;hero_anim_type_02
+        .ADDR TYPE_ANIM_BULLET_END              ;hero_anim_type_03
+        .ADDR TYPE_ANIM_GRENADE_END             ;hero_anim_type_04
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Calls the different hero-related animation, based on the sprite type assigned.
@@ -5726,7 +5726,9 @@ _L00    LDA SPRITES_Y01,X
         BEQ _L02
 _L01    JSR CLEANUP_HERO_SPRITE
 
-        ; TODO: avoid the anim if the sprite has just been cleaned-up
+        ; FIXME: Fall-through Ok ??? After cleaning-up sprite,
+        ; hero_anim_type_00 will be called.
+        ; Mmm... how many times should it be called?
 
 _L02    LDA SPRITES_TYPE01,X
         ASL A
@@ -5737,17 +5739,17 @@ _L02    LDA SPRITES_TYPE01,X
         STA _JUMP_HI
 _JUMP_LO =*+1
 _JUMP_HI =*+2
-        JSR $FFFF
+        JSR $FFFF           ;Self-modifying
         INX
-        CPX #$04     ;For sprites 1-5
+        CPX #$04            ;For sprites 1-5
         BNE _L00
 
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: anim_type_02
-; Hero anim grenade
-TYPE_ANIM_HERO_GRENADE
+; ref: anim_type_02, hero_animi_type_02
+; Anim grenade from hero or enemy
+TYPE_ANIM_GRENADE
         INC SPRITES_TMP_A01,X
         LDA SPRITES_TMP_A01,X
         CMP #$0F     ;#%00001111
@@ -5811,9 +5813,9 @@ FRAME_GRENADE1      ;$36F3
 f36F9   .BYTE $A4,$A5,$DE,$98,$98
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: anim_type_03
-; Hero Anim bullet end
-TYPE_ANIM_HERO_BULLET_END      ;$36FE
+; ref: anim_type_03, hero_anim_type_03
+; Anim bullet end from hero or enemy
+TYPE_ANIM_BULLET_END      ;$36FE
         INC SPRITES_TMP_A01,X
         LDA SPRITES_TMP_A01,X
         CMP #$09     ;Frames for anim(?)
@@ -5849,9 +5851,9 @@ CLEANUP_HERO_SPRITE     ;$371D
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: anim_type_04
+; ref: anim_type_04, hero_anim_type_04
 ; Exploding grenade animation
-TYPE_ANIM_HERO_GRENADE_END ;$373C
+TYPE_ANIM_GRENADE_END ;$373C
         INC SPRITES_TMP_A01,X
         LDY #$00     ;#%00000000
 b3741   LDA SPRITES_TYPE05,Y
@@ -6037,15 +6039,15 @@ _L00    LDA #$00            ;anim_type_00: cleanup
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 TRY_THROW_GRENADE               ;$38c3
-        LDA IS_HERO_DEAD
+        LDA IS_HERO_DEAD        ;Don't throw if already dead
         BNE _SKIP
-        LDA ENEMIES_IN_FORT
+        LDA ENEMIES_IN_FORT     ;Don't throw if level complete
         BNE _L00
-        LDA a04F4
+        LDA ANY_ENEMY_IN_MAP    ;Don't waste a grenade if there aren't any enemies
         BEQ _SKIP
-_L00    LDA SPRITES_TYPE04
+_L00    LDA SPRITES_TYPE04      ;Don't throw if there is already a grenade in progress
         BNE _SKIP
-        LDA GRENADES
+        LDA GRENADES            ;Don't throw if no grenades
         BEQ _SKIP
 
         LDA $DC01    ;CIA1: Data Port Register B (in-game grenades)
@@ -6062,7 +6064,7 @@ _L00    LDA SPRITES_TYPE04
         STA SPRITES_Y04
         LDA SPRITES_X_HI00
         STA SPRITES_X_HI04
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_X04
         LDA #$FE     ;#%11111110
         STA SPRITES_DELTA_Y04
@@ -6074,7 +6076,7 @@ _L00    LDA SPRITES_TYPE04
         STA SPRITES_BKG_PRI04
         LDA #$02     ;anim_type_02: hero grenade
         STA SPRITES_TYPE04
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_TMP_A04
         STA HERO_ANIM_MOV_IDX
         LDA #$A4     ;#%10100100
@@ -6082,7 +6084,7 @@ _L00    LDA SPRITES_TYPE04
         SED
         LDA GRENADES
         SEC
-        SBC #$01     ;#%00000001
+        SBC #$01
         STA GRENADES
         CLD
         JSR SCREEN_REFRESH_GRENADES
@@ -6091,9 +6093,9 @@ _L00    LDA SPRITES_TYPE04
 _SKIP   RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; ref: anim_type_01
+; ref: anim_type_01, hero_anim_type_01
 ; Hero Anim bullet
-TYPE_ANIM_HERO_BULLET  ;$3935
+TYPE_ANIM_BULLET  ;$3935
         INC SPRITES_TMP_A01,X
         LDA SPRITES_TMP_A01,X
         CMP #$0F
@@ -6184,12 +6186,13 @@ _L04    LDA #$03     ;#%00000011
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Animation for hero in "normal" state
 ; X=Sprite to update
+; ref: hero_anim_type_00
 TYPE_ANIM_HERO_MAIN
         LDA IS_HERO_DEAD
         BNE _L02
         LDA ENEMIES_IN_FORT
         BNE _L00
-        LDA a04F4
+        LDA ANY_ENEMY_IN_MAP
         BEQ _L02
 
 _L00
@@ -6343,7 +6346,7 @@ HANDLE_JOY2         ;$3AAA
         BNE HERO_ANIM_EXIT_DOOR
         LDA ENEMIES_IN_FORT
         BNE _L00
-        LDA a04F4
+        LDA ANY_ENEMY_IN_MAP
         BNE _L00
         JMP HERO_START_ANIM_EXIT_DOOR
 
@@ -6551,7 +6554,7 @@ b3BF8   PLA
 
         LDA #$02     ;Hero fell in trench/water
         STA IS_HERO_DEAD
-        LDA #$04     ;#%00000100
+        LDA #$04     ;"Hero dead" SFX
         JSR SFX_PLAY
         STA COUNTER1
         LDA TMP_SPRITE_X_LO

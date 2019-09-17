@@ -26,8 +26,13 @@ s5006   JMP j5F48
 ; Plays a sound effect
 ; A=sfx to play
 ;  $00 = pick up grenade
+;  $01 = throw grenade
+;  $02 = ???
 ;  $04 = hero dead
+;  $05 = cart going up (lvl1)
 ;  $09 = fire in fort (lvl3)
+;  $0B = hiscore shoot
+;  $0C = new life
 SFX_PLAY
         JMP j5F56
 
