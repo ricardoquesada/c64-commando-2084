@@ -178,7 +178,7 @@ LIVES = $0500
 a0501 = $0501                   ;unused
 a0502 = $0502                   ;unused
 IS_HERO_DEAD = $0503            ;0: hero alive, 1:was shot, 2:fell down in trench
-a0504 = $0504
+SHOOT_FREQ_MASK = $0504
 HISCORE_IS_BULLET_ANIM = $0505  ;1: if the bullet in hiscore is being animated
 HISCORE_NAME = $0506            ;8 chars reserved for the hiscore name ($0506-$050E)
 HISCORE_NAME_IDX = $050F        ;Index to the hiscore name
@@ -4384,8 +4384,8 @@ _L00    LDA ENEMIES_IN_FORT
         JSR GET_RANDOM
         AND #$7F     ;#%01111111
         BNE b2CC0
-        LDA #$3F     ;#%00111111
-        STA a0504
+        LDA #$3F
+        STA SHOOT_FREQ_MASK
         DEC ENEMIES_IN_FORT
         BNE _L01        ;FIXME: probably an "RTS" is missing here?
 
@@ -5272,7 +5272,7 @@ _L06    LDA pFB,b
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; related to shoot
 j33D0   LDA SPRITES_TMP_C05,X
-        AND a0504
+        AND SHOOT_FREQ_MASK
         BNE _L01
 
         ; Find empty seat
@@ -6663,11 +6663,13 @@ _L01    STA V_SCROLL_ROW_IDX
 
         LDA #$00
         STA IS_LEVEL_COMPLETE
+
+        ; FIXME: Overriden by TYPE_ANIM_SPAWN_SOLDIER. Remove me.
         LDA LEVEL_NR
         AND #$07     ;#%00000111
         TAX
         LDA f3ED2,X
-        STA a0504
+        STA SHOOT_FREQ_MASK
         LDA #$00
         STA FIRE_COOLDOWN
 
@@ -6692,6 +6694,8 @@ _L03    RTS
         ;LVL MAP MSB address. E.g: $6000,$8000,$8000,$A000
 f3ECE   .BYTE $60,$80,$80,$A0
 
+        ;Mask regarding how frequent sholdiers shoot.
+        ;Not Used since it is overriden by TYPE_ANIM_SPAWN_SOLDIER
 f3ED2   .BYTE $3F,$1F,$0F,$0F,$0F,$0F,$0F,$0F
 
         ; Restart row index for each level.
