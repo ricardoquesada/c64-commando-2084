@@ -1,8 +1,9 @@
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Commando 2084:
-; Main routine
+; https://gitlab.com/ricardoquesada/c64-commando-2084
 ;
-; Based on disassembly of original code.
+; Game logic
+;
 ; Modded by riq.
 ;
 ; See README.md to for list of all changes.
