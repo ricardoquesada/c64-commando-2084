@@ -1533,7 +1533,7 @@ _L01    LDA #$02                    ;Needed for correct charset in IRQ
         LDX #$00
 _L02    =*+$01
 _L03    =*+$02
-_L04    LDA f2596,X
+_L04    LDA $FFFF,X                 ;Self-modifying
         STA $E000 + 40*10 + 10,X    ;Screen RAM
         LDA #$01                    ;white
         STA $D800 + 40*10 + 10,X    ;Color RAM
@@ -1547,7 +1547,7 @@ _L04    LDA f2596,X
         LDX #$00
 _L05    =*+$01
 _L06    =*+$02
-_L07    LDA f2596,X
+_L07    LDA $FFFF,X                 ;Self-modifying
         STA $E000 + 40*12 + 9,X     ;Screen RAM
         LDA #$01                    ;white
         STA $D800 + 40*12 + 9,X     ;Color RAM
@@ -1857,11 +1857,11 @@ LEVEL_PATCH_TURRET         ;$14D3
 _L00    LDY #$00
 _L01    =*+$01
 _L02    =*+$02
-_L03    LDA f2596,X
+_L03    LDA $FFFF,X         ;Self-modifying
         STA (pFB),Y
         INX
         INY
-        CPY #$06     ;#%00000110
+        CPY #$06
         BNE _L03
 
         LDA a00FB
@@ -1942,7 +1942,7 @@ LEVEL_PATCH_DOOR         ;$15DA
 _L00    LDY #$00     ;#%00000000
 _L01    =*+$01
 _L02    =*+$02
-_L03    LDA f2596,X
+_L03    LDA $FFFF,X         ;Self-modifying
         STA (pFB),Y
         INX
         INY
@@ -3411,9 +3411,6 @@ POINTS_TBL      ;$256D
         .BYTE $03,$03,$14,$03,$02,$00,$0A,$00   ;$18-$1F
         .BYTE $05,$00,$00,$0A,$0A,$00,$00,$05   ;$20-$27
         .BYTE $05,$14,$14                       ;$28-$2A
-
-f2596   ;Label used in self-modifying code
-        ; By default points to incorrect place.
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; ref: anim_type_10
