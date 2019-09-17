@@ -63,9 +63,8 @@ p28 = $28                       ;what sprite type to create at row
 p29 = $29
 p2A = $2A                       ;charset attributes: background priority, collision, etc.
 p2B = $2B
-p5D = $5D
-p5F = $5F
-p83 = $83
+p5D = $5D                       ;Used by music
+p5F = $5F                       ;Used by music
 pF7 = $F7
 pF8 = $F8
 pFB = $FB                       ;$FB/$FC: different meanings depending to the game state
@@ -89,14 +88,14 @@ fE3F8 = $E3F8
 ;
 ; **** ABSOLUTE ADDRESSES ****
 ;
-a003D = $003D
-a003F = $003F
+a003D = $003D                   ;Tmp var used by SORT_SPRITES_BY_Y
+a003F = $003F                   ;Tmp var used by SORT_SPRITES_BY_Y
 SPRITE_IDX_TBL = $004B          ;$4B-$5A sprite index, used in raster multiplexer
 a00A7 = $00A7
 VIC_SPRITE_IDX = $00A8          ;Index used for sprite pos (e.g: $D000,idx) in raster intr.
-a00C9 = $00C9
-a0400 = $0400
-a0401 = $0401
+a00C9 = $00C9                   ;Tmp var used by SORT_SPRITES_BY_Y
+a0400 = $0400                   ;Used by GET_RANDOM
+a0401 = $0401                   ;Used by GET_RANDOM
 V_SCROLL_BIT_IDX = $0402        ;pixels scrolled vertically: 0-7
 V_SCROLL_ROW_IDX = $0403        ;index to the row in the level: 0 means end of scroll (top of map)
 V_SCROLL_DELTA = $0404          ;How many pixels needs to get scrolled. $0: no scroll needed, $ff: -1 one pixel
@@ -156,10 +155,10 @@ BKG_COLOR0 = $04E2
 BKG_COLOR1 = $04E3
 BKG_COLOR2 = $04E4
 COUNTER1 = $04E6
-a04E7 = $04E7
+a04E7 = $04E7                   ;unused
 TRIGGER_ROW_IDX = $04E8         ;If equal to row index, create object
 a04E9 = $04E9                   ;unused
-a04EA = $04EA
+a04EA = $04EA                   ;Used in mortar guy animation
 POW_GUARDS_KILLED = $04EC       ;Number of POW guard killed. When == 2, "Free POW" anim is executed
 POW_SPRITE_IDX = $04ED          ;Holds the sprite idx used by POW sprite
 a04EE = $04EE                   ;Hero is moving up (unused)
@@ -173,11 +172,11 @@ IS_LEVEL_COMPLETE = $04F5       ;0: game in progress, 1:lvl complete. Exit anima
 IS_ANIM_EXIT_DOOR = $04F7       ;1: hero goes to exit door animation in progress
 SCORE_LSB = $04F8
 SCORE_MSB = $04F9
-a04FD = $04FD
+a04FD = $04FD                   ;unused
 GRENADES = $04FF
 LIVES = $0500
-a0501 = $0501
-a0502 = $0502
+a0501 = $0501                   ;unused
+a0502 = $0502                   ;unused
 IS_HERO_DEAD = $0503            ;0: hero alive, 1:was shot, 2:fell down in trench
 a0504 = $0504
 HISCORE_IS_BULLET_ANIM = $0505  ;1: if the bullet in hiscore is being animated
@@ -1497,7 +1496,7 @@ _L01    LDA #$02     ;#%00000010
         LDX #$00
 _L02    =*+$01
 _L03    =*+$02
-_L04    LDA f2596,X
+_L04    LDA f2596,X                 ;Self-modifying
         STA $E000 + 40*10 + 10,X    ;Screen RAM
         LDA #$01                    ;white
         STA $D800 + 40*10 + 10,X    ;Color RAM
@@ -1511,7 +1510,7 @@ _L04    LDA f2596,X
         LDX #$00
 _L05    =*+$01
 _L06    =*+$02
-_L07    LDA f2596,X
+_L07    LDA f2596,X                 ;Self-modifying
         STA $E000 + 40*12 + 9,X     ;Screen RAM
         LDA #$01                    ;white
         STA $D800 + 40*12 + 9,X     ;Color RAM
@@ -1814,7 +1813,7 @@ LEVEL_PATCH_TURRET         ;$14D3
 _L00    LDY #$00
 _L01    =*+$01
 _L02    =*+$02
-_L03    LDA f2596,X
+_L03    LDA f2596,X                 ;Self-modifying
         STA (pFB),Y
         INX
         INY
@@ -1899,7 +1898,7 @@ LEVEL_PATCH_DOOR         ;$15DA
 _L00    LDY #$00     ;#%00000000
 _L01    =*+$01
 _L02    =*+$02
-_L03    LDA f2596,X
+_L03    LDA f2596,X         ;Self-modfying
         STA (pFB),Y
         INX
         INY
@@ -6815,10 +6814,10 @@ LEVEL_DRAW_VIEWPORT             ;$3F93
 _L00    LDY #$27     ;Copy entire row (40 chars)
 _L01    =*+$01
 _L02    =*+$02
-_L03    LDA f0000,Y
+_L03    LDA f0000,Y     ;Self-modifying
 _L04    =*+$01
 _L05    =*+$02
-        STA f0000,Y
+        STA f0000,Y     ;Self-modifying
         DEY
         BPL _L03
 
