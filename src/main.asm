@@ -155,7 +155,7 @@ LIVES = $0500
 a0501 = $0501
 a0502 = $0502
 IS_HERO_DEAD = $0503            ;0: hero alive, 1:was shot, 2:fell down in trench
-a0504 = $0504
+SHOOT_FREQ_MASK = $0504         ;How frequent soliders can shoot
 HISCORE_IS_BULLET_ANIM = $0505  ;1: if the bullet in hiscore is being animated
 HISCORE_NAME = $0506            ;8 chars reserved for the hiscore name ($0506-$050E)
 HISCORE_NAME_IDX = $050F        ;Index to the hiscore name
@@ -2563,7 +2563,7 @@ _L00    LDA SPRITES_TYPE05,Y
         RTS
 
 _L01    TYA
-        STA SPRITES_TMP_A05,X             ;links Y with X
+        STA SPRITES_TMP_A05,X   ;links Y with X
         LDA #$3E
         STA SPRITES_X_LO05,X
         LDA #$82
@@ -2584,7 +2584,7 @@ _L01    TYA
         STA SPRITES_TYPE05,X
 
         TXA
-        STA SPRITES_TMP_A05,Y             ;links X with Y
+        STA SPRITES_TMP_A05,Y   ;links X with Y
         LDA #$56
         STA SPRITES_X_LO05,Y
         LDA #$82
@@ -2637,13 +2637,13 @@ ACTION_NEW_BAZOOKA_ENEMY_L  ;$201D
         ; Fall-through
 
 INIT_NEW_BAZOOKA_ENEMY
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_Y05,X
         LDA #$E6     ;#%11100110
         STA SPRITES_PTR05,X
         LDA #$06     ;blue
         STA SPRITES_COLOR05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_TMP_C05,X
         STA SPRITES_BKG_PRI05,X
         LDA #$20     ;anim_type_20: bazooka enemy
@@ -2840,28 +2840,28 @@ ACTION_NEW_POW_GUARD    ;$2190
 ; This object requires two different sprite types: front and back bike.
 ; Creates the back one only if there is space for it.
 ACTION_NEW_BIKE_LVL0         ;$21C1
-        LDA #$20     ;#%00100000
+        LDA #$20
         STA SPRITES_X_LO05,X
-        LDA #$21     ;#%00100001
+        LDA #$21
         STA SPRITES_Y05,X
-        LDA #$B0     ;Bike Front. Anim #0
+        LDA #$B0                    ;Bike Front. Anim #0
         STA SPRITES_PTR05,X
-        LDA #$09     ;brown
+        LDA #$09                    ;brown
         STA SPRITES_COLOR05,X
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_X_HI05,X
-        LDA #$FE     ;#%11111110
+        LDA #$FE
         STA SPRITES_DELTA_X05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_Y05,X
         STA SPRITES_TMP_C05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$0F            ;anim_type_0F: bike in bridge (lvl 1)
+        LDA #$0F                    ;anim_type_0F: bike in bridge (lvl 1)
         STA SPRITES_TYPE05,X
 
         ; If there is additional room, create the back bike sprite type
         ; as well.
-        LDY #$00     ;#%00000000
+        LDY #$00
 _L00    LDA SPRITES_TYPE05,Y
         BEQ _L01
         INY
@@ -2870,24 +2870,24 @@ _L00    LDA SPRITES_TYPE05,Y
         RTS
 
 _L01    TYA
-        STA SPRITES_TMP_A05,X     ;links front with back
-        LDA #$38     ;#%00111000
+        STA SPRITES_TMP_A05,X       ;links front with back
+        LDA #$38                    ;#%00111000
         STA SPRITES_X_LO05,Y
-        LDA #$21     ;#%00100001
+        LDA #$21                    ;#%00100001
         STA SPRITES_Y05,Y
-        LDA #$B1     ;Bike Back. Anim #0
+        LDA #$B1                    ;Bike Back. Anim #0
         STA SPRITES_PTR05,Y
-        LDA #$09     ;brown
+        LDA #$09                    ;brown
         STA SPRITES_COLOR05,Y
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_X_HI05,Y
-        LDA #$FE     ;#%11111110
+        LDA #$FE
         STA SPRITES_DELTA_X05,Y
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_Y05,Y
         STA SPRITES_TMP_C05,Y
         STA SPRITES_BKG_PRI05,Y
-        LDA #$10            ;anim_type_10: void
+        LDA #$10                    ;anim_type_10: void
         STA SPRITES_TYPE05,Y
         RTS
 
@@ -2924,7 +2924,7 @@ ACTION_NEW_MORTAR_ENEMY    ;$223C
         STA a04EA
         LDA #$FF
         STA SPRITES_BKG_PRI05,X
-        LDA #$0D            ;anim_type_0D: mortar enemy
+        LDA #$0D                    ;anim_type_0D: mortar enemy
         STA SPRITES_TYPE05,X
         RTS
 
@@ -2937,7 +2937,7 @@ ACTION_NEW_SOLDIER_BEHIND_TRENCH       ;$2271
         STA SPRITES_X_LO05,X
         LDA #$26
         STA SPRITES_Y05,X
-        LDA #$C8     ;Soldier in trench
+        LDA #$C8                    ;Soldier in trench
         STA SPRITES_PTR05,X
         LDA #$0B     ;dark grey
         STA SPRITES_COLOR05,X
@@ -2951,7 +2951,7 @@ ACTION_NEW_SOLDIER_BEHIND_TRENCH       ;$2271
         LDA #$08
         STA SPRITES_TMP_A05,X
         STA SPRITES_TMP_B05,X
-        LDA #$07            ;anim_type_07: soldier behind trench
+        LDA #$07                    ;anim_type_07: soldier behind trench
         STA SPRITES_TYPE05,X
         RTS
 
@@ -2978,7 +2978,7 @@ ACTION_NEW_SOLDIER_IN_TRENCH    ;$22A9
         LDA #$08
         STA SPRITES_TMP_A05,X
         STA SPRITES_TMP_B05,X
-        LDA #$1C            ;anim_type_1C: soldier in trench
+        LDA #$1C                    ;anim_type_1C: soldier in trench
         STA SPRITES_TYPE05,X
         RTS
 
@@ -3011,7 +3011,7 @@ ACTION_NEW_JUMPING_SOLDIER_R       ;$22E4
         LDA #$00
         STA SPRITES_TMP_C05,X
         STA SPRITES_BKG_PRI05,X
-        LDA #$0A            ;anim_type_0A: jumping soldier
+        LDA #$0A                    ;anim_type_0A: jumping soldier
         STA SPRITES_TYPE05,X
         LDA #$0C
         STA SPRITES_TMP_A05,X
@@ -4513,10 +4513,10 @@ TYPE_ANIM_SPAWN_SOLDIER      ;$2CD9
 _L00    LDA ENEMIES_IN_FORT
         BEQ b2CC0
         JSR GET_RANDOM
-        AND #$7F     ;#%01111111
+        AND #$7F        ;#%01111111
         BNE b2CC0
-        LDA #$3F     ;#%00111111
-        STA a0504
+        LDA #$3F        ;The bigger the mask, the slower the freq.
+        STA SHOOT_FREQ_MASK
         DEC ENEMIES_IN_FORT
         BNE _L01        ;FIXME: Probably a RTS is missing here?
 
@@ -5404,7 +5404,7 @@ _L06    LDA pFB
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; riq: related to shoot
 j33D0   LDA SPRITES_TMP_C05,X
-        AND a0504
+        AND SHOOT_FREQ_MASK
         BNE _L01
 
         ; Find empty seat
@@ -5579,7 +5579,7 @@ _L18    STX pFB
         STA SPRITES_PTR05,Y
         LDA #$01     ;white
         STA SPRITES_COLOR05,Y
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_TMP_C05,Y
         STA SPRITES_BKG_PRI05,Y
         LDA #$08            ;anim_type_08: soldier bullet
@@ -6798,10 +6798,10 @@ SETUP_LEVEL             ;$3DFE
         ASL A
         TAX
 
-        ; $FB/$FC -> points to tbl related to levels
+        ; $FB/$FC -> points to tbl related to level restart position
         LDA f3EEE,X
         STA pFB
-        LDA f3EEF,X
+        LDA f3EEE+1,X
         STA pFC
 
         LDY #$00
@@ -6850,19 +6850,21 @@ _L01    STA V_SCROLL_ROW_IDX
 
         LDA #$00
         STA IS_LEVEL_COMPLETE
+        STA FIRE_COOLDOWN
+
+        ; FIXME: not used since it is overriden by TYPE_ANIM_SPAWN_SOLDIER
         LDA LEVEL_NR
         AND #$07     ;#%00000111
         TAX
         LDA f3ED2,X
-        STA a0504
-        LDA #$00
-        STA FIRE_COOLDOWN
+        STA SHOOT_FREQ_MASK
 
+        ; FIXME: this can be done just once when the game starts
         LDX #$00     ;Set sprite $ff as empty
 _L02    LDA #$00
         STA aFFC0,X
         INX
-        CPX #$40     ;length of the sprite
+        CPX #$40     ;length of the sprite in bytes
         BNE _L02
 
         JSR SORT_SPRITES_BY_Y
@@ -6879,13 +6881,16 @@ _L03    RTS
         ; MSB of each level:
         ; lvl0=$6000,lvl1=$8000,...
 f3ECE   .BYTE $60,$80,$80,$A0
-f3ED2   .BYTE $3F,$1F,$0F,$0F,$0F,$0F,$0F,$0F
-f3EDA   .BYTE $13,$3D,$61,$83,$AF
-f3EDF   .BYTE $13,$3D,$61
-        .BYTE $83,$A6,$13,$3D,$61,$83,$B2
-f3EE9   .BYTE $13,$3D,$61,$83,$A6
 
-f3EEF    =*+1
+        ;Supports up to 8 levels. Shoot frequncy maks for soliders
+f3ED2   .BYTE $3F,$1F,$0F,$0F,$0F,$0F,$0F,$0F
+
+        ;Row-idx where level should restart when player dies
+f3EDA   .BYTE $13,$3D,$61,$83,$AF       ;LVL0
+f3EDF   .BYTE $13,$3D,$61,$83,$A6       ;LVL1
+        .BYTE $13,$3D,$61,$83,$B2       ;LVL2
+f3EE9   .BYTE $13,$3D,$61,$83,$A6       ;LVL3
+
 f3EEE   .ADDR f3EDA         ;LVL0
         .ADDR f3EDF         ;LVL1
         .ADDR f3EDF         ;LVL2
