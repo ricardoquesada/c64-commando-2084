@@ -169,7 +169,7 @@ TMP_SPRITE_X_LO = $04F0         ;Temp sprite-X LSB for current sprite
 TMP_SPRITE_Y = $04F1            ;ditto for Y
 TMP_SPRITE_X_HI = $04F2         ;ditto for X MSB
 LEVEL_NR = $04F3
-a04F4 = $04F4                   ;Seems to be a delay or something related to enemies inside
+ANY_ENEMY_IN_MAP = $04F4        ;How many enemies are in the map. If 0, grenades are not thrown
 IS_LEVEL_COMPLETE = $04F5       ;0: game in progress, 1:lvl complete. Exit animation finished (unused apparently)
 IS_ANIM_EXIT_DOOR = $04F7       ;1: hero goes to exit door animation in progress
 SCORE_LSB = $04F8
@@ -3250,7 +3250,7 @@ _L06    LDA #$00
 ; Anim routine for enemies
 ANIM_ENEMIES    ;$24B3
         LDX #$00     ;#%00000000
-        STX a04F4
+        STX ANY_ENEMY_IN_MAP
 
         ; If sprite is out of bounds, clean it up
 _L00    LDA SPRITES_Y05,X
@@ -4413,7 +4413,7 @@ _L02    JSR GET_RANDOM
         STA SPRITES_Y05,X
         LDA #$1B            ;anim_type_1B: soldier in fort lvl0,1,3
         STA SPRITES_TYPE05,X
-        INC a04F4
+        INC ANY_ENEMY_IN_MAP
         JMP _L06
 
         ; End of lvl1 - soldiers from sides
@@ -4452,7 +4452,7 @@ _L04    JSR GET_RANDOM
         STA SPRITES_Y05,X
         LDA #$1B            ;anim_type_1B: soldier in fort lvl0,1,3
         STA SPRITES_TYPE05,X
-        INC a04F4
+        INC ANY_ENEMY_IN_MAP
         JMP _L06
 
 _L05    JSR GET_RANDOM
@@ -5053,7 +5053,7 @@ _L12    LDA #$0A     ;#%00001010
 ; Sprites that goes out of the fort in LVL0, LVL1 and LVL3
 ; Same logic as regular soldier but with some randomness at the beginning
 TYPE_ANIM_SOLDIER_IN_FORT       ;$31F0
-        INC a04F4
+        INC ANY_ENEMY_IN_MAP
         JSR GET_RANDOM
         AND #$3F     ;#%00111111
         BNE TYPE_ANIM_SOLDIER
@@ -5909,7 +5909,7 @@ TRY_THROW_GRENADE               ;$38c3
         BNE _SKIP
         LDA ENEMIES_IN_FORT
         BNE _L00
-        LDA a04F4
+        LDA ANY_ENEMY_IN_MAP
         BEQ _SKIP
 _L00    LDA SPRITES_TYPE04
         BNE _SKIP
@@ -6051,7 +6051,7 @@ TYPE_ANIM_HERO_MAIN
         BNE _L02
         LDA ENEMIES_IN_FORT
         BNE _L00
-        LDA a04F4
+        LDA ANY_ENEMY_IN_MAP
         BEQ _L02
 
 _L00    LDA $DC00    ;CIA1: Data Port Register A (in-game fire)
@@ -6157,7 +6157,7 @@ HANDLE_JOY2         ;$3AAA
         BNE HERO_ANIM_EXIT_DOOR
         LDA ENEMIES_IN_FORT
         BNE _L00
-        LDA a04F4
+        LDA ANY_ENEMY_IN_MAP
         BNE _L00
         JMP HERO_START_ANIM_EXIT_DOOR
 
