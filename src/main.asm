@@ -6439,38 +6439,39 @@ SOLDIER_ANIM_FRAMES                     ;$3CC0
 ; Set fort on fire animation (lvl3, when you beat the game)
 SET_FORT_ON_FIRE      ;$3CD0
         JSR CLEANUP_SPRITES
-        LDX #$00     ;#%00000000
+        LDX #$00
 _L00    LDA f3D27,X
         STA SPRITES_X_LO05,X
         LDA f3D3D,X
         STA SPRITES_Y05,X
         LDA f3D32,X
         STA SPRITES_X_HI05,X
-        LDA #$EE     ;#%11101110
+        LDA #$EE            ;Fire frame
         STA SPRITES_PTR05,X
-        LDA #$02     ;red
+        LDA #$02            ;red
         STA SPRITES_COLOR05,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_BKG_PRI05,X
         INX
-        CPX #$0B     ;Number of sprites to set
+        CPX #$0B            ;Number of sprites to set
         BNE _L00
 
         JSR APPLY_DELTA_MOV
         JSR SORT_SPRITES_BY_Y
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA COUNTER1
-_L01    LDX #$00     ;#%00000000
-_L02    LDA #$EE     ;Fire frame
+_L01    LDX #$00
+_L02    LDA #$EE            ;Fire frame
         STA SPRITES_PTR05,X
         JSR GET_RANDOM
-        AND #$03     ;#%00000011
+        AND #$03            ;#%00000011
         BNE _L03
-        LDA #$FF     ;Empty frame
+        LDA #$FF            ;Empty frame
         STA SPRITES_PTR05,X
 _L03    INX
-        CPX #$0B     ;#%00001011
+        CPX #$0B
         BNE _L02
+
         JSR WAIT_RASTER_AT_BOTTOM
         DEC COUNTER1
         BNE _L01
@@ -6542,23 +6543,23 @@ _L02    PLA
         SBC V_SCROLL_DELTA
         STA SPRITES_Y00,X
 _L03    INX
-        CPX #$10     ;#%00010000
+        CPX #TOTAL_MAX_SPRITES
         BNE _L01
         RTS
 
-        ; Unused (?)
+        ; FIXME: Unused, remove me
 
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_TYPE00,X
         STA SPRITES_DELTA_X00,X
         STA SPRITES_DELTA_Y00,X
         LDA ORIG_SPRITE_Y00,X
         STA SPRITES_Y00,X
-        LDA #$64     ;#%01100100
+        LDA #$64
         STA SPRITES_X_LO00,X
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_X_HI00,X
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_PTR00,X
         JMP _L03
 
@@ -6566,22 +6567,22 @@ _L03    INX
 ; CLEANUP_SPRITES
 ; All 16 sprites are init and make them invisible
 CLEANUP_SPRITES     ;$3DD3
-        LDX #$00     ;#%00000000
-_L00    LDA #$64     ;#%01100100
+        LDX #$00
+_L00    LDA #$64
         STA SPRITES_X_LO00,X
         LDA ORIG_SPRITE_Y00,X
         STA SPRITES_Y00,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_DELTA_X00,X
         STA SPRITES_DELTA_Y00,X
-        LDA #$FF     ;#%11111111
+        LDA #$FF
         STA SPRITES_X_HI00,X
         STA SPRITES_PTR00,X
-        LDA #$00     ;#%00000000
+        LDA #$00
         STA SPRITES_BKG_PRI00,X
         STA SPRITES_TYPE00,X
         INX
-        CPX #$10     ;#%00010000
+        CPX #TOTAL_MAX_SPRITES
         BNE _L00
         RTS
 
@@ -6728,6 +6729,8 @@ b3F19   INX
         RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; Sort sprites by Y.
+; FIXME: kind of slow algorithm
 SORT_SPRITES_BY_Y       ;$3F24
         LDA #$0F        ;#%00001111
         STA a14,b
@@ -6776,6 +6779,7 @@ _L04    RTS
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Copies "current" map to screen RAM
+; FIXME: Can be improved by having a precalcualted offset table
 LEVEL_DRAW_VIEWPORT             ;$3F93
         LDA #<pE000  ;Screen RAM low
         STA _L04
@@ -7084,6 +7088,7 @@ IRQ_B   NOP
         PLA
         RTI
 
+        ; FIXME: unused vars
         .BYTE $1E,$2A,$3B
         .BYTE $52
 
@@ -7154,7 +7159,8 @@ _L0     LDX SPRITE_IDX_TBL,b,Y
         ORA a00A7,b  ; Charset Idx. lvl0=$c000, lvl1=$c800, main=$d000, lvl3=$d800
         STA $D018    ;VIC Memory Control Register
 
-        ; Bug (?). Should it be SPRITE_IDX_TBL + 8 (??)
+        ; FIXME: Not sure whether this is a bug or a feature.
+        ; Should it be SPRITE_IDX_TBL + 8 (??)
         LDX SPRITE_IDX_TBL + 3,b
         LDA SPRITES_PREV_Y00,X
         CLC
