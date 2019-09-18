@@ -36,7 +36,7 @@ ENABLE_NEW_RENDER_VIEWPORT = 1  ;Slighty faster viewport render version
 
 ; Behavior changes
 ENABLE_DOUBLE_JOYSTICKS = 1     ;One joystick for hero direction, the other for shot direction
-ENABLE_INTENDED_DIFFICULTY = 1  ;Soldier shot with high freq. in higher levels
+ENABLE_INTENDED_DIFFICULTY = 1  ;Soldiers shoot with higher freq in higher levels
                                 ; Apparently this was the intended difficulty but was
                                 ; disabled by a bug?
 ENABLE_GAMEOVER_IN_LVL4 = 1     ;If enabled, game does not restart when L3 is complete
@@ -6892,7 +6892,8 @@ _L03    RTS
 f3ECE   .BYTE $60,$80,$80,$A0
 
         ;Supports up to 8 levels. Shoot frequency maks for soliders
-f3ED2   .BYTE $3F,$1F,$0F,$0F,$0F,$0F,$0F,$0F
+f3ED2   .BYTE $3F,$1F,$0F,$0F           ;For levels 0-3
+        .BYTE $0F,$0F,$0F,$0F           ;For levels 0-3, 2nd loop
 
         ;Row-idx where level should restart when player dies
 f3EDA   .BYTE $13,$3D,$61,$83,$AF       ;LVL0
