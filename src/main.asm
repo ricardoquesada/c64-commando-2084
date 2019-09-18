@@ -7317,7 +7317,7 @@ MASK_1000_0000   .BYTE $80           ;1000_0000
         .BYTE $D0
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; From here until $4fff - Unused data apparently?
+; FIXME: From here until $4fff - Unused, remove me.
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 
         LDA SPRITES_X_HI00,X
