@@ -7219,27 +7219,21 @@ INIT_RANDOM     ;$401D
 ; Updates the Color RAM for current level
 SET_LEVEL_COLOR_RAM             ;$4033
         LDA LEVEL_NR
-        AND #$03     ;#%00000011
+        AND #$03
         TAX
 
-        ; $FB/$FC -> Color RAM
-        LDA #<pD800
-        STA pFB
-        LDA #>pD800
-        STA pFC
-
-        LDY #$00     ;#%00000000
-_L00    LDA LEVEL_COLOR_RAM,X
-        STA (pFB),Y
-        INC pFB
-        BNE _L00
-        INC pFC
-        LDA pFC
-        CMP #$DC     ;#%11011100
+        LDA LEVEL_COLOR_RAM,X
+        LDX #$00
+_L00    STA $D800,X
+        STA $D900,X
+        STA $DA00,X
+        STA $DAE8,X
+        DEX
         BNE _L00
 
-        LDY #$27     ;#%00100111
-        LDA #$01     ;#%00000001
+        ; Status bar should white
+        LDY #$27            ;columns
+        LDA #$01            ;white
 _L01    STA fDB48,Y
         STA fDB98,Y
         DEY
