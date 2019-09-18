@@ -105,9 +105,9 @@ b5099   LDA #$00     ;#%00000000
         JMP j538F
 
 b50AA   TAY
-        LDA f5711,Y
+        LDA SFX_TBL_LO,Y
         STA a5F
-        LDA f573E,Y
+        LDA SFX_TBL_HI,Y
         STA a60
         LDA #$00     ;#%00000000
         STA f5520,X
@@ -545,6 +545,8 @@ a552D   .BYTE $00
 a552E   .BYTE $00
 a552F   .BYTE $00
 a5530   .BYTE $00
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 s5531   LDA #$00     ;#%00000000
         STA $D404    ;Voice 1: Control Register
         STA $D40B    ;Voice 2: Control Register
@@ -587,6 +589,7 @@ b5574   LDA f55FA,Y
 b558D   STY b53DE
         RTS
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 f5591   .BYTE $00
 f5592   .BYTE $09
 f5593   .BYTE $41
@@ -645,14 +648,24 @@ f5608   .BYTE $18,$60,$38,$58,$80,$11,$81,$0A
         .BYTE $07
 f56F9   .BYTE $00,$00,$00
 f56FC   .BYTE $00,$00,$00
-f56FF   .BYTE $6B,$AC,$EC,$57,$57,$57,$68,$72
-        .BYTE $74,$58,$58,$58,$7E,$81,$84,$58
-        .BYTE $58,$58
+
+MUSIC_LIST_V0 = [$576B,$57AC,$57EC]
+MUSIC_LIST_V1 = [$5868,$5872,$5874]
+MUSIC_LIST_V2 = [$587E,$5881,$5884]
+
+f56FF   .BYTE $6B,$AC,$EC
+        .BYTE $57,$57,$57
+
+        .BYTE $68,$72,$74
+        .BYTE $58,$58,$58
+
+        .BYTE $7E,$81,$84
+        .BYTE $58,$58,$58
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Table for songs/sfx???
+; Table for songs/sfx (?)
 ; 45 enties.
-SONGS_LIST = [
+SFX_LIST = [
         a5887,a5CCD,a5CE3,a5CF9,
         a5D0F,a5D25,a5D3B,a5889,
         a58FA,a5988,a5941,a5D51,
@@ -666,8 +679,10 @@ SONGS_LIST = [
         a5E5C,a5E7F,a5E91,a5EBA,
         a5EE3]
 
-f5711   .BYTE <SONGS_LIST
-f573E   .BYTE >SONGS_LIST
+SFX_TBL_LO
+        .BYTE <SFX_LIST
+SFX_TBL_HI
+        .BYTE >SFX_LIST
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
         .BYTE $13,$13,$13
