@@ -653,14 +653,14 @@ MUSIC_LIST_V0 = [$576B,$57AC,$57EC]
 MUSIC_LIST_V1 = [$5868,$5872,$5874]
 MUSIC_LIST_V2 = [$587E,$5881,$5884]
 
-f56FF   .BYTE $6B,$AC,$EC
-        .BYTE $57,$57,$57
+f56FF   .BYTE <MUSIC_LIST_V0
+        .BYTE >MUSIC_LIST_V0
 
-        .BYTE $68,$72,$74
-        .BYTE $58,$58,$58
+        .BYTE <MUSIC_LIST_V1
+        .BYTE >MUSIC_LIST_V1
 
-        .BYTE $7E,$81,$84
-        .BYTE $58,$58,$58
+        .BYTE <MUSIC_LIST_V2
+        .BYTE >MUSIC_LIST_V2
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Table for songs/sfx (?)
