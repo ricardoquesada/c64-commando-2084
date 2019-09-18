@@ -14,6 +14,7 @@ It is like the original Commando with the following changes:
 * Since it is much easier to play with game with two joyticks, difficulty was increased by:
   * No extra lives
   * 28 soldiers are inside forts, instead of 20
+  * Soldiers shoot as faster frequency in higher levels
 * Flickers were reduced, but there are still a few. Changes made to reduce flickering:
   * Uses double-buffer multiplexer
   * Faster sorting algorithm

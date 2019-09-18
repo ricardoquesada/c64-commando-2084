@@ -27,24 +27,31 @@
 ; What in theory is missing to have a working LVL2 is the map, and if fix the
 ; charset.
 
+; Possible optimizations
 ENABLE_DEBUG = 0                ;If enabled, INC $D020 in raster routines
-ENABLE_DOUBLE_JOYSTICKS = 1     ;
 ENABLE_NEW_SORT_ALGO = 1        ;4x faster
 ENABLE_NEW_IRQ_C = 1            ;If enabled, split raster at sprites[8].y
 ENABLE_NEW_IRQ_D = 0            ;If enabled, process 8 sprites in just one single IRQ
 ENABLE_NEW_RENDER_VIEWPORT = 1  ;Slighty faster viewport render version
+
+; Behavior changes
+ENABLE_DOUBLE_JOYSTICKS = 1     ;One joystick for hero direction, the other for shot direction
+ENABLE_INTENDED_DIFFICULTY = 1  ;Soldier shot with high freq. in higher levels
+                                ; Apparently this was the intended difficulty but was
+                                ; disabled by a bug?
 ENABLE_GAMEOVER_IN_LVL4 = 1     ;If enabled, game does not restart when L3 is complete
 ENABLE_NEW_LIFE_WHEN_SCORING = 0;If enabled, allows extra life when scoring 10000 points.
                                 ; Disabled, since unijoysticle mode is too easy.
 ENABLE_AUTOFIRE = 1             ;If enabled, hero will shoot automatically
 TOTAL_FIRE_COOLDOWN = $28       ;Frames to wait before autofiring again
 INITIAL_LEVEL = 0               ;0,1 or 3
-TOTAL_MAX_SPRITES = 16          ;Default 16. 16 is the only supported value ATM.
 ; Using double joysticks make the game easier. Increase difficulty
 ; by reducing lives, and incrementing the total enemies in fort
 TOTAL_LIVES = $05               ;BCD. Default 5
 TOTAL_GRENADES = $05            ;BCD. Default 5
 TOTAL_ENEMIES_IN_FORT = $1C     ;Default $14
+
+TOTAL_MAX_SPRITES = 16          ;Default 16. 16 is the only supported value ATM.
 
 ;
 ; **** ZP ABSOLUTE ADDRESSES ****
@@ -4515,8 +4522,10 @@ _L00    LDA ENEMIES_IN_FORT
         JSR GET_RANDOM
         AND #$7F        ;#%01111111
         BNE b2CC0
+.IF ENABLE_INTENDED_DIFFICULTY == 0
         LDA #$3F        ;The bigger the mask, the slower the freq.
         STA SHOOT_FREQ_MASK
+.ENDIF
         DEC ENEMIES_IN_FORT
         BNE _L01        ;FIXME: Probably a RTS is missing here?
 
@@ -6882,7 +6891,7 @@ _L03    RTS
         ; lvl0=$6000,lvl1=$8000,...
 f3ECE   .BYTE $60,$80,$80,$A0
 
-        ;Supports up to 8 levels. Shoot frequncy maks for soliders
+        ;Supports up to 8 levels. Shoot frequency maks for soliders
 f3ED2   .BYTE $3F,$1F,$0F,$0F,$0F,$0F,$0F,$0F
 
         ;Row-idx where level should restart when player dies
