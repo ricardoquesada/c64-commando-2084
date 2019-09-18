@@ -14,18 +14,7 @@
 ; LVL1 -> Is "level 2" in the game
 ; LVL2 -> Not present
 ; LVL3 -> Is "level 3" in the game
-;
-; LVL2:
-; Apparently, four levels were designed for Commando.
-; There is a lot of data/code that proves this, like:
-; - Action table. See: LVL2_ACTION_TBL
-; - Row trigger table. See: LVL2_TRIGGER_ROW_TBL
-; - Sprites X pos. See: LVL2_SPRITE_X_LO_TBL / LVL2_SPRITE_HI_TBL
-; - Charset mask. See: LVL2_CHARSET_MASK_TBL
-; - The "main charset (included in co2.asm) was probably the one designed for
-;   LVL2. Although part of it was overwritten with letters.
-; What in theory is missing to have a working LVL2 is the map, and if fix the
-; charset.
+
 
 ; Possible optimizations
 ENABLE_DEBUG = 0                ;If enabled, INC $D020 in raster routines
@@ -38,15 +27,13 @@ ENABLE_NEW_RENDER_VIEWPORT = 1  ;Slighty faster viewport render version
 ENABLE_DOUBLE_JOYSTICKS = 1     ;One joystick for hero direction, the other for shot direction
 ENABLE_INTENDED_DIFFICULTY = 1  ;Soldiers shoot with higher freq in higher levels
                                 ; Apparently this was the intended difficulty but was
-                                ; disabled by a bug?
-ENABLE_GAMEOVER_IN_LVL4 = 1     ;If enabled, game does not restart when L3 is complete
+                                ; disabled by a bug, or a last minute fix.
+ENABLE_GAMEOVER_IN_LVL4 = 1     ;If enabled, game does not loop when L3 is complete
 ENABLE_NEW_LIFE_WHEN_SCORING = 0;If enabled, allows extra life when scoring 10000 points.
                                 ; Disabled, since unijoysticle mode is too easy.
 ENABLE_AUTOFIRE = 1             ;If enabled, hero will shoot automatically
 TOTAL_FIRE_COOLDOWN = $28       ;Frames to wait before autofiring again
 INITIAL_LEVEL = 0               ;0,1 or 3
-; Using double joysticks make the game easier. Increase difficulty
-; by reducing lives, and incrementing the total enemies in fort
 TOTAL_LIVES = $05               ;BCD. Default 5
 TOTAL_GRENADES = $05            ;BCD. Default 5
 TOTAL_ENEMIES_IN_FORT = $1C     ;Default $14
@@ -82,10 +69,8 @@ Z_SPRITES_IDX_12_15_HI_X = $92
 Z_SPRITES_IDX_0_7_BKG_PRI = $93
 Z_SPRITES_IDX_8_11_BKG_PRI = $94
 Z_SPRITES_IDX_12_15_BKG_PRI = $95
-aA5 = $A5
-aAE = $AE
-aC9 = $C9
-aD7 = $D7
+aC9 = $C9                       ;Tmp var used by old SORT_SPRITES_BY_Y
+aD7 = $D7                       ;Tmp var used by old SORT_SPRITES_BY_Y
 
 ;
 ; **** ZP POINTERS ****
@@ -275,12 +260,22 @@ DEC_D020                .MACRO
 +       .word 0                         ;basic line end
 
 BOOT
-        LDA #$00
-        TAY
-        STA aA5
-        STA aAE
-
         SEI
+        LDX #$FF                        ;reset stack... just in case
+        TXS
+
+        ; Disable all possible interrupts, just in case
+        LDA #$00
+        STA $D01A                       ;no raster interrups
+
+        LDA #$7F                        ;turn off cia interrups
+        STA $DC0D
+        STA $DD0D
+
+        LDA $DC0D                       ;clear interrupts and ACK irq
+        LDA $DD0D
+        ASL $D019
+
         LDA #<NMI_HANDLER
         STA $0318    ;NMI
         LDA #>NMI_HANDLER
@@ -7347,7 +7342,7 @@ IRQ_A   NOP
 
         #DEC_D020
 
-        ; bitmap + extended color = screen disabled
+        ; extended color, multicolor = screen disabled
         LDA #%01110111  ;raster msb=0, extended color=1,bitmap=1,screen enabled,
         STA $D011       ; 24 rows, smooth Y scroll=111
 
