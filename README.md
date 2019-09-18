@@ -57,6 +57,16 @@ the cracked version, without any other additional code.
 
 ### Findings
 
+#### Increased difficulty
+
+Apparently, the idea was to increase how frequent soldier shoot in each level.
+That includes the first level after completing the game. Either due to a bug,
+or due to a last minute fix, this behavior was disabled.
+
+See `SHOOT_FREQ_MASK` in [main.asm] for more info.
+
+#### Level 2
+
 Apparently, the original idea was to ship Commando with 4 levels instead of 3.
 There is a lot of code/data that indicates that a "level 2" (the levels that are
 shipped with Commando are level 0, 1 and 3) was in progress, or even finished.

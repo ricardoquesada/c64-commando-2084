@@ -178,7 +178,7 @@ LIVES = $0500
 a0501 = $0501                   ;unused
 a0502 = $0502                   ;unused
 IS_HERO_DEAD = $0503            ;0: hero alive, 1:was shot, 2:fell down in trench
-SHOOT_FREQ_MASK = $0504
+SHOOT_FREQ_MASK = $0504         ;How frequent soliders can shoot
 HISCORE_IS_BULLET_ANIM = $0505  ;1: if the bullet in hiscore is being animated
 HISCORE_NAME = $0506            ;8 chars reserved for the hiscore name ($0506-$050E)
 HISCORE_NAME_IDX = $050F        ;Index to the hiscore name
@@ -4384,10 +4384,10 @@ _L00    LDA ENEMIES_IN_FORT
         JSR GET_RANDOM
         AND #$7F     ;#%01111111
         BNE b2CC0
-        LDA #$3F
-        STA SHOOT_FREQ_MASK
+        LDA #$3F                ;FIXME: overrides SHOT_FREQ_MASK set by SETUP_LEVEL
+        STA SHOOT_FREQ_MASK     ;Either a bug, or a last minute "fix".
         DEC ENEMIES_IN_FORT
-        BNE _L01        ;FIXME: probably an "RTS" is missing here?
+        BNE _L01                ;FIXME: probably an "RTS" is missing here?
 
 _L01    LDA LEVEL_NR
         AND #$03
@@ -5272,7 +5272,7 @@ _L06    LDA pFB,b
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; related to shoot
 j33D0   LDA SPRITES_TMP_C05,X
-        AND SHOOT_FREQ_MASK
+        AND SHOOT_FREQ_MASK             ;cooldown for solider shooting
         BNE _L01
 
         ; Find empty seat
@@ -6696,7 +6696,8 @@ f3ECE   .BYTE $60,$80,$80,$A0
 
         ;Mask regarding how frequent sholdiers shoot.
         ;Not Used since it is overriden by TYPE_ANIM_SPAWN_SOLDIER
-f3ED2   .BYTE $3F,$1F,$0F,$0F,$0F,$0F,$0F,$0F
+f3ED2   .BYTE $3F,$1F,$0F,$0F       ;Mask for level 0-3
+        .BYTE $0F,$0F,$0F,$0F       ;Mask for level 0-3, 2nd loop
 
         ; Restart row index for each level.
 f3EDA   .BYTE $13,$3D,$61,$83,$AF   ;LVL0
