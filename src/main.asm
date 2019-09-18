@@ -7273,15 +7273,15 @@ SETUP_SCREEN            ;$4067
         ; set rows 21 and 23 with text and color
         LDX #$00
 _L00    LDA STATUS_BAR_TXT,X
-        STA fE348,X  ;row 21
-        LDA #$01     ;#%00000001
-        STA fDB48,X  ;white for row 21
-        LDA #$20     ;#%00100000
-        STA fE398,X  ;row 23
-        LDA #$00     ;#%00000000
-        STA fDB98,X  ;black for row 23
+        STA fE348,X     ;row 21
+        LDA #$01        ;#%00000001
+        STA fDB48,X     ;white for row 21
+        LDA #$20        ;#%00100000
+        STA fE398,X     ;row 23
+        LDA #$00
+        STA fDB98,X     ;black for row 23
         INX
-        CPX #$28     ;#%00101000
+        CPX #$28        ;#%00101000
         BNE _L00
 
         JSR SCREEN_REFRESH_SCORE
@@ -7289,14 +7289,13 @@ _L00    LDA STATUS_BAR_TXT,X
         JSR SCREEN_REFRESH_LIVES
         JSR SCREEN_REFRESH_HISCORE
 
-        LDA #$FF     ;#%11111111
-        STA $D015    ;Sprite display Enable
-        LDA #$FF     ;#%11111111
-        STA $D01C    ;Sprites Multi-Color Mode Select
-        LDA #$0F     ;#%00001111
-        STA $D025    ;Sprite Multi-Color Register 0
-        LDA #$00     ;#%00000000
-        STA $D026    ;Sprite Multi-Color Register 1
+        LDA #$FF
+        STA $D015       ;Sprite display Enable
+        STA $D01C       ;Sprites Multi-Color Mode Select
+        LDA #$0F        ;white
+        STA $D025       ;Sprite Multi-Color Register 0
+        LDA #$00        ;black
+        STA $D026       ;Sprite Multi-Color Register 1
         RTS
 
 LEVEL_COLOR_RAM         ;$40DA
@@ -7392,10 +7391,10 @@ IRQ_B   NOP
         LDA #%00010111  ;raster MSB=0, Externded color=0, bitmap=0, screen enabled (1)
         STA $D011       ; 24rows (0), smooth scroll (111)
 
-        LDA #$01     ;white
-        STA $D022    ;Background Color 1, Multi-Color Register 0
-        LDA #$02     ;red
-        STA $D023    ;Background Color 2, Multi-Color Register 1
+        LDA #$01        ;white
+        STA $D022       ;Background Color 1, Multi-Color Register 0
+        LDA #$02        ;red
+        STA $D023       ;Background Color 2, Multi-Color Register 1
 
         ; Playing music outside IRQ migth avoid certain flickers during gameplay.
         ; Ideally all music should be played outside, but it is easier (but horrible)
@@ -7413,7 +7412,7 @@ _L00
         STX $0314
         STY $0315
 
-        ASL $D019    ;VIC Interrupt Request Register (IRR)
+        ASL $D019       ;VIC Interrupt Request Register (IRR)
 
         #DEC_D020
 
@@ -7483,14 +7482,14 @@ IRQ_C
         ; Not sure whether this logic is a bug or a feature
         LDA Z_SPRITES_IDX_Y+3
         CLC
-        ADC #$14     ;20 pixels below. Each sprite has 21 pixels.
+        ADC #$14                ;20 pixels below. Each sprite has 21 pixels.
 .ENDIF  ;ENABLE_NEW_IRQ_C != 1
         CMP $D012
         BCC IRQ_D               ;Jump, too late for IRQ
         STA $D012
 
 ;        LDA $D011
-;        AND #%01111111              ;Turn off raster MSB
+;        AND #%01111111          ;Turn off raster MSB
 ;        STA $D011
 
         LDX #<IRQ_D
@@ -7498,7 +7497,7 @@ IRQ_C
         STX $0314
         STY $0315
 
-        ASL $D019       ;VIC Interrupt Request Register (IRR)
+        ASL $D019               ;VIC Interrupt Request Register (IRR)
 
         PLA
         TAY
@@ -7540,7 +7539,7 @@ IRQ_D   ;$4284
 
         LDA #$D5
         CMP $D012
-        BCC _JMP_IRQ_A           ;Too late for IRQ. Jump directly.
+        BCC _JMP_IRQ_A          ;Too late for IRQ. Jump directly.
         STA $D012               ;Raster Position
         LDA $D011
         AND #%01111111          ;Turn off raster MSB
@@ -7551,7 +7550,7 @@ IRQ_D   ;$4284
         STX $0314
         STY $0315
 
-        ASL $D019       ;VIC Interrupt Request Register (IRR)
+        ASL $D019               ;VIC Interrupt Request Register (IRR)
 
         PLA
         TAY
@@ -7601,11 +7600,11 @@ IRQ_D   ;$4284
         SEC
         SBC #$02
         CMP $D012
-        BCC IRQ_E       ;Too late for IRQ. Jump directly.
-        STA $D012       ;Raster Position
+        BCC IRQ_E               ;Too late for IRQ. Jump directly.
+        STA $D012               ;Raster Position
 
         LDA $D011
-        AND #%01111111              ;Turn off raster MSB
+        AND #%01111111          ;Turn off raster MSB
         STA $D011
 
         LDX #<IRQ_E
@@ -7613,7 +7612,7 @@ IRQ_D   ;$4284
         STX $0314
         STY $0315
 
-        ASL $D019       ;VIC Interrupt Request Register (IRR)
+        ASL $D019               ;VIC Interrupt Request Register (IRR)
 
         PLA
         TAY
@@ -7673,7 +7672,7 @@ IRQ_E
         STX $0314
         STY $0315
 
-        ASL $D019    ;VIC Interrupt Request Register (IRR)
+        ASL $D019                   ;VIC Interrupt Request Register (IRR)
 
         PLA
         TAY
