@@ -4382,8 +4382,8 @@ _L00    LDA ENEMIES_IN_FORT
         JSR GET_RANDOM
         AND #$7F     ;#%01111111
         BNE b2CC0
-        LDA #$3F                ;FIXME: overrides SHOT_FREQ_MASK set by SETUP_LEVEL
-        STA SHOOT_FREQ_MASK     ;Either a bug, or a last minute "fix".
+        LDA #$3F                ;Restore frequency to normal at the end of level
+        STA SHOOT_FREQ_MASK
         DEC ENEMIES_IN_FORT
         BNE _L01                ;FIXME: probably an "RTS" is missing here?
 
@@ -6662,7 +6662,6 @@ _L01    STA V_SCROLL_ROW_IDX
         LDA #$00
         STA IS_LEVEL_COMPLETE
 
-        ; FIXME: Overriden by TYPE_ANIM_SPAWN_SOLDIER. Remove me.
         LDA LEVEL_NR
         AND #$07     ;#%00000111
         TAX
@@ -6693,7 +6692,6 @@ _L03    RTS
 f3ECE   .BYTE $60,$80,$80,$A0
 
         ;Mask regarding how frequent sholdiers shoot.
-        ;Not Used since it is overriden by TYPE_ANIM_SPAWN_SOLDIER
 f3ED2   .BYTE $3F,$1F,$0F,$0F       ;Mask for level 0-3
         .BYTE $0F,$0F,$0F,$0F       ;Mask for level 0-3, 2nd loop
 
