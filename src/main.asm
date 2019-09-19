@@ -25,9 +25,6 @@ ENABLE_NEW_RENDER_VIEWPORT = 1  ;Slighty faster viewport render version
 
 ; Behavior changes
 ENABLE_DOUBLE_JOYSTICKS = 1     ;One joystick for hero direction, the other for shot direction
-ENABLE_INTENDED_DIFFICULTY = 1  ;Soldiers shoot with higher freq in higher levels
-                                ; Apparently this was the intended difficulty but was
-                                ; disabled by a bug, or a last minute fix.
 ENABLE_GAMEOVER_IN_LVL4 = 1     ;If enabled, game does not loop when L3 is complete
 ENABLE_NEW_LIFE_WHEN_SCORING = 0;If enabled, allows extra life when scoring 10000 points.
                                 ; Disabled, since unijoysticle mode is too easy.
@@ -4517,10 +4514,8 @@ _L00    LDA ENEMIES_IN_FORT
         JSR GET_RANDOM
         AND #$7F        ;#%01111111
         BNE b2CC0
-.IF ENABLE_INTENDED_DIFFICULTY == 0
-        LDA #$3F        ;The bigger the mask, the slower the freq.
+        LDA #$3F        ;Restore mask to "slow" at end of level
         STA SHOOT_FREQ_MASK
-.ENDIF
         DEC ENEMIES_IN_FORT
         BNE _L01        ;FIXME: Probably a RTS is missing here?
 
@@ -6856,7 +6851,6 @@ _L01    STA V_SCROLL_ROW_IDX
         STA IS_LEVEL_COMPLETE
         STA FIRE_COOLDOWN
 
-        ; FIXME: not used since it is overriden by TYPE_ANIM_SPAWN_SOLDIER
         LDA LEVEL_NR
         AND #$07     ;#%00000111
         TAX
@@ -6886,7 +6880,7 @@ _L03    RTS
         ; lvl0=$6000,lvl1=$8000,...
 f3ECE   .BYTE $60,$80,$80,$A0
 
-        ;Supports up to 8 levels. Shoot frequency maks for soliders
+        ;Supports up 2 loops. Shoot frequency maks for soliders
 f3ED2   .BYTE $3F,$1F,$0F,$0F           ;For levels 0-3
         .BYTE $0F,$0F,$0F,$0F           ;For levels 0-3, 2nd loop
 

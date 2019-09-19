@@ -15,8 +15,6 @@ It is like Commando, but with the Robotron 2084 controls. Changes made to the or
 * Difficulty increased, otherwise the game would be too easy to play:
   * No extra lives
   * 28 soldiers are inside forts, instead of 20
-  * Soldiers shoot at faster frequency in higher levels
-    * Apparently this was the intended behavior, but due to a bug(?) or last minute-fix(?) this feature was disabled in the original Commando
 * Flickers were reduced, but there are still a few. Changes made to reduce flickering:
   * Uses double-buffer multiplexer
   * Faster sorting algorithm
