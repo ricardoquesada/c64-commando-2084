@@ -3232,9 +3232,20 @@ _L01    LDA SPRITES_TYPE05,Y
         CMP #$1A        ;anim_type_1A: boss lvl0
         BEQ _IS_BOSS
         CMP #$29        ;anim_type_29: boss lvl1
-        BEQ _IS_BOSS
+        BEQ _IS_BOSS_LVL1
         CMP #$2A        ;anim_type_2A: boss lvl3
         BNE _L02
+
+        ; BOSS_LVL3
+        LDA #$07        ;SFX "space sound"
+        JSR SFX_PLAY
+        JMP _IS_BOSS
+
+_IS_BOSS_LVL1:
+        LDA #$03        ;SFX "robot"
+        JSR SFX_PLAY
+
+        ; Fall-through
 
 _IS_BOSS
         LDA #$BC        ;"2000" sprite frame

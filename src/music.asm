@@ -34,11 +34,19 @@ s5006   JMP j5F48
 ;  $00 = pick up grenade
 ;  $01 = throw grenade
 ;  $02 = turret destroyed
+;  $03 = robotic sound (not used in orig game)
 ;  $04 = hero dead
 ;  $05 = cart going up (lvl1)
+;  $06 = kind of car/cart sound (not used in orig game)
+;  $07 = space sound (not used in orig game)
+;  $08 = shooting (not used in orig game)
 ;  $09 = fire in fort (lvl3)
+;  $0A = ? (not used in orig game)
 ;  $0B = hiscore shoot
 ;  $0C = new life
+;  $0D = ? (not used in orig game)
+;  $0E = ? (not used in orig game)
+;  $0F = ? (not used in orig game)
 SFX_PLAY
         JMP j5F56
 
