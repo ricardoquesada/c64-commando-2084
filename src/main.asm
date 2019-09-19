@@ -4589,6 +4589,7 @@ _L05    JSR GET_RANDOM
         JSR GET_RANDOM
         AND #$FF     ;#%11111111
         BNE _L09
+
         JSR GET_RANDOM
         STA TMP_SPRITE_X_LO
         LDA #$28

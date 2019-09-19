@@ -4,6 +4,9 @@
 ;
 ; Music routine
 ;
+; p5D/p5E -> pointer to current song
+; p5F/p60 -> pointer to current pattern
+;
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; Not analized. Might be very similar to the one analized here:
 ; http://www.1xn.org/text/C64/rob_hubbards_music.txt
@@ -78,9 +81,9 @@ b505F   LDA f54E8,X
         LDA a5513
         CMP a5517
         BNE b5083
-        LDA f56F9,X
+        LDA CURR_SONG_LO,X
         STA p5D
-        LDA f56FC,X
+        LDA CURR_SONG_HI,X
         STA p5E
         DEC f54F2,X
         BMI b5086
@@ -653,8 +656,10 @@ f5608   .BYTE $18,$60,$38,$58,$80,$11,$81,$0A
         .BYTE $4F,$50,$30,$09,$80,$08,$81,$09
         .BYTE $00,$00,$02,$00,$02,$81,$09,$00
         .BYTE $07
-f56F9   .BYTE $00,$00,$00
-f56FC   .BYTE $00,$00,$00
+CURR_SONG_LO        ;$56F9
+        .BYTE $00,$00,$00
+CURR_SONG_HI        ;$56FC
+        .BYTE $00,$00,$00
 
 SONG0_LIST = [SONG0_V0,SONG0_V1,SONG0_V2]
 SONG1_LIST = [SONG1_V0,SONG1_V1,SONG1_V2]
@@ -1044,7 +1049,7 @@ MUSIC_INIT_REAL
         ADC a5504
         TAX
 _L00    LDA SONGS_TBL,X
-        STA f56F9,Y
+        STA CURR_SONG_LO,Y
         INX
         INY
         CPY #$06     ;#%00000110
