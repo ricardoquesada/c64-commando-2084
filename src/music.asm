@@ -105,9 +105,9 @@ b5099   LDA #$00     ;#%00000000
         JMP j538F
 
 b50AA   TAY
-        LDA SFX_TBL_LO,Y
+        LDA PATTERNS_TBL_LO,Y
         STA p5F
-        LDA SFX_TBL_HI,Y
+        LDA PATTERNS_TBL_HI,Y
         STA p60
         LDA #$00     ;#%00000000
         STA f5520,X
@@ -551,7 +551,7 @@ s5531   LDA #$00     ;#%00000000
         STA $D404    ;Voice 1: Control Register
         STA $D40B    ;Voice 2: Control Register
         STA a552A
-        LDA a5527
+        LDA a5527       ;SFX to play
         AND #$0F     ;#%00001111
         STA a5527
         ASL A
@@ -610,6 +610,7 @@ f5598   .BYTE $00,$80,$01,$41,$06,$4B,$00,$00
         .BYTE $0D,$00,$02,$43,$07,$09,$01,$00
         .BYTE $01,$00,$08,$41,$09,$0A,$00,$00
         .BYTE $01
+
 f55F9   .BYTE $10
 f55FA   .BYTE $50,$24,$80,$11
 f55FE   .BYTE $11,$7C,$30
@@ -649,23 +650,25 @@ f5608   .BYTE $18,$60,$38,$58,$80,$11,$81,$0A
 f56F9   .BYTE $00,$00,$00
 f56FC   .BYTE $00,$00,$00
 
-MUSIC_LIST_V0 = [a576B,a57AC,a57EC]
-MUSIC_LIST_V1 = [a5868,a5872,a5874]
-MUSIC_LIST_V2 = [a587E,a5881,a5884]
+SONG0_LIST = [SONG0_V0,SONG0_V1,SONG0_V2]
+SONG1_LIST = [SONG1_V0,SONG1_V1,SONG1_V2]
+SONG2_LIST = [SONG2_V0,SONG2_V1,SONG2_V2]
 
-f56FF   .BYTE <MUSIC_LIST_V0
-        .BYTE >MUSIC_LIST_V0
+SONGS_TBL               ;$56FF
+        .BYTE <SONG0_LIST
+        .BYTE >SONG0_LIST
 
-        .BYTE <MUSIC_LIST_V1
-        .BYTE >MUSIC_LIST_V1
+        .BYTE <SONG1_LIST
+        .BYTE >SONG1_LIST
 
-        .BYTE <MUSIC_LIST_V2
-        .BYTE >MUSIC_LIST_V2
+        .BYTE <SONG2_LIST
+        .BYTE >SONG2_LIST
+
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Table for songs/sfx (?)
+; Patterns table
 ; 45 enties.
-SFX_LIST = [
+PATTERNS_LIST = [
         a5887,a5CCD,a5CE3,a5CF9,
         a5D0F,a5D25,a5D3B,a5889,
         a58FA,a5988,a5941,a5D51,
@@ -679,13 +682,14 @@ SFX_LIST = [
         a5E5C,a5E7F,a5E91,a5EBA,
         a5EE3]
 
-SFX_TBL_LO
-        .BYTE <SFX_LIST
-SFX_TBL_HI
-        .BYTE >SFX_LIST
+PATTERNS_TBL_LO
+        .BYTE <PATTERNS_LIST
+PATTERNS_TBL_HI
+        .BYTE >PATTERNS_LIST
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-a576B   .BYTE $13,$13,$13
+SONG0_V0            ;$576B
+        .BYTE $13,$13,$13
         .BYTE $13,$07,$07,$09,$0C,$0C,$10,$10
         .BYTE $10,$10,$0F,$0F,$11,$11,$12,$17
         .BYTE $17,$17,$17,$17,$17,$17,$17,$10
@@ -694,7 +698,8 @@ a576B   .BYTE $13,$13,$13
         .BYTE $1C,$1D,$1D,$1D,$1D,$1E,$1E,$1E
         .BYTE $1E,$0F,$17,$17,$1F,$10,$10,$17
         .BYTE $11,$17,$12,$17,$1F,$FF
-a57AC   .BYTE $08,$08
+SONG0_V1            ;$57AC
+        .BYTE $08,$08
         .BYTE $08,$0A,$08,$0A,$08,$08,$08,$13
         .BYTE $13,$14,$14,$14,$14,$15,$15,$16
         .BYTE $16,$18,$18,$18,$18,$18,$18,$18
@@ -703,7 +708,8 @@ a57AC   .BYTE $08,$08
         .BYTE $13,$13,$13,$13,$14,$14,$14,$14
         .BYTE $14,$14,$18,$18,$1F,$13,$18,$15
         .BYTE $18,$16,$16,$18,$1F,$FF
-a57EC   .BYTE $01,$01
+SONG0_V2            ;$57EC
+        .BYTE $01,$01
         .BYTE $02,$03,$01,$01,$02,$03,$01,$01
         .BYTE $02,$03,$04,$04,$05,$06,$01,$01
         .BYTE $02,$03,$04,$04,$05,$06,$01,$0B
@@ -720,14 +726,20 @@ a57EC   .BYTE $01,$01
         .BYTE $0E,$0E,$19,$19,$1F,$01,$0B,$19
         .BYTE $0B,$0B,$19,$03,$03,$03,$03,$19
         .BYTE $1F,$FF
-a5868   .BYTE $24,$25,$24,$26,$27,$24
+SONG1_V0            ;$5868
+        .BYTE $24,$25,$24,$26,$27,$24
         .BYTE $26,$28,$28,$FF
-a5872   .BYTE $29,$FF
-a5874   .BYTE $20,$20
+SONG1_V1            ;$5872
+        .BYTE $29,$FF
+SONG1_V2            ;$5874
+        .BYTE $20,$20
         .BYTE $22,$21,$20,$23,$23,$23,$23,$FF
-a587E   .BYTE $2A,$00,$FE
-a5881   .BYTE $2B,$00,$FE
-a5884   .BYTE $2C,$00,$FE
+SONG2_V0            ;$587E
+        .BYTE $2A,$00,$FE
+SONG2_V1            ;$5881
+        .BYTE $2B,$00,$FE
+SONG2_V2            ;$5884
+        .BYTE $2C,$00,$FE
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 a5887   .BYTE $5F,$FF
@@ -980,7 +992,7 @@ MUSIC_INIT_REAL
         CLC
         ADC a5504
         TAX
-_L00    LDA f56FF,X
+_L00    LDA SONGS_TBL,X
         STA f56F9,Y
         INX
         INY
