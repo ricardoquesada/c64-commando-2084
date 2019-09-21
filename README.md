@@ -12,6 +12,7 @@ It is like Commando, but with the Robotron 2084 controls. Changes made to the or
   * Autofire is enabled
   * 'Space' to throw grenades.
 * Levels 2 and 3 have bosses (enemies taken from Robotron 2084)
+  * The SFX used when these bossed are killed, are unused SFX from the original Commando.
 * Difficulty increased, otherwise the game would be too easy to play:
   * No extra lives
   * 28 soldiers are inside forts, instead of 20

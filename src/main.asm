@@ -334,6 +334,7 @@ RESTART
         JSR SETUP_SCREEN
         JSR SETUP_IRQ
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
         ; Main loop
 GAME_LOOP            ;$08CB
         #WAIT_RASTER_AT_BOTTOM
@@ -7356,6 +7357,8 @@ IRQ_A   NOP
         STA fE3F8+3
 
         LDA #$DE
+        CMP $D012
+        BCC IRQ_B       ;Already late, jump
         STA $D012       ;Raster Position
 
         LDX #<IRQ_B
