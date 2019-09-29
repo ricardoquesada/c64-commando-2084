@@ -1,8 +1,9 @@
 # Commando 2084 for the Commodore 64
 
-![commando64](https://lh3.googleusercontent.com/CYbhcN1rpUhmLYNjEJ1w2DxtG3BkMeSQivqskxLK_rCTjKBnLBx7NkcdiBmSv_jQO3F6XWBgF4CcEd3vuuD8v5Tt-2_hxgNaQTSJWNAdHLd1vbYC673Ut_IE0uCMeJ0U-NVQNpo7IZQ=-no)
+[![Commando 2084](https://img.youtube.com/vi/iXdx9jOd0Ho/0.jpg)](https://www.youtube.com/watch?v=iXdx9jOd0Ho)
 
 Commando 2084 is game for the Commodoreo 64.
+
 
 It is like Commando, but with the Robotron 2084 controls. Changes made to the original Commando:
 
@@ -30,6 +31,10 @@ It is like Commando, but with the Robotron 2084 controls. Changes made to the or
 * Misc fixes
 
 [unijoysticle]: https://retro.moe/unijoysticle2/
+
+## Screenshots
+
+![commando64](https://lh3.googleusercontent.com/CYbhcN1rpUhmLYNjEJ1w2DxtG3BkMeSQivqskxLK_rCTjKBnLBx7NkcdiBmSv_jQO3F6XWBgF4CcEd3vuuD8v5Tt-2_hxgNaQTSJWNAdHLd1vbYC673Ut_IE0uCMeJ0U-NVQNpo7IZQ=-no)
 
 ## Download
 
